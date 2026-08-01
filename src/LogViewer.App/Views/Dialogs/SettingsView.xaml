@@ -1,0 +1,46 @@
+<Window x:Class="LogViewer.App.Views.Dialogs.SettingsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Settings"
+        Width="380" Height="480"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Default window mode" />
+            <ComboBox ItemsSource="{Binding AvailableWindowModes}" SelectedItem="{Binding DefaultWindowMode}" Margin="0,2,0,10" />
+
+            <TextBlock Text="Ring buffer capacity (lines kept in memory per document)" TextWrapping="Wrap" />
+            <TextBox Text="{Binding RingBufferCapacity, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
+
+            <TextBlock Text="UI refresh interval (ms)" />
+            <TextBox Text="{Binding UiRefreshIntervalMs, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
+
+            <CheckBox Content="Restore previous session on startup" IsChecked="{Binding RestorePreviousSessionOnStartup}" Margin="0,0,0,10" />
+
+            <CheckBox Content="Reduce UI redraw rate when running over Remote Desktop" IsChecked="{Binding AutoTuneForRemoteDesktop}" Margin="0,0,0,10" />
+
+            <TextBlock Text="Theme" />
+            <Grid Margin="0,2,0,0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <ComboBox Grid.Column="0" ItemsSource="{Binding AvailableThemes}" SelectedItem="{Binding SelectedTheme}"
+                          DisplayMemberPath="Name" />
+                <Button Grid.Column="2" Content="Manage Themes..." Command="{Binding ManageThemesCommand}" />
+            </Grid>
+        </StackPanel>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="OK" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
+            <Button Content="Cancel" Width="80" Click="OnCancelClick" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

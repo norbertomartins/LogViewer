@@ -1,0 +1,119 @@
+<Window x:Class="LogViewer.App.Views.Shell.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:xcad="https://github.com/Dirkster99/AvalonDock"
+        xmlns:vm="clr-namespace:LogViewer.App.ViewModels"
+        xmlns:views="clr-namespace:LogViewer.App.Views.Documents"
+        xmlns:shell="clr-namespace:LogViewer.App.Views.Shell"
+        xmlns:tb="http://www.hardcodet.net/taskbar"
+        Title="{Binding WindowTitle}"
+        Height="700" Width="1100"
+        AllowDrop="True"
+        Drop="OnDrop"
+        DragOver="OnDragOver"
+        Loaded="OnLoaded"
+        Closing="OnClosing">
+    <Window.InputBindings>
+        <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenFileCommand}" />
+        <KeyBinding Key="F3" Command="{Binding ActiveDocument.NextHighlightCommand}" />
+        <KeyBinding Key="F3" Modifiers="Shift" Command="{Binding ActiveDocument.PreviousHighlightCommand}" />
+        <KeyBinding Key="F2" Command="{Binding ActiveDocument.NextBookmarkCommand}" />
+        <KeyBinding Key="F2" Modifiers="Shift" Command="{Binding ActiveDocument.PreviousBookmarkCommand}" />
+        <KeyBinding Key="F2" Modifiers="Control" Command="{Binding ActiveDocument.ToggleBookmarkCommand}" />
+        <KeyBinding Key="F" Modifiers="Control+Shift" Command="{Binding ActiveDocument.SearchCommand}" />
+    </Window.InputBindings>
+
+    <DockPanel>
+        <tb:TaskbarIcon x:Name="TrayIcon"
+                         ToolTipText="LogViewer"
+                         TrayMouseDoubleClick="OnTrayShowClick"
+                         Visibility="Collapsed">
+            <tb:TaskbarIcon.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Show LogViewer" Click="OnTrayShowClick" FontWeight="Bold" />
+                    <Separator />
+                    <MenuItem Header="Exit" Command="{Binding ExitCommand}" />
+                </ContextMenu>
+            </tb:TaskbarIcon.ContextMenu>
+        </tb:TaskbarIcon>
+
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open File..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
+                <MenuItem Header="Open _Directory (Watch)..." Command="{Binding OpenDirectoryWatchCommand}" />
+                <MenuItem Header="Open _Windows Event Log..." Command="{Binding OpenEventLogCommand}" />
+                <MenuItem Header="Recent Files" ItemsSource="{Binding RecentFiles}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding Path}" />
+                            <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=Menu}, Path=DataContext.OpenRecentFileCommand}" />
+                            <Setter Property="CommandParameter" Value="{Binding Path}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Mi_nimize to Tray" Click="OnMinimizeToTrayClick" />
+                <Separator />
+                <MenuItem Header="E_xit" Command="{Binding ExitCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Window Mode">
+                <MenuItem Header="_Tabbed" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Tabbed" />
+                <MenuItem Header="_Floating" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Floating" />
+                <MenuItem Header="_MDI" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Mdi" />
+            </MenuItem>
+            <MenuItem Header="_Tools">
+                <MenuItem Header="_Highlight Rules..." Command="{Binding EditHighlightRulesCommand}" />
+                <MenuItem Header="External _Tools..." Command="{Binding EditExternalToolsCommand}" />
+                <MenuItem Header="_Windows Services..." Command="{Binding OpenServicesCommand}" />
+                <MenuItem Header="_Settings..." Command="{Binding OpenSettingsCommand}" />
+            </MenuItem>
+        </Menu>
+
+        <StatusBar DockPanel.Dock="Bottom">
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}" />
+            </StatusBarItem>
+        </StatusBar>
+
+        <Grid>
+            <xcad:DockingManager x:Name="DockManager"
+                                  DocumentsSource="{Binding Documents}"
+                                  ActiveContent="{Binding ActiveDocument, Mode=TwoWay}"
+                                  Background="{DynamicResource Theme.LogBackground}"
+                                  Visibility="{Binding Host.IsMdiMode, Converter={StaticResource InverseBoolToVisibilityConverter}}">
+                <!-- Without an explicit Theme, AvalonDock relies on its assembly's own Generic.xaml being
+                     auto-resolved as the default style for its controls — which silently breaks under WPF's
+                     Fluent ThemeMode (see ThemeService), leaving some AvalonDock control templates only
+                     partially applied. That's what crashed floating-window dragging: OverlayWindow.OnApplyTemplate
+                     found several named template parts null (their template never really applied) and NREd the
+                     moment a float drag asked it to show drop-target indicators. GenericTheme merges AvalonDock's
+                     resource dictionary explicitly instead of relying on that auto-resolution. -->
+                <xcad:DockingManager.Theme>
+                    <xcad:GenericTheme />
+                </xcad:DockingManager.Theme>
+                <xcad:DockingManager.LayoutItemTemplate>
+                    <DataTemplate DataType="{x:Type vm:TailDocumentViewModel}">
+                        <views:TailDocumentView />
+                    </DataTemplate>
+                </xcad:DockingManager.LayoutItemTemplate>
+                <xcad:DockingManager.LayoutItemContainerStyle>
+                    <Style TargetType="{x:Type xcad:LayoutItem}">
+                        <!-- AvalonDock's LayoutItem exposes no Background/Foreground styling surface for tab
+                             headers, so per-document color customization only reaches the tab text via the
+                             glyph baked into DisplayTitle — full color-coded tabs are MDI-mode only (see
+                             MdiChildWindowControl's title-bar background). -->
+                        <Setter Property="Title" Value="{Binding Model.DisplayTitle}" />
+                        <Setter Property="ContentId" Value="{Binding Model.SourcePath}" />
+                    </Style>
+                </xcad:DockingManager.LayoutItemContainerStyle>
+                <xcad:LayoutRoot>
+                    <xcad:LayoutPanel Orientation="Horizontal">
+                        <xcad:LayoutDocumentPane />
+                    </xcad:LayoutPanel>
+                </xcad:LayoutRoot>
+            </xcad:DockingManager>
+
+            <shell:MdiHostView Visibility="{Binding Host.IsMdiMode, Converter={StaticResource BoolToVisibilityConverter}}" />
+        </Grid>
+    </DockPanel>
+</Window>

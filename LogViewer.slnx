@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/LogViewer.App/LogViewer.App.csproj" />
+    <Project Path="src/LogViewer.Core/LogViewer.Core.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/LogViewer.Core.Tests/LogViewer.Core.Tests.csproj" />
+  </Folder>
+</Solution>

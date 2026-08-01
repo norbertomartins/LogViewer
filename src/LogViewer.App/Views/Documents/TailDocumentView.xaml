@@ -1,0 +1,84 @@
+<UserControl x:Class="LogViewer.App.Views.Documents.TailDocumentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:LogViewer.App.Models">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ToolBar Grid.Row="0" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
+            <ToggleButton Content="Follow Tail" IsChecked="{Binding IsFollowingTail}" />
+            <Separator />
+            <Button Content="Toggle Bookmark" Command="{Binding ToggleBookmarkCommand}" ToolTip="Ctrl+F2" />
+            <Button Content="◀ Bookmark" Command="{Binding PreviousBookmarkCommand}" ToolTip="Shift+F2" />
+            <Button Content="Bookmark ▶" Command="{Binding NextBookmarkCommand}" ToolTip="F2" />
+            <Separator />
+            <Button Content="◀ Highlight" Command="{Binding PreviousHighlightCommand}" ToolTip="Shift+F3" />
+            <Button Content="Highlight ▶" Command="{Binding NextHighlightCommand}" ToolTip="F3" />
+            <Separator />
+            <Menu Background="Transparent">
+                <MenuItem Header="Run Tool ▶" ItemsSource="{Binding ExternalTools}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding Name}" />
+                            <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=Menu}, Path=DataContext.RunExternalToolCommand}" />
+                            <Setter Property="CommandParameter" Value="{Binding}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+            </Menu>
+            <Button Content="Search..." Command="{Binding SearchCommand}" ToolTip="Ctrl+Shift+F" />
+            <Button Content="Customize..." Command="{Binding CustomizeCommand}" />
+            <Separator />
+            <Button Content="New lines below — resume follow" Command="{Binding ResumeFollowCommand}"
+                    Visibility="{Binding HasUnseenChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
+        </ToolBar>
+
+        <ListView Grid.Row="1" x:Name="LineListView"
+                  ItemsSource="{Binding Lines}"
+                  SelectedItem="{Binding SelectedLine, Mode=TwoWay}"
+                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  VirtualizingPanel.ScrollUnit="Pixel"
+                  Style="{StaticResource LogListViewStyle}"
+                  FontFamily="Consolas" FontSize="12">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource LogListViewItemStyle}">
+                    <Setter Property="Background" Value="{Binding Background}" />
+                    <Setter Property="Foreground" Value="{Binding Foreground}" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate DataType="{x:Type models:LogLineViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="18" />
+                            <ColumnDefinition Width="60" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
+                        <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" />
+                        <TextBlock Grid.Column="2" Text="{Binding Text}" />
+                    </Grid>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <StatusBar Grid.Row="2" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
+            <StatusBar.Template>
+                <ControlTemplate TargetType="StatusBar">
+                    <Border Background="{TemplateBinding Background}">
+                        <ItemsPresenter />
+                    </Border>
+                </ControlTemplate>
+            </StatusBar.Template>
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}" />
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</UserControl>

@@ -1,0 +1,39 @@
+using LogViewer.Core.ExternalTools;
+using LogViewer.Core.Highlighting;
+using LogViewer.Core.Theming;
+
+namespace LogViewer.Core.Configuration;
+
+/// <summary>
+/// Root persisted application settings. <see cref="SchemaVersion"/> lets <see cref="JsonSettingsStore"/>
+/// run forward-compatible migrations as later phases add fields (e.g. EventLog filters).
+/// </summary>
+public sealed class AppSettings
+{
+    public int SchemaVersion { get; set; } = 3;
+
+    public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
+
+    public List<TailSourceSettings> RecentSources { get; set; } = [];
+
+    public List<HighlightRule> GlobalHighlightRules { get; set; } = [];
+
+    public List<ExternalToolDefinition> ExternalTools { get; set; } = [];
+
+    public WindowLayoutSettings Layout { get; set; } = new();
+
+    /// <summary>Id of the active theme — one of <see cref="BuiltInThemes"/> or an entry in <see cref="CustomThemes"/>.</summary>
+    public string ActiveThemeId { get; set; } = BuiltInThemes.LightId;
+
+    /// <summary>User-created themes (via duplicate-and-edit). Built-in themes are never stored here.</summary>
+    public List<AppTheme> CustomThemes { get; set; } = [];
+
+    public int RingBufferCapacity { get; set; } = 50_000;
+
+    public int UiRefreshIntervalMs { get; set; } = 100;
+
+    public bool RestorePreviousSessionOnStartup { get; set; } = true;
+
+    /// <summary>When true, the UI redraw batching interval is widened automatically under a Remote Desktop session.</summary>
+    public bool AutoTuneForRemoteDesktop { get; set; } = true;
+}

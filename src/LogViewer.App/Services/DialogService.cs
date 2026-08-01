@@ -1,0 +1,183 @@
+using System.Windows;
+using LogViewer.App.ViewModels;
+using LogViewer.App.Views.Dialogs;
+using LogViewer.Core.Configuration;
+using LogViewer.Core.EventLogging;
+using LogViewer.Core.ExternalTools;
+using LogViewer.Core.Highlighting;
+using LogViewer.Core.Search;
+using Microsoft.Win32;
+
+namespace LogViewer.App.Services;
+
+public sealed class DialogService(ThemeService themeService) : IDialogService
+{
+    public IReadOnlyList<string>? ShowOpenFileDialog()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = "Log files (*.log;*.txt)|*.log;*.txt|All files (*.*)|*.*",
+            Multiselect = true,
+        };
+
+        return dialog.ShowDialog() == true ? dialog.FileNames : null;
+    }
+
+    public bool ShowHighlightRuleEditor(ICollection<HighlightRule> rules)
+    {
+        var viewModel = new HighlightRuleEditorViewModel(rules);
+        var window = new HighlightRuleEditorView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        if (window.ShowDialog() != true)
+        {
+            return false;
+        }
+
+        rules.Clear();
+        foreach (var rule in viewModel.ToRules())
+        {
+            rules.Add(rule);
+        }
+
+        return true;
+    }
+
+    public bool ShowExternalToolEditor(ICollection<ExternalToolDefinition> tools, IReadOnlyList<HighlightRule> availableHighlightRules)
+    {
+        var viewModel = new ExternalToolEditorViewModel(tools, availableHighlightRules);
+        var window = new ExternalToolEditorView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        if (window.ShowDialog() != true)
+        {
+            return false;
+        }
+
+        tools.Clear();
+        foreach (var tool in viewModel.ToDefinitions())
+        {
+            tools.Add(tool);
+        }
+
+        return true;
+    }
+
+    public bool ShowSettings(AppSettings settings)
+    {
+        var viewModel = new SettingsViewModel(settings, this);
+        var window = new SettingsView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        if (window.ShowDialog() != true)
+        {
+            return false;
+        }
+
+        viewModel.ApplyTo(settings);
+        themeService.Apply(themeService.ResolveActiveTheme(settings));
+        return true;
+    }
+
+    public bool ShowThemeManager(AppSettings settings)
+    {
+        var viewModel = new ThemeManagerViewModel(settings);
+        var window = new ThemeManagerView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        if (window.ShowDialog() != true)
+        {
+            return false;
+        }
+
+        settings.CustomThemes.Clear();
+        settings.CustomThemes.AddRange(viewModel.ToCustomThemes());
+        settings.ActiveThemeId = viewModel.ActiveThemeId;
+        return true;
+    }
+
+    public DirectoryWatchSelection? ShowOpenDirectoryWatchDialog(string? initialDirectoryPath = null)
+    {
+        var viewModel = new OpenDirectoryWatchViewModel(initialDirectoryPath);
+        var window = new OpenDirectoryWatchView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        return window.ShowDialog() == true
+            ? new DirectoryWatchSelection(viewModel.DirectoryPath, viewModel.Pattern, viewModel.AutoSwitchToLatestFile)
+            : null;
+    }
+
+    public EventLogSelection? ShowOpenEventLogDialog()
+    {
+        var viewModel = new OpenEventLogViewModel();
+        var window = new OpenEventLogView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        if (window.ShowDialog() != true)
+        {
+            return null;
+        }
+
+        var filters = viewModel.Filters.Select(f => f.ToRule()).ToList();
+        return new EventLogSelection(viewModel.ChannelName, filters);
+    }
+
+    public void ShowServicesDialog()
+    {
+        var window = new ServicesView
+        {
+            DataContext = new ServicesViewModel(),
+            Owner = Application.Current?.MainWindow,
+        };
+
+        window.Show();
+    }
+
+    public void ShowSearchDialog(TailDocumentViewModel document, IFullTextSearchService fileSearchService, IEventLogSearchService eventLogSearchService)
+    {
+        var window = new SearchView
+        {
+            DataContext = new SearchViewModel(document, fileSearchService, eventLogSearchService),
+            Owner = Application.Current?.MainWindow,
+        };
+
+        window.Show();
+    }
+
+    public bool ShowCustomizeDialog(TailDocumentViewModel document)
+    {
+        var viewModel = new DocumentCustomizeViewModel(document.CustomColorHex, document.CustomIconGlyph);
+        var window = new DocumentCustomizeView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        if (window.ShowDialog() != true)
+        {
+            return false;
+        }
+
+        document.CustomColorHex = viewModel.SelectedColorHex;
+        document.CustomIconGlyph = viewModel.SelectedIconGlyph;
+        return true;
+    }
+}
