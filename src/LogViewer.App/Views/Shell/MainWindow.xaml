@@ -62,7 +62,17 @@
                 <MenuItem Header="_MDI" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Mdi" />
             </MenuItem>
             <MenuItem Header="_Tools">
-                <MenuItem Header="_Highlight Rules..." Command="{Binding EditHighlightRulesCommand}" />
+                <MenuItem Header="_Highlight Presets..." Command="{Binding EditHighlightPresetsCommand}" />
+                <MenuItem Header="_Toggle Highlight Presets" ItemsSource="{Binding HighlightPresetToggles}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding Name}" />
+                            <Setter Property="IsCheckable" Value="True" />
+                            <Setter Property="IsChecked" Value="{Binding IsEnabled, Mode=TwoWay}" />
+                            <Setter Property="StaysOpenOnClick" Value="True" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
                 <MenuItem Header="External _Tools..." Command="{Binding EditExternalToolsCommand}" />
                 <MenuItem Header="_Windows Services..." Command="{Binding OpenServicesCommand}" />
                 <MenuItem Header="_Settings..." Command="{Binding OpenSettingsCommand}" />

@@ -7,6 +7,7 @@ using LogViewer.App.Services;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.ExternalTools;
+using LogViewer.Core.Highlighting;
 using LogViewer.Core.Search;
 using LogViewer.Core.Services.Diagnostics;
 using LogViewer.Core.Tailing;
@@ -66,6 +67,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _statsTimer.Tick += (_, _) => UpdateWindowTitle();
         _statsTimer.Start();
         UpdateWindowTitle();
+
+        RefreshHighlightPresetToggles();
     }
 
     private void OnThemeApplied()
@@ -221,7 +224,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var document = new TailDocumentViewModel(
             source,
             dedupKey,
-            _settings.GlobalHighlightRules,
+            _settings.HighlightPresets,
             _settings.ExternalTools,
             _settings.RingBufferCapacity,
             EffectiveUiRefreshInterval(),
@@ -287,21 +290,61 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void EditHighlightRules()
+    private void EditHighlightPresets()
     {
-        if (_dialogService.ShowHighlightRuleEditor(_settings.GlobalHighlightRules))
+        if (_dialogService.ShowHighlightPresetEditor(_settings.HighlightPresets))
         {
-            foreach (var document in Documents)
-            {
-                document.ApplyHighlightRules(_settings.GlobalHighlightRules);
-            }
+            ApplyHighlightPresetsToAllDocuments();
+            RefreshHighlightPresetToggles();
         }
+    }
+
+    private void ApplyHighlightPresetsToAllDocuments()
+    {
+        foreach (var document in Documents)
+        {
+            document.ApplyHighlightPresets(_settings.HighlightPresets);
+        }
+    }
+
+    /// <summary>Backs the toolbar's quick-toggle submenu — one entry per preset, kept in sync with
+    /// <see cref="AppSettings.HighlightPresets"/> whenever the full preset editor is used to add/remove/rename presets.</summary>
+    public ObservableCollection<HighlightPresetToggleViewModel> HighlightPresetToggles { get; } = [];
+
+    private void RefreshHighlightPresetToggles()
+    {
+        foreach (var toggle in HighlightPresetToggles)
+        {
+            toggle.EnabledChanged -= OnHighlightPresetToggleChanged;
+        }
+
+        HighlightPresetToggles.Clear();
+
+        foreach (var preset in _settings.HighlightPresets)
+        {
+            var toggle = new HighlightPresetToggleViewModel(preset.Id, preset.Name, preset.IsEnabled);
+            toggle.EnabledChanged += OnHighlightPresetToggleChanged;
+            HighlightPresetToggles.Add(toggle);
+        }
+    }
+
+    private void OnHighlightPresetToggleChanged(HighlightPresetToggleViewModel toggle, bool isEnabled)
+    {
+        var preset = _settings.HighlightPresets.FirstOrDefault(p => p.Id == toggle.Id);
+        if (preset is null)
+        {
+            return;
+        }
+
+        preset.IsEnabled = isEnabled;
+        ApplyHighlightPresetsToAllDocuments();
     }
 
     [RelayCommand]
     private void EditExternalTools()
     {
-        if (_dialogService.ShowExternalToolEditor(_settings.ExternalTools, _settings.GlobalHighlightRules))
+        var allRules = _settings.HighlightPresets.SelectMany(p => p.Rules).ToList();
+        if (_dialogService.ShowExternalToolEditor(_settings.ExternalTools, allRules))
         {
             foreach (var document in Documents)
             {

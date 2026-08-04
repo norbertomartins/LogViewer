@@ -77,7 +77,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     public TailDocumentViewModel(
         ITailSource source,
         string sourcePath,
-        IReadOnlyList<HighlightRule> highlightRules,
+        IReadOnlyList<HighlightPreset> highlightPresets,
         IReadOnlyList<ExternalToolDefinition> externalTools,
         int ringBufferCapacity,
         TimeSpan uiRefreshInterval,
@@ -89,7 +89,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         SourcePath = sourcePath;
         _buffer = new RingLineBuffer(ringBufferCapacity);
         Lines = new DisplayLineCollection(ringBufferCapacity);
-        _highlightEngine.SetRules(highlightRules);
+        _highlightEngine.SetRules(HighlightPreset.FlattenForMatching(highlightPresets));
         _externalTools = externalTools;
         _title = title ?? (Path.GetFileName(sourcePath) is { Length: > 0 } fileName ? fileName : source.DisplayName);
 
@@ -206,10 +206,10 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     partial void OnCustomIconGlyphChanged(string? value) => OnPropertyChanged(nameof(DisplayTitle));
 
-    /// <summary>Applies updated highlight rules, live-recoloring every currently displayed line to match.</summary>
-    public void ApplyHighlightRules(IReadOnlyList<HighlightRule> rules)
+    /// <summary>Applies updated highlight presets, live-recoloring every currently displayed line to match.</summary>
+    public void ApplyHighlightPresets(IReadOnlyList<HighlightPreset> presets)
     {
-        _highlightEngine.SetRules(rules);
+        _highlightEngine.SetRules(HighlightPreset.FlattenForMatching(presets));
         ReapplyHighlighting();
     }
 

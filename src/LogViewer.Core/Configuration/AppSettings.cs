@@ -10,13 +10,13 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 3;
+    public int SchemaVersion { get; set; } = 4;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
 
     public List<TailSourceSettings> RecentSources { get; set; } = [];
 
-    public List<HighlightRule> GlobalHighlightRules { get; set; } = [];
+    public List<HighlightPreset> HighlightPresets { get; set; } = [];
 
     public List<ExternalToolDefinition> ExternalTools { get; set; } = [];
 

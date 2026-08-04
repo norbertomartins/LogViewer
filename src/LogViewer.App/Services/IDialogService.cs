@@ -15,8 +15,8 @@ public interface IDialogService
 {
     IReadOnlyList<string>? ShowOpenFileDialog();
 
-    /// <summary>Opens the highlight rule editor over <paramref name="rules"/>. Returns true if the user saved changes.</summary>
-    bool ShowHighlightRuleEditor(ICollection<HighlightRule> rules);
+    /// <summary>Opens the highlight preset editor over <paramref name="presets"/>. Returns true if the user saved changes.</summary>
+    bool ShowHighlightPresetEditor(ICollection<HighlightPreset> presets);
 
     /// <summary>Opens the external tool editor over <paramref name="tools"/>. <paramref name="availableHighlightRules"/>
     /// populates the auto-trigger rule picker. Returns true if the user saved changes.</summary>

@@ -61,16 +61,16 @@ public sealed class HighlightEngineTests
     }
 
     [Fact]
-    public void Evaluate_HigherPriorityRuleWinsOnOverlap()
+    public void Evaluate_FirstRuleInListOrderWinsOnOverlap()
     {
         var engine = new HighlightEngine();
-        var low = HighlightRule.CreateDefault("Low", "fail") with { Priority = 0 };
-        var high = HighlightRule.CreateDefault("High", "fail") with { Priority = 10 };
-        engine.SetRules([low, high]);
+        var first = HighlightRule.CreateDefault("First", "fail");
+        var second = HighlightRule.CreateDefault("Second", "fail");
+        engine.SetRules([first, second]);
 
         var match = engine.Evaluate("operation failed");
 
-        Assert.Equal(high.Id, match!.RuleId);
+        Assert.Equal(first.Id, match!.RuleId);
     }
 
     [Fact]

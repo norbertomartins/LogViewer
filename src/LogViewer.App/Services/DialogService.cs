@@ -23,10 +23,10 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         return dialog.ShowDialog() == true ? dialog.FileNames : null;
     }
 
-    public bool ShowHighlightRuleEditor(ICollection<HighlightRule> rules)
+    public bool ShowHighlightPresetEditor(ICollection<HighlightPreset> presets)
     {
-        var viewModel = new HighlightRuleEditorViewModel(rules);
-        var window = new HighlightRuleEditorView
+        var viewModel = new HighlightPresetEditorViewModel(presets);
+        var window = new HighlightPresetEditorView
         {
             DataContext = viewModel,
             Owner = Application.Current?.MainWindow,
@@ -37,10 +37,10 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
             return false;
         }
 
-        rules.Clear();
-        foreach (var rule in viewModel.ToRules())
+        presets.Clear();
+        foreach (var preset in viewModel.ToPresets())
         {
-            rules.Add(rule);
+            presets.Add(preset);
         }
 
         return true;

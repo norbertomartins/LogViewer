@@ -1,4 +1,5 @@
 using System.Text.Json;
+using LogViewer.Core.Highlighting;
 
 namespace LogViewer.Core.Configuration;
 
@@ -23,14 +24,16 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
     {
         if (!File.Exists(filePath))
         {
-            return new AppSettings();
+            var fresh = new AppSettings();
+            fresh.HighlightPresets.AddRange(HighlightPresetSeeds.CreateStarterPresets());
+            return fresh;
         }
 
         try
         {
             var json = File.ReadAllText(filePath);
             var settings = JsonSerializer.Deserialize<AppSettings>(json, SerializerOptions);
-            return Migrate(settings ?? new AppSettings());
+            return Migrate(settings ?? new AppSettings(), json);
         }
         catch (JsonException)
         {
@@ -50,13 +53,54 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
         File.WriteAllText(filePath, json);
     }
 
-    private static AppSettings Migrate(AppSettings settings)
+    private static AppSettings Migrate(AppSettings settings, string rawJson)
     {
         // v1 -> v2: RecentSources entries predate TailSourceKind and default to File (the only kind
         // v1 ever wrote), so no field-level migration is needed — new fields simply default sensibly.
         // v2 -> v3: ActiveThemeId/CustomThemes are new; AppSettings' field initializers already give
         // pre-v3 files a sensible default (built-in Light theme, no custom themes).
-        settings.SchemaVersion = 3;
+        // v3 -> v4: the flat, Priority-ranked GlobalHighlightRules list was replaced by ordered,
+        // independently-toggleable HighlightPresets. HighlightRule no longer has a Priority property, so
+        // it has to be recovered from the raw JSON (not the already-deserialized AppSettings) before it's
+        // lost, then baked into list order as a single preset.
+        if (settings.SchemaVersion < 4)
+        {
+            var migrated = MigrateLegacyHighlightRules(rawJson);
+            if (migrated is not null)
+            {
+                settings.HighlightPresets.Insert(0, migrated);
+            }
+        }
+
+        settings.SchemaVersion = 4;
         return settings;
+    }
+
+    private sealed record LegacyHighlightRule(
+        Guid Id, string Name, string Pattern, bool IsRegex, bool IsCaseSensitive, bool IsEnabled,
+        string ForegroundHex, string BackgroundHex, int Priority,
+        string? DarkForegroundHex = null, string? DarkBackgroundHex = null);
+
+    private static HighlightPreset? MigrateLegacyHighlightRules(string rawJson)
+    {
+        using var doc = JsonDocument.Parse(rawJson);
+        if (!doc.RootElement.TryGetProperty("GlobalHighlightRules", out var element) || element.GetArrayLength() == 0)
+        {
+            return null;
+        }
+
+        var legacy = JsonSerializer.Deserialize<List<LegacyHighlightRule>>(element.GetRawText(), SerializerOptions) ?? [];
+        if (legacy.Count == 0)
+        {
+            return null;
+        }
+
+        var rules = legacy
+            .OrderByDescending(r => r.Priority)
+            .Select(r => new HighlightRule(r.Id, r.Name, r.Pattern, r.IsRegex, r.IsCaseSensitive, r.IsEnabled,
+                r.ForegroundHex, r.BackgroundHex, r.DarkForegroundHex, r.DarkBackgroundHex))
+            .ToList();
+
+        return new HighlightPreset { Name = "My Highlights", IsEnabled = true, Rules = rules };
     }
 }

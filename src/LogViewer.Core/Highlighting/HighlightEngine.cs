@@ -11,21 +11,20 @@ namespace LogViewer.Core.Highlighting;
 public sealed class HighlightEngine
 {
     private readonly Dictionary<Guid, Regex> _compiledRegexCache = new();
-    private IReadOnlyList<HighlightRule> _rulesByPriorityDescending = [];
+    private IReadOnlyList<HighlightRule> _rulesInMatchOrder = [];
     private ThemeBaseMode _themeMode = ThemeBaseMode.Light;
 
     /// <summary>Which color pair (<see cref="HighlightRule.ResolveColors"/>) matches use from now on.
     /// Lines already displayed keep their original colors, same as an <see cref="SetRules"/> update.</summary>
     public void SetThemeMode(ThemeBaseMode mode) => _themeMode = mode;
 
+    /// <summary>Sets the rules to match against, in the order they should be tried — the first rule to match a
+    /// line wins. Callers with presets should flatten via <see cref="HighlightPreset.FlattenForMatching"/> first.</summary>
     public void SetRules(IEnumerable<HighlightRule> rules)
     {
-        _rulesByPriorityDescending = rules
-            .Where(r => r.IsEnabled)
-            .OrderByDescending(r => r.Priority)
-            .ToList();
+        _rulesInMatchOrder = rules.Where(r => r.IsEnabled).ToList();
 
-        var activeIds = _rulesByPriorityDescending.Select(r => r.Id).ToHashSet();
+        var activeIds = _rulesInMatchOrder.Select(r => r.Id).ToHashSet();
         foreach (var staleId in _compiledRegexCache.Keys.Except(activeIds).ToList())
         {
             _compiledRegexCache.Remove(staleId);
@@ -34,7 +33,7 @@ public sealed class HighlightEngine
 
     public HighlightMatch? Evaluate(string line)
     {
-        foreach (var rule in _rulesByPriorityDescending)
+        foreach (var rule in _rulesInMatchOrder)
         {
             if (IsMatch(rule, line))
             {

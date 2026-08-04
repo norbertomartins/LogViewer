@@ -37,9 +37,6 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
     private string? _darkBackgroundHex;
 
     [ObservableProperty]
-    private int _priority;
-
-    [ObservableProperty]
     private bool _isPatternValid = true;
 
     public HighlightRuleViewModel()
@@ -59,7 +56,6 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
         _backgroundHex = rule.BackgroundHex;
         _darkForegroundHex = rule.DarkForegroundHex;
         _darkBackgroundHex = rule.DarkBackgroundHex;
-        _priority = rule.Priority;
     }
 
     public Guid Id { get; }
@@ -100,5 +96,5 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
         }
     }
 
-    public HighlightRule ToRule() => new(Id, Name, Pattern, IsRegex, IsCaseSensitive, IsEnabled, ForegroundHex, BackgroundHex, Priority, DarkForegroundHex, DarkBackgroundHex);
+    public HighlightRule ToRule() => new(Id, Name, Pattern, IsRegex, IsCaseSensitive, IsEnabled, ForegroundHex, BackgroundHex, DarkForegroundHex, DarkBackgroundHex);
 }

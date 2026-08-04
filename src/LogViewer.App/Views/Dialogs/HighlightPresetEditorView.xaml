@@ -1,9 +1,9 @@
-<Window x:Class="LogViewer.App.Views.Dialogs.HighlightRuleEditorView"
+<Window x:Class="LogViewer.App.Views.Dialogs.HighlightPresetEditorView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:controls="clr-namespace:LogViewer.App.Controls"
-        Title="Highlight Rules"
-        Width="640" Height="560"
+        Title="Manage Highlight Presets"
+        Width="900" Height="620"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="10">
         <Grid.RowDefinitions>
@@ -11,23 +11,68 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="200" />
+            <ColumnDefinition Width="210" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="220" />
             <ColumnDefinition Width="10" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
+        <!-- Presets -->
         <DockPanel Grid.Row="0" Grid.Column="0">
+            <TextBlock DockPanel.Dock="Top" Text="Presets" FontWeight="Bold" Margin="0,0,0,4" />
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Button Content="➕" Margin="0,0,4,0" Command="{Binding AddPresetCommand}" />
+                    <Button Content="⧉" Margin="0,0,4,0" Command="{Binding DuplicatePresetCommand}" />
+                    <Button Content="🗑" Command="{Binding RemovePresetCommand}" CommandParameter="{Binding SelectedPreset}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                    <Button Content="▲" Margin="0,0,4,0" Command="{Binding MovePresetUpCommand}" />
+                    <Button Content="▼" Command="{Binding MovePresetDownCommand}" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal">
+                    <Button Content="📤 Export..." Width="86" Margin="0,0,4,0" Click="OnExportSelectedClick" />
+                    <Button Content="📤 Export All..." Width="104" Margin="0,0,4,0" Click="OnExportAllClick" />
+                </StackPanel>
+                <Button Content="📥 Import..." HorizontalAlignment="Left" Width="86" Margin="0,4,0,0" Click="OnImportClick" />
+            </StackPanel>
+            <ListBox ItemsSource="{Binding Presets}"
+                     SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
+                     DisplayMemberPath="Name" />
+        </DockPanel>
+
+        <!-- Rules within the selected preset -->
+        <DockPanel Grid.Row="0" Grid.Column="2" DataContext="{Binding SelectedPreset}">
+            <StackPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                <StackPanel.Style>
+                    <Style TargetType="StackPanel">
+                        <Setter Property="Visibility" Value="Visible" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </StackPanel.Style>
+                <TextBlock Text="Preset name" />
+                <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,4" />
+                <CheckBox Content="Enabled" IsChecked="{Binding IsEnabled}" />
+            </StackPanel>
             <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
-                <Button Content="Add" Width="60" Margin="0,0,6,0" Command="{Binding AddRuleCommand}" />
-                <Button Content="Remove" Width="60" Command="{Binding RemoveRuleCommand}" CommandParameter="{Binding SelectedRule}" />
+                <Button Content="➕" Margin="0,0,4,0" Command="{Binding AddRuleCommand}" />
+                <Button Content="🗑" Margin="0,0,4,0" Command="{Binding RemoveRuleCommand}" CommandParameter="{Binding SelectedRule}" />
+                <Button Content="▲" Margin="0,0,4,0" Command="{Binding MoveRuleUpCommand}" ToolTip="Move up" />
+                <Button Content="▼" Command="{Binding MoveRuleDownCommand}" ToolTip="Move down" />
             </StackPanel>
             <ListBox ItemsSource="{Binding Rules}"
                      SelectedItem="{Binding SelectedRule, Mode=TwoWay}"
                      DisplayMemberPath="Name" />
         </DockPanel>
 
-        <ScrollViewer Grid.Row="0" Grid.Column="2" VerticalScrollBarVisibility="Auto"
-                      DataContext="{Binding SelectedRule}">
+        <!-- Selected rule detail -->
+        <ScrollViewer Grid.Row="0" Grid.Column="4" Padding="0 0 20 0" VerticalScrollBarVisibility="Auto"
+                      DataContext="{Binding SelectedPreset.SelectedRule}">
         <StackPanel>
             <StackPanel.Style>
                 <Style TargetType="StackPanel">
@@ -112,15 +157,12 @@
                 <TextBlock Text="Preview: sample log line"
                            Foreground="{Binding EffectiveDarkForegroundHex, Converter={StaticResource HexToBrushConverter}}" />
             </Border>
-
-            <TextBlock Text="Priority (higher wins on overlap)" />
-            <TextBox Text="{Binding Priority, UpdateSourceTrigger=PropertyChanged}" Width="80" HorizontalAlignment="Left" Margin="0,0,0,8" />
         </StackPanel>
         </ScrollViewer>
 
-        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="OK" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
-            <Button Content="Cancel" Width="80" Click="OnCancelClick" IsCancel="True" />
+        <StackPanel Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="✔ OK" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
+            <Button Content="✖ Cancel" Width="80" Click="OnCancelClick" IsCancel="True" />
         </StackPanel>
     </Grid>
 </Window>
