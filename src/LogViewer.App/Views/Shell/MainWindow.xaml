@@ -79,7 +79,6 @@
             <xcad:DockingManager x:Name="DockManager"
                                   DocumentsSource="{Binding Documents}"
                                   ActiveContent="{Binding ActiveDocument, Mode=TwoWay}"
-                                  Background="{DynamicResource Theme.LogBackground}"
                                   Visibility="{Binding Host.IsMdiMode, Converter={StaticResource InverseBoolToVisibilityConverter}}">
                 <!-- Without an explicit Theme, AvalonDock relies on its assembly's own Generic.xaml being
                      auto-resolved as the default style for its controls — which silently breaks under WPF's

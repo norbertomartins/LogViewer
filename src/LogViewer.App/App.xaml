@@ -47,13 +47,22 @@
             <Setter Property="Foreground" Value="{DynamicResource Theme.LogForeground}" />
             <Setter Property="BorderBrush" Value="{DynamicResource Theme.BorderColor}" />
             <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="ScrollViewer.CanContentScroll" Value="True" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="ListView">
                         <Border Background="{TemplateBinding Background}"
                                 BorderBrush="{TemplateBinding BorderBrush}"
                                 BorderThickness="{TemplateBinding BorderThickness}">
-                            <ScrollViewer Focusable="False" Padding="{TemplateBinding Padding}">
+                            <!-- Without these TemplateBindings, the ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                                 set on the ListView in TailDocumentView never reaches this nested ScrollViewer (it's
+                                 a different object), so it fell back to its own defaults — which don't reserve a
+                                 row for the horizontal scrollbar, letting it float on top of the last visible line
+                                 instead of pushing content up like a normal ListBox scroll area. -->
+                            <ScrollViewer Focusable="False" Padding="{TemplateBinding Padding}"
+                                          CanContentScroll="{TemplateBinding ScrollViewer.CanContentScroll}"
+                                          HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                          VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}">
                                 <ItemsPresenter />
                             </ScrollViewer>
                         </Border>

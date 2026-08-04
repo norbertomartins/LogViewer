@@ -3,9 +3,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 using System.Xml;
+using Path = System.Windows.Shapes.Path;
 using AvalonDock;
+using AvalonDock.Controls;
 using AvalonDock.Layout;
 using AvalonDock.Layout.Serialization;
 using LogViewer.App.ViewModels;
@@ -54,12 +57,54 @@ public partial class MainWindow : Window
     /// style/trigger, and SetResourceReference keeps it theme-reactive since ThemeService mutates the
     /// brush instances in place rather than replacing them.
     /// </summary>
+    private static readonly Geometry CloseGlyphGeometry = Geometry.Parse("M0,0 L8,8 M8,0 L0,8");
+
     private void SyncActiveDocumentTabBackground()
     {
+        // LayoutDocumentPaneControl (the tab-strip-plus-content pane AvalonDock builds per document
+        // group) ends up with an opaque white Background of its own — confirmed by walking the live
+        // visual tree, not just the theme XAML — regardless of any Background set on DockingManager
+        // itself, which is a completely different element several layers up. Same "reassert every
+        // time" fix as the TabItem loop below.
+        foreach (var pane in FindVisualDescendants<LayoutDocumentPaneControl>(DockManager))
+        {
+            pane.SetResourceReference(Control.BackgroundProperty, "Theme.WorkspaceBackground");
+        }
+
         foreach (var tabItem in FindVisualDescendants<TabItem>(DockManager))
         {
             tabItem.SetResourceReference(Control.BackgroundProperty, tabItem.IsSelected ? "Theme.LogBackground" : "Theme.WorkspaceBackground");
             tabItem.SetResourceReference(Control.ForegroundProperty, "Theme.LogForeground");
+            SyncCloseButtonGlyph(tabItem);
+        }
+    }
+
+    /// <summary>
+    /// AvalonDock's document-tab close button renders a baked-in PinClose.png (dark pixels) as its
+    /// Content — a raster image, not a vector Path, so it can't be recolored via Foreground/Fill like
+    /// the rest of the tab chrome and stays black regardless of theme. Swapping Content for our own
+    /// themed Path is the only way to make it visible against a dark tab; same SetResourceReference
+    /// trick as the tab Background/Foreground above keeps it reacting live to theme changes.
+    /// </summary>
+    private static void SyncCloseButtonGlyph(DependencyObject tabItem)
+    {
+        foreach (var button in FindVisualDescendants<Button>(tabItem))
+        {
+            if (button.Name != "DocumentCloseButton" || button.Content is Path)
+            {
+                continue;
+            }
+
+            var glyph = new Path
+            {
+                Data = CloseGlyphGeometry,
+                StrokeThickness = 1.3,
+                Width = 8,
+                Height = 8,
+                Stretch = Stretch.Uniform,
+            };
+            glyph.SetResourceReference(Shape.StrokeProperty, "Theme.LogForeground");
+            button.Content = glyph;
         }
     }
 

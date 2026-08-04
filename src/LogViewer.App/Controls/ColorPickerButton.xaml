@@ -1,0 +1,41 @@
+<UserControl x:Class="LogViewer.App.Controls.ColorPickerButton"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:local="clr-namespace:LogViewer.App.Controls"
+             x:Name="Root">
+    <Grid>
+        <ToggleButton x:Name="Toggle" Width="26" Height="22" Padding="0"
+                      IsChecked="{Binding IsPopupOpen, ElementName=Root, Mode=TwoWay}"
+                      ToolTip="Pick a color">
+            <Border BorderBrush="Gray" BorderThickness="1"
+                    Background="{Binding SelectedHex, ElementName=Root, Converter={StaticResource HexToBrushConverter}}"
+                    Width="16" Height="14" />
+        </ToggleButton>
+
+        <Popup x:Name="ColorPopup" PlacementTarget="{Binding ElementName=Toggle}" Placement="Bottom"
+               IsOpen="{Binding IsChecked, ElementName=Toggle, Mode=TwoWay}" StaysOpen="False"
+               AllowsTransparency="True">
+            <Border Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}"
+                    BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                    BorderThickness="1" Padding="6">
+                <ItemsControl ItemsSource="{x:Static local:ColorPickerButton.Palette}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Columns="10" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Width="18" Height="18" Margin="1" Padding="0"
+                                    Background="{Binding Converter={StaticResource HexToBrushConverter}}"
+                                    BorderBrush="Gray" BorderThickness="1"
+                                    ToolTip="{Binding}"
+                                    Tag="{Binding}"
+                                    Click="OnSwatchClick" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Border>
+        </Popup>
+    </Grid>
+</UserControl>
