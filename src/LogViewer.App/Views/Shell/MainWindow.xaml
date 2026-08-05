@@ -100,6 +100,115 @@
                 <xcad:DockingManager.Theme>
                     <xcad:GenericTheme />
                 </xcad:DockingManager.Theme>
+                <xcad:DockingManager.Resources>
+                    <!-- GenericTheme's own ContextMenuEx/MenuItemEx templates (the tab's right-click
+                         Float/Dock/Close popup, and the "hidden tabs" overflow list) are baked into
+                         AvalonDock's generic.xaml with hardcoded light colors — they don't read
+                         Application.ThemeMode or the SystemColors overrides ThemeService applies for every
+                         other menu/popup in the app. Re-templating them here (added directly to this
+                         Resources dictionary, so it wins over the dictionary GenericTheme merges in)
+                         reuses those same SystemColors brushes so these popups repaint with the rest of
+                         the app when the theme changes. -->
+                    <Style TargetType="{x:Type xcad:ContextMenuEx}">
+                        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.MenuBrushKey}}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" />
+                        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" />
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type xcad:ContextMenuEx}">
+                                    <Border Background="{TemplateBinding Background}"
+                                            BorderBrush="{TemplateBinding BorderBrush}"
+                                            BorderThickness="{TemplateBinding BorderThickness}"
+                                            SnapsToDevicePixels="True">
+                                        <ScrollViewer CanContentScroll="True">
+                                            <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                        </ScrollViewer>
+                                    </Border>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                    <Style TargetType="{x:Type xcad:MenuItemEx}">
+                        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.MenuBrushKey}}" />
+                        <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" />
+                        <Setter Property="Padding" Value="4,3" />
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="{x:Type xcad:MenuItemEx}">
+                                    <Border x:Name="Border"
+                                            Background="{TemplateBinding Background}"
+                                            BorderThickness="0"
+                                            SnapsToDevicePixels="True">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="20" />
+                                                <ColumnDefinition Width="*" />
+                                                <ColumnDefinition Width="Auto" />
+                                                <ColumnDefinition Width="16" />
+                                            </Grid.ColumnDefinitions>
+                                            <Path x:Name="CheckMark"
+                                                  Grid.Column="0"
+                                                  Width="8" Height="8"
+                                                  Margin="4,0,0,0"
+                                                  Stretch="Fill"
+                                                  Visibility="Collapsed"
+                                                  Fill="{TemplateBinding Foreground}"
+                                                  Data="M0,4 L3,7 L8,0" />
+                                            <ContentPresenter Grid.Column="1"
+                                                              Margin="{TemplateBinding Padding}"
+                                                              VerticalAlignment="Center"
+                                                              ContentSource="Header"
+                                                              RecognizesAccessKey="True" />
+                                            <TextBlock Grid.Column="2"
+                                                       Margin="8,0,4,0"
+                                                       VerticalAlignment="Center"
+                                                       Foreground="{TemplateBinding Foreground}"
+                                                       Text="{TemplateBinding InputGestureText}" />
+                                            <Path x:Name="SubmenuArrow"
+                                                  Grid.Column="3"
+                                                  Width="8" Height="8"
+                                                  VerticalAlignment="Center"
+                                                  Stretch="Uniform"
+                                                  Visibility="Collapsed"
+                                                  Fill="{TemplateBinding Foreground}"
+                                                  Data="M0,0 L4,4 L0,8 Z" />
+                                            <Popup x:Name="Popup"
+                                                   AllowsTransparency="True"
+                                                   Focusable="False"
+                                                   IsOpen="{TemplateBinding IsSubmenuOpen}"
+                                                   Placement="Right"
+                                                   PopupAnimation="Fade">
+                                                <Border Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}"
+                                                        BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
+                                                        BorderThickness="1">
+                                                    <ScrollViewer CanContentScroll="True">
+                                                        <ItemsPresenter KeyboardNavigation.DirectionalNavigation="Cycle" />
+                                                    </ScrollViewer>
+                                                </Border>
+                                            </Popup>
+                                        </Grid>
+                                    </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsChecked" Value="True">
+                                            <Setter TargetName="CheckMark" Property="Visibility" Value="Visible" />
+                                        </Trigger>
+                                        <Trigger Property="Role" Value="SubmenuHeader">
+                                            <Setter TargetName="SubmenuArrow" Property="Visibility" Value="Visible" />
+                                        </Trigger>
+                                        <Trigger Property="IsHighlighted" Value="True">
+                                            <Setter TargetName="Border" Property="Background" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.HighlightTextBrushKey}}" />
+                                        </Trigger>
+                                        <Trigger Property="IsEnabled" Value="False">
+                                            <Setter Property="Foreground" Value="{DynamicResource {x:Static SystemColors.GrayTextBrushKey}}" />
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
+                    </Style>
+                </xcad:DockingManager.Resources>
                 <xcad:DockingManager.LayoutItemTemplate>
                     <DataTemplate DataType="{x:Type vm:TailDocumentViewModel}">
                         <views:TailDocumentView />
