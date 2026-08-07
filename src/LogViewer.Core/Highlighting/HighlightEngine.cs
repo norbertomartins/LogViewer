@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using LogViewer.Core.Structured;
 using LogViewer.Core.Theming;
 
 namespace LogViewer.Core.Highlighting;
@@ -31,11 +32,14 @@ public sealed class HighlightEngine
         }
     }
 
-    public HighlightMatch? Evaluate(string line)
+    /// <summary>Evaluates a line against the current rules. <paramref name="structured"/> is the line's parsed
+    /// Serilog event when the document is in structured view, else null — required for rules with a
+    /// <see cref="HighlightRule.TargetProperty"/>, which never match when it's null.</summary>
+    public HighlightMatch? Evaluate(string line, StructuredLogEvent? structured = null)
     {
         foreach (var rule in _rulesInMatchOrder)
         {
-            if (IsMatch(rule, line))
+            if (IsMatch(rule, line, structured))
             {
                 var (foreground, background) = rule.ResolveColors(_themeMode);
                 return new HighlightMatch(rule.Id, foreground, background);
@@ -45,9 +49,18 @@ public sealed class HighlightEngine
         return null;
     }
 
-    private bool IsMatch(HighlightRule rule, string line)
+    private bool IsMatch(HighlightRule rule, string line, StructuredLogEvent? structured)
     {
         if (string.IsNullOrEmpty(rule.Pattern))
+        {
+            return false;
+        }
+
+        var candidate = string.IsNullOrEmpty(rule.TargetProperty)
+            ? line
+            : StructuredFieldResolver.Resolve(structured, rule.TargetProperty);
+
+        if (candidate is null)
         {
             return false;
         }
@@ -55,7 +68,7 @@ public sealed class HighlightEngine
         if (!rule.IsRegex)
         {
             var comparison = rule.IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            return line.Contains(rule.Pattern, comparison);
+            return candidate.Contains(rule.Pattern, comparison);
         }
 
         if (!_compiledRegexCache.TryGetValue(rule.Id, out var regex))
@@ -67,7 +80,7 @@ public sealed class HighlightEngine
 
         try
         {
-            return regex.IsMatch(line);
+            return regex.IsMatch(candidate);
         }
         catch (RegexMatchTimeoutException)
         {

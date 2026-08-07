@@ -8,6 +8,7 @@ using LogViewer.Core.Bookmarks;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.ExternalTools;
 using LogViewer.Core.Highlighting;
+using LogViewer.Core.Structured;
 using LogViewer.Core.Tailing;
 using LogViewer.Core.Theming;
 
@@ -42,6 +43,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     [ObservableProperty]
     private bool _isFollowingTail = true;
+
+    [ObservableProperty]
+    private bool _isStructuredView;
 
     [ObservableProperty]
     private bool _hasUnseenChanges;
@@ -83,7 +87,8 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         TimeSpan uiRefreshInterval,
         string? title = null,
         string? eventLogChannelName = null,
-        IReadOnlyList<EventLogFilterRule>? eventLogFilters = null)
+        IReadOnlyList<EventLogFilterRule>? eventLogFilters = null,
+        bool isStructuredView = false)
     {
         _source = source;
         SourcePath = sourcePath;
@@ -92,6 +97,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _highlightEngine.SetRules(HighlightPreset.FlattenForMatching(highlightPresets));
         _externalTools = externalTools;
         _title = title ?? (Path.GetFileName(sourcePath) is { Length: > 0 } fileName ? fileName : source.DisplayName);
+        _isStructuredView = isStructuredView;
 
         if (eventLogChannelName is not null)
         {
@@ -229,13 +235,42 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _highlightedLineNumbers.Clear();
         foreach (var line in Lines)
         {
-            var match = _highlightEngine.Evaluate(line.Text);
+            var match = _highlightEngine.Evaluate(line.Text, line.Structured);
             line.ApplyMatch(match);
             if (match is not null)
             {
                 _highlightedLineNumbers.Add(line.LineNumber);
             }
         }
+    }
+
+    partial void OnIsStructuredViewChanged(bool value) => ReprocessAllLines();
+
+    /// <summary>Rebuilds every displayed line from its raw text when <see cref="IsStructuredView"/> is toggled —
+    /// unlike highlight colors, <see cref="LogLineViewModel.Structured"/> isn't a mutable per-line property, so
+    /// the display items themselves need replacing rather than just re-evaluated in place.</summary>
+    private void ReprocessAllLines()
+    {
+        var selectedLineNumber = SelectedLine?.LineNumber;
+        var rebuilt = new List<LogLineViewModel>(Lines.Count);
+        _highlightedLineNumbers.Clear();
+
+        foreach (var existing in Lines)
+        {
+            var structured = IsStructuredView && SerilogEventParser.TryParse(existing.Text, out var parsed) ? parsed : null;
+            var match = _highlightEngine.Evaluate(existing.Text, structured);
+            if (match is not null)
+            {
+                _highlightedLineNumbers.Add(existing.LineNumber);
+            }
+
+            rebuilt.Add(new LogLineViewModel(existing.LineNumber, existing.Text, structured, match, existing.IsBookmarked));
+        }
+
+        Lines.Clear();
+        Lines.AppendRange(rebuilt);
+
+        SelectedLine = selectedLineNumber is { } lineNumber ? Lines.FindByLineNumber(lineNumber) : null;
     }
 
     /// <summary>Staggers this document's initial MDI position so newly opened documents don't fully overlap.</summary>
@@ -281,14 +316,15 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var displayItems = new List<LogLineViewModel>(lines.Count);
         foreach (var line in lines)
         {
-            var match = _highlightEngine.Evaluate(line.Text);
+            var structured = IsStructuredView && SerilogEventParser.TryParse(line.Text, out var parsed) ? parsed : null;
+            var match = _highlightEngine.Evaluate(line.Text, structured);
             if (match is not null)
             {
                 _highlightedLineNumbers.Add(line.LineNumber);
                 TryAutoTriggerExternalTools(match.RuleId, line);
             }
 
-            displayItems.Add(new LogLineViewModel(line.LineNumber, line.Text, match, _bookmarks.IsBookmarked(line.LineNumber)));
+            displayItems.Add(new LogLineViewModel(line.LineNumber, line.Text, structured, match, _bookmarks.IsBookmarked(line.LineNumber)));
         }
 
         _buffer.AppendRange(lines);
@@ -312,7 +348,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _bookmarks.Clear();
         _highlightedLineNumbers.Clear();
 
-        var marker = new LogLineViewModel(0, $"── file {reason.ToString().ToLowerInvariant()} — resuming ──", match: null, isBookmarked: false);
+        var marker = new LogLineViewModel(0, $"── file {reason.ToString().ToLowerInvariant()} — resuming ──", structured: null, match: null, isBookmarked: false);
         Lines.AppendRange([marker]);
         StatusMessage = $"Source {reason.ToString().ToLowerInvariant()} — resumed tailing.";
     }

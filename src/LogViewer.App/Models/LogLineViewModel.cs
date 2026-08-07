@@ -2,6 +2,7 @@ using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LogViewer.App.Services;
 using LogViewer.Core.Highlighting;
+using LogViewer.Core.Structured;
 
 namespace LogViewer.App.Models;
 
@@ -24,10 +25,11 @@ public sealed partial class LogLineViewModel : ObservableObject
     [ObservableProperty]
     private bool _isBookmarked;
 
-    public LogLineViewModel(long lineNumber, string text, HighlightMatch? match, bool isBookmarked)
+    public LogLineViewModel(long lineNumber, string text, StructuredLogEvent? structured, HighlightMatch? match, bool isBookmarked)
     {
         LineNumber = lineNumber;
         Text = text;
+        Structured = structured;
         _foreground = DefaultForeground;
         _background = DefaultBackground;
         _isBookmarked = isBookmarked;
@@ -37,6 +39,10 @@ public sealed partial class LogLineViewModel : ObservableObject
     public long LineNumber { get; }
 
     public string Text { get; }
+
+    /// <summary>The line parsed as a Serilog JSON event, or null when the document isn't in structured view or
+    /// this particular line didn't parse (e.g. blank lines, malformed JSON) — the UI falls back to <see cref="Text"/>.</summary>
+    public StructuredLogEvent? Structured { get; }
 
     /// <summary>Re-resolves this line's colors against a (possibly new) highlight match — used both at
     /// append time and to live-recolor already-displayed lines when highlight rules or the theme change.</summary>

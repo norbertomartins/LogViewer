@@ -6,7 +6,10 @@ namespace LogViewer.Core.Highlighting;
 /// position within its <see cref="HighlightPreset"/> and the preset's position among enabled presets — see
 /// <see cref="HighlightPreset.FlattenForMatching"/>.
 /// <see cref="ForegroundHex"/>/<see cref="BackgroundHex"/> are used for light-based themes; <see cref="DarkForegroundHex"/>/
-/// <see cref="DarkBackgroundHex"/> optionally override them for dark-based themes — null/empty means "use the light colors".</summary>
+/// <see cref="DarkBackgroundHex"/> optionally override them for dark-based themes — null/empty means "use the light colors".
+/// <see cref="TargetProperty"/> null/empty means "match the whole line" (the default); otherwise the rule only matches
+/// against the named structured-log field (see <see cref="Structured.StructuredFieldResolver"/>) on documents parsed
+/// as Serilog JSON, and never matches on plain-text lines.</summary>
 public sealed record HighlightRule(
     Guid Id,
     string Name,
@@ -17,7 +20,8 @@ public sealed record HighlightRule(
     string ForegroundHex,
     string BackgroundHex,
     string? DarkForegroundHex = null,
-    string? DarkBackgroundHex = null)
+    string? DarkBackgroundHex = null,
+    string? TargetProperty = null)
 {
     public static HighlightRule CreateDefault(string name, string pattern, bool isRegex = false) => new(
         Id: Guid.NewGuid(),

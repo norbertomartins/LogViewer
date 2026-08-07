@@ -1,16 +1,55 @@
 <UserControl x:Class="LogViewer.App.Views.Documents.TailDocumentView"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:models="clr-namespace:LogViewer.App.Models">
+             xmlns:models="clr-namespace:LogViewer.App.Models"
+             xmlns:controls="clr-namespace:LogViewer.App.Controls">
+    <UserControl.Resources>
+        <DataTemplate x:Key="PlainLineTemplate" DataType="{x:Type models:LogLineViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
+                <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" />
+                <TextBlock Grid.Column="2" Text="{Binding Text}" />
+            </Grid>
+        </DataTemplate>
+
+        <DataTemplate x:Key="StructuredLineTemplate" DataType="{x:Type models:LogLineViewModel}">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="18" />
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="90" />
+                    <ColumnDefinition Width="70" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
+                <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" />
+                <TextBlock Grid.Column="2" Text="{Binding Structured.Timestamp, StringFormat='HH:mm:ss.fff'}" Opacity="0.8" />
+                <TextBlock Grid.Column="3" Text="{Binding Structured.Level}" FontWeight="Bold"
+                           Foreground="{Binding Structured.Level, Converter={StaticResource LevelToBrushConverter}}" />
+                <TextBlock Grid.Column="4" Text="{Binding Structured.RenderedMessage}" />
+            </Grid>
+        </DataTemplate>
+
+        <controls:LogLineTemplateSelector x:Key="LineTemplateSelector"
+                                           PlainTemplate="{StaticResource PlainLineTemplate}"
+                                           StructuredTemplate="{StaticResource StructuredLineTemplate}" />
+    </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
         <ToolBar Grid.Row="0" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
             <ToggleButton Content="Follow Tail" IsChecked="{Binding IsFollowingTail}" />
+            <ToggleButton Content="Structured View" IsChecked="{Binding IsStructuredView}" ToolTip="Parse this document as Serilog JSON (Time/Level/Message columns + property details)" />
             <Separator />
             <Button Content="Toggle Bookmark" Command="{Binding ToggleBookmarkCommand}" ToolTip="Ctrl+F2" />
             <Button Content="◀ Bookmark" Command="{Binding PreviousBookmarkCommand}" ToolTip="Shift+F2" />
@@ -52,23 +91,56 @@
                     <Setter Property="Foreground" Value="{Binding Foreground}" />
                 </Style>
             </ListView.ItemContainerStyle>
-            <ListView.ItemTemplate>
-                <DataTemplate DataType="{x:Type models:LogLineViewModel}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="18" />
-                            <ColumnDefinition Width="60" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
-                        <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" />
-                        <TextBlock Grid.Column="2" Text="{Binding Text}" />
-                    </Grid>
-                </DataTemplate>
-            </ListView.ItemTemplate>
+            <ListView.ItemTemplateSelector>
+                <StaticResource ResourceKey="LineTemplateSelector" />
+            </ListView.ItemTemplateSelector>
         </ListView>
 
-        <StatusBar Grid.Row="2" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
+        <!-- Structured-log detail: timestamp/template/properties/exception for the selected line, when it
+             parsed as Serilog JSON. Collapses entirely for plain-text lines/documents. -->
+        <Border Grid.Row="2" Background="{DynamicResource Theme.LogBackground}" TextElement.Foreground="{DynamicResource Theme.LogForeground}"
+                BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,1,0,0" Padding="8" MaxHeight="220">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Visibility" Value="Visible" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding SelectedLine.Structured}" Value="{x:Null}">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel DataContext="{Binding SelectedLine.Structured}">
+                    <TextBlock Text="{Binding Timestamp, StringFormat='Timestamp: {0:yyyy-MM-dd HH:mm:ss.fff zzz}'}" Margin="0,0,0,2" />
+                    <TextBlock Text="{Binding MessageTemplate, StringFormat='Template: {0}'}" TextWrapping="Wrap" Margin="0,0,0,6"
+                               Visibility="{Binding MessageTemplate, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                    <TextBlock Text="Properties" FontWeight="Bold" Margin="0,0,0,2" />
+                    <ItemsControl ItemsSource="{Binding Properties}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid Margin="0,0,0,1">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="160" />
+                                        <ColumnDefinition Width="*" />
+                                    </Grid.ColumnDefinitions>
+                                    <TextBlock Grid.Column="0" Text="{Binding Key}" FontWeight="SemiBold" Margin="0,0,8,0" />
+                                    <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Text="Exception" FontWeight="Bold" Margin="0,8,0,2"
+                               Visibility="{Binding Exception, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                    <TextBox Text="{Binding Exception, Mode=OneWay}" IsReadOnly="True" TextWrapping="NoWrap"
+                             FontFamily="Consolas" FontSize="11" AcceptsReturn="True" MaxHeight="120"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                             Visibility="{Binding Exception, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                </StackPanel>
+            </ScrollViewer>
+        </Border>
+
+        <StatusBar Grid.Row="3" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
             <StatusBar.Template>
                 <ControlTemplate TargetType="StatusBar">
                     <Border Background="{TemplateBinding Background}">

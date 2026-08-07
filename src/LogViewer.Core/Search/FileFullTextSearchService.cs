@@ -1,5 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using LogViewer.Core.Structured;
 using LogViewer.Core.Tailing;
 
 namespace LogViewer.Core.Search;
@@ -19,6 +20,7 @@ public sealed class FileFullTextSearchService : IFullTextSearchService
         string pattern,
         bool isRegex,
         bool isCaseSensitive,
+        string? propertyName,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         if (string.IsNullOrEmpty(pattern))
@@ -48,7 +50,7 @@ public sealed class FileFullTextSearchService : IFullTextSearchService
                 lineNumber++;
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (IsMatch(text, pattern, regex, comparison))
+                if (IsMatch(text, pattern, regex, comparison, propertyName))
                 {
                     yield return new SearchResult(lineNumber, chunkOffset, text);
                 }
@@ -58,6 +60,24 @@ public sealed class FileFullTextSearchService : IFullTextSearchService
         }
     }
 
-    private static bool IsMatch(string text, string pattern, Regex? regex, StringComparison comparison)
-        => regex is not null ? regex.IsMatch(text) : text.Contains(pattern, comparison);
+    private static bool IsMatch(string text, string pattern, Regex? regex, StringComparison comparison, string? propertyName)
+    {
+        if (string.IsNullOrEmpty(propertyName))
+        {
+            return regex is not null ? regex.IsMatch(text) : text.Contains(pattern, comparison);
+        }
+
+        if (!SerilogEventParser.TryParse(text, out var evt))
+        {
+            return false;
+        }
+
+        var candidate = StructuredFieldResolver.Resolve(evt, propertyName);
+        if (candidate is null)
+        {
+            return false;
+        }
+
+        return regex is not null ? regex.IsMatch(candidate) : candidate.Contains(pattern, comparison);
+    }
 }

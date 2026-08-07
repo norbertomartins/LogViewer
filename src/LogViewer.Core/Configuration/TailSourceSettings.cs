@@ -45,4 +45,8 @@ public sealed class TailSourceSettings
     public double? MdiHeight { get; set; }
 
     public bool MdiIsMaximized { get; set; }
+
+    /// <summary>Whether this document renders as structured Serilog JSON. Null means "auto-detect on open";
+    /// an explicit true/false is the user's manual toggle override, persisted across restarts.</summary>
+    public bool? IsStructuredView { get; set; }
 }

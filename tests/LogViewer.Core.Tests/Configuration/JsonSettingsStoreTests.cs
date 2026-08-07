@@ -26,10 +26,15 @@ public sealed class JsonSettingsStoreTests
 
         var settings = store.Load();
 
-        var preset = Assert.Single(settings.HighlightPresets);
+        Assert.Equal(2, settings.HighlightPresets.Count);
+        var preset = settings.HighlightPresets[0];
         Assert.Equal("Errors & Exceptions", preset.Name);
         Assert.True(preset.IsEnabled);
         Assert.NotEmpty(preset.Rules);
+
+        var serilogPreset = settings.HighlightPresets[1];
+        Assert.Equal("Serilog Levels", serilogPreset.Name);
+        Assert.All(serilogPreset.Rules, r => Assert.Equal("@Level", r.TargetProperty));
     }
 
     [Fact]

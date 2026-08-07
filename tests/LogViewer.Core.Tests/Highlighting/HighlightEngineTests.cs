@@ -1,4 +1,5 @@
 using LogViewer.Core.Highlighting;
+using LogViewer.Core.Structured;
 
 namespace LogViewer.Core.Tests.Highlighting;
 
@@ -80,5 +81,45 @@ public sealed class HighlightEngineTests
         engine.SetRules([HighlightRule.CreateDefault("Errors", "ERROR") with { IsEnabled = false }]);
 
         Assert.Null(engine.Evaluate("ERROR here"));
+    }
+
+    [Fact]
+    public void Evaluate_TargetProperty_MatchesOnlyThatPropertyValue()
+    {
+        var engine = new HighlightEngine();
+        var rule = HighlightRule.CreateDefault("Error level", "Error") with { TargetProperty = StructuredFieldResolver.LevelField };
+        engine.SetRules([rule]);
+
+        var line = @"{""@t"":""2026-01-01T00:00:00Z"",""@mt"":""Error occurred"",""@l"":""Error""}";
+        SerilogEventParser.TryParse(line, out var structured);
+
+        var match = engine.Evaluate(line, structured);
+
+        Assert.NotNull(match);
+        Assert.Equal(rule.Id, match!.RuleId);
+    }
+
+    [Fact]
+    public void Evaluate_TargetProperty_DoesNotFallBackToWholeLine()
+    {
+        var engine = new HighlightEngine();
+        var rule = HighlightRule.CreateDefault("Error level", "Error") with { TargetProperty = StructuredFieldResolver.LevelField };
+        engine.SetRules([rule]);
+
+        // The raw text mentions "Error" but the @l field is "Warning" — the rule must not match on raw text.
+        var line = @"{""@t"":""2026-01-01T00:00:00Z"",""@mt"":""Error-adjacent warning"",""@l"":""Warning""}";
+        SerilogEventParser.TryParse(line, out var structured);
+
+        Assert.Null(engine.Evaluate(line, structured));
+    }
+
+    [Fact]
+    public void Evaluate_TargetProperty_NoStructuredEvent_NeverMatches()
+    {
+        var engine = new HighlightEngine();
+        var rule = HighlightRule.CreateDefault("Error level", "Error") with { TargetProperty = StructuredFieldResolver.LevelField };
+        engine.SetRules([rule]);
+
+        Assert.Null(engine.Evaluate("plain text line with Error in it", structured: null));
     }
 }

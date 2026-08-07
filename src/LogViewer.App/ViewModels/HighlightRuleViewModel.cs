@@ -1,6 +1,7 @@
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LogViewer.Core.Highlighting;
+using LogViewer.Core.Structured;
 
 namespace LogViewer.App.ViewModels;
 
@@ -39,6 +40,9 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
     [ObservableProperty]
     private bool _isPatternValid = true;
 
+    [ObservableProperty]
+    private string? _targetProperty;
+
     public HighlightRuleViewModel()
         : this(HighlightRule.CreateDefault("New Rule", string.Empty))
     {
@@ -56,7 +60,10 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
         _backgroundHex = rule.BackgroundHex;
         _darkForegroundHex = rule.DarkForegroundHex;
         _darkBackgroundHex = rule.DarkBackgroundHex;
+        _targetProperty = rule.TargetProperty;
     }
+
+    public static IReadOnlyList<string> WellKnownTargetProperties => StructuredFieldResolver.WellKnownFields;
 
     public Guid Id { get; }
 
@@ -96,5 +103,5 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
         }
     }
 
-    public HighlightRule ToRule() => new(Id, Name, Pattern, IsRegex, IsCaseSensitive, IsEnabled, ForegroundHex, BackgroundHex, DarkForegroundHex, DarkBackgroundHex);
+    public HighlightRule ToRule() => new(Id, Name, Pattern, IsRegex, IsCaseSensitive, IsEnabled, ForegroundHex, BackgroundHex, DarkForegroundHex, DarkBackgroundHex, TargetProperty);
 }

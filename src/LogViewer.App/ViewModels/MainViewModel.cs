@@ -10,6 +10,7 @@ using LogViewer.Core.ExternalTools;
 using LogViewer.Core.Highlighting;
 using LogViewer.Core.Search;
 using LogViewer.Core.Services.Diagnostics;
+using LogViewer.Core.Structured;
 using LogViewer.Core.Tailing;
 using LogViewer.Core.Theming;
 
@@ -120,11 +121,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var options = new TailSourceOptions { PollInterval = TimeSpan.FromMilliseconds(250) };
             var source = new FileTailSource(fullPath, options);
-            document = AddDocument(source, fullPath);
+            var isStructuredView = FindExistingOverride(TailSourceKind.File, fullPath, pattern: null, eventLogChannel: null)
+                ?? SerilogFormatDetector.SniffFile(fullPath);
+            document = AddDocument(source, fullPath, isStructuredView: isStructuredView);
         }
 
         RecordRecent(new TailSourceSettings { Kind = TailSourceKind.File, Path = fullPath });
         return document!;
+    }
+
+    /// <summary>Looks up whether a previously-saved recent-source entry for this dedup key has an explicit
+    /// (non-auto) <see cref="TailSourceSettings.IsStructuredView"/> choice, before <see cref="RecordRecent"/>
+    /// discards that entry in favor of a fresh one synced from the live document at save time.</summary>
+    private bool? FindExistingOverride(TailSourceKind kind, string path, string? pattern, string? eventLogChannel)
+    {
+        var dedupKey = ComputeDedupKey(kind, path, pattern, eventLogChannel);
+        return _settings.RecentSources
+            .FirstOrDefault(r => string.Equals(ComputeDedupKey(r), dedupKey, StringComparison.OrdinalIgnoreCase))
+            ?.IsStructuredView;
     }
 
     [RelayCommand]
@@ -156,6 +170,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var source = new DirectoryWatchTailSource(fullDirectory, pattern, autoSwitchToLatestFile, options);
             var title = $"{pattern} ({Path.GetFileName(fullDirectory.TrimEnd(Path.DirectorySeparatorChar))})";
             document = AddDocument(source, dedupKey, title);
+
+            // Start() (inside AddDocument -> the TailDocumentViewModel ctor) resolves the initial active file,
+            // so ActiveFilePath is only known after construction — sniff it now, before any lines are flushed.
+            var overrideValue = FindExistingOverride(TailSourceKind.DirectoryWatch, fullDirectory, pattern, eventLogChannel: null);
+            document.IsStructuredView = overrideValue
+                ?? (source.ActiveFilePath is { } activeFile && SerilogFormatDetector.SniffFile(activeFile));
         }
 
         RecordRecent(new TailSourceSettings
@@ -219,7 +239,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         string dedupKey,
         string? title = null,
         string? eventLogChannelName = null,
-        IReadOnlyList<EventLogFilterRule>? eventLogFilters = null)
+        IReadOnlyList<EventLogFilterRule>? eventLogFilters = null,
+        bool isStructuredView = false)
     {
         var document = new TailDocumentViewModel(
             source,
@@ -230,7 +251,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             EffectiveUiRefreshInterval(),
             title,
             eventLogChannelName,
-            eventLogFilters);
+            eventLogFilters,
+            isStructuredView);
         document.SetInitialMdiBounds(Documents.Count);
         document.ApplyThemeMode(_currentThemeMode);
         document.SearchRequested += () => ShowSearchDialog(document);
@@ -397,6 +419,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             entry.MdiWidth = document.MdiWidth;
             entry.MdiHeight = document.MdiHeight;
             entry.MdiIsMaximized = document.IsMdiMaximized;
+            entry.IsStructuredView = document.IsStructuredView;
         }
 
         _settingsStore.Save(_settings);

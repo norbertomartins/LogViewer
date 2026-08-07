@@ -98,6 +98,10 @@
             <CheckBox Content="Case sensitive" IsChecked="{Binding IsCaseSensitive}" Margin="0,0,0,6" />
             <CheckBox Content="Enabled" IsChecked="{Binding IsEnabled}" Margin="0,0,0,8" />
 
+            <TextBlock Text="Target property (structured Serilog logs; blank = whole line)" />
+            <ComboBox IsEditable="True" Text="{Binding TargetProperty, UpdateSourceTrigger=PropertyChanged}"
+                      ItemsSource="{Binding WellKnownTargetProperties}" Margin="0,0,0,8" />
+
             <TextBlock Text="Light theme colors" FontWeight="Bold" Margin="0,0,0,2" />
             <Grid Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>

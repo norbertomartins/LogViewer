@@ -9,5 +9,8 @@ public sealed record SearchResult(long LineNumber, long ByteOffset, string Text)
 /// </summary>
 public interface IFullTextSearchService
 {
-    IAsyncEnumerable<SearchResult> SearchAsync(string sourcePath, string pattern, bool isRegex, bool isCaseSensitive, CancellationToken cancellationToken);
+    /// <summary>When <paramref name="propertyName"/> is set, only lines that parse as Serilog JSON and whose named
+    /// field (see <see cref="Structured.StructuredFieldResolver"/>) matches <paramref name="pattern"/> are returned,
+    /// instead of matching anywhere in the raw line.</summary>
+    IAsyncEnumerable<SearchResult> SearchAsync(string sourcePath, string pattern, bool isRegex, bool isCaseSensitive, string? propertyName, CancellationToken cancellationToken);
 }

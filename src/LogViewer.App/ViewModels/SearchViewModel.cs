@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.Search;
+using LogViewer.Core.Structured;
 
 namespace LogViewer.App.ViewModels;
 
@@ -21,6 +22,9 @@ public sealed partial class SearchViewModel : ObservableObject
 
     [ObservableProperty]
     private string _pattern = string.Empty;
+
+    [ObservableProperty]
+    private string _propertyName = string.Empty;
 
     [ObservableProperty]
     private bool _isRegex;
@@ -49,6 +53,12 @@ public sealed partial class SearchViewModel : ObservableObject
     public string TargetDescription => _document.SearchableEventLog is { } eventLog
         ? $"EventLog channel: {eventLog.Channel}"
         : _document.SearchableFilePath ?? "(nothing to search)";
+
+    /// <summary>Whether to show the "Property" field — only meaningful for a file search over a document
+    /// currently in structured (Serilog JSON) view.</summary>
+    public bool CanSearchByProperty => _document.SearchableEventLog is null && _document.IsStructuredView;
+
+    public static IReadOnlyList<string> WellKnownProperties => StructuredFieldResolver.WellKnownFields;
 
     [RelayCommand]
     private async Task SearchAsync()
@@ -106,8 +116,9 @@ public sealed partial class SearchViewModel : ObservableObject
             return _eventLogSearchService.SearchAsync(eventLog.Channel, eventLog.Filters, Pattern, IsRegex, IsCaseSensitive, cancellationToken);
         }
 
+        var property = CanSearchByProperty && !string.IsNullOrWhiteSpace(PropertyName) ? PropertyName : null;
         return _document.SearchableFilePath is { } path
-            ? _fileSearchService.SearchAsync(path, Pattern, IsRegex, IsCaseSensitive, cancellationToken)
+            ? _fileSearchService.SearchAsync(path, Pattern, IsRegex, IsCaseSensitive, property, cancellationToken)
             : null;
     }
 
