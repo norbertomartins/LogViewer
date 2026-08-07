@@ -27,6 +27,9 @@ public sealed partial class SettingsViewModel : ObservableObject
     private bool _autoTuneForRemoteDesktop;
 
     [ObservableProperty]
+    private bool _colorizeStructuredValues;
+
+    [ObservableProperty]
     private IReadOnlyList<AppTheme> _availableThemes;
 
     [ObservableProperty]
@@ -42,6 +45,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _uiRefreshIntervalMs = settings.UiRefreshIntervalMs;
         _restorePreviousSessionOnStartup = settings.RestorePreviousSessionOnStartup;
         _autoTuneForRemoteDesktop = settings.AutoTuneForRemoteDesktop;
+        _colorizeStructuredValues = settings.ColorizeStructuredValues;
 
         _availableThemes = BuildAvailableThemes();
         _selectedTheme = _availableThemes.FirstOrDefault(t => t.Id == settings.ActiveThemeId) ?? _availableThemes[0];
@@ -70,6 +74,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         settings.UiRefreshIntervalMs = UiRefreshIntervalMs;
         settings.RestorePreviousSessionOnStartup = RestorePreviousSessionOnStartup;
         settings.AutoTuneForRemoteDesktop = AutoTuneForRemoteDesktop;
+        settings.ColorizeStructuredValues = ColorizeStructuredValues;
         settings.ActiveThemeId = SelectedTheme.Id;
     }
 }

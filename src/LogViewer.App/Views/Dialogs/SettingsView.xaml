@@ -26,6 +26,8 @@
 
             <CheckBox Content="Reduce UI redraw rate when running over Remote Desktop" IsChecked="{Binding AutoTuneForRemoteDesktop}" Margin="0,0,0,10" />
 
+            <CheckBox Content="Colorize variable values in structured log messages" IsChecked="{Binding ColorizeStructuredValues}" Margin="0,0,0,10" />
+
             <TextBlock Text="Theme" />
             <Grid Margin="0,2,0,0">
                 <Grid.ColumnDefinitions>

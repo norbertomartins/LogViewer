@@ -148,4 +148,51 @@ public static class SerilogEventParser
             return properties.TryGetValue(name, out var value) ? value : match.Value;
         });
     }
+
+    /// <summary>
+    /// Splits a <see cref="StructuredLogEvent"/>'s rendered message into alternating literal-text and
+    /// value segments so callers can render each part with a distinct color.
+    /// </summary>
+    /// <remarks>
+    /// When the event has a <see cref="StructuredLogEvent.MessageTemplate"/> the split is driven by the
+    /// original template tokens; each matched token is a value segment whose
+    /// <see cref="StructuredMessageSegment.PropertyName"/> identifies the originating property.
+    /// When there is no template (e.g. a pre-rendered <c>@m</c> message) the entire text is returned
+    /// as a single literal segment.
+    /// </remarks>
+    public static IReadOnlyList<StructuredMessageSegment> SplitIntoSegments(
+        StructuredLogEvent evt)
+    {
+        var template = evt.MessageTemplate;
+        if (string.IsNullOrEmpty(template))
+        {
+            return [new StructuredMessageSegment(evt.RenderedMessage, null)];
+        }
+
+        var segments = new List<StructuredMessageSegment>();
+        var lastIndex = 0;
+
+        foreach (Match match in TemplateTokenPattern.Matches(template))
+        {
+            // Literal text before this token
+            if (match.Index > lastIndex)
+            {
+                segments.Add(new StructuredMessageSegment(template[lastIndex..match.Index], null));
+            }
+
+            var propertyName = match.Groups[2].Value;
+            var value = evt.Properties.TryGetValue(propertyName, out var v) ? v : match.Value;
+            segments.Add(new StructuredMessageSegment(value, propertyName));
+
+            lastIndex = match.Index + match.Length;
+        }
+
+        // Remaining literal tail
+        if (lastIndex < template.Length)
+        {
+            segments.Add(new StructuredMessageSegment(template[lastIndex..], null));
+        }
+
+        return segments.Count > 0 ? segments : [new StructuredMessageSegment(evt.RenderedMessage, null)];
+    }
 }

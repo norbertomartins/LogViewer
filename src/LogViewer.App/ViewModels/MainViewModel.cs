@@ -255,6 +255,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             isStructuredView);
         document.SetInitialMdiBounds(Documents.Count);
         document.ApplyThemeMode(_currentThemeMode);
+        document.ApplyColorizeStructuredValues(_settings.ColorizeStructuredValues);
         document.SearchRequested += () => ShowSearchDialog(document);
         document.CustomizeRequested += () => ShowCustomizeDialog(document);
 
@@ -381,7 +382,20 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public event Action? ExternalToolsChanged;
 
     [RelayCommand]
-    private void OpenSettings() => _dialogService.ShowSettings(_settings);
+    private void OpenSettings()
+    {
+        if (!_dialogService.ShowSettings(_settings))
+        {
+            return;
+        }
+
+        // Propagate the colorize-values setting to all currently open documents so the change
+        // takes effect immediately without needing to reopen them.
+        foreach (var document in Documents)
+        {
+            document.ApplyColorizeStructuredValues(_settings.ColorizeStructuredValues);
+        }
+    }
 
     [RelayCommand]
     private void Exit() => System.Windows.Application.Current?.Shutdown();

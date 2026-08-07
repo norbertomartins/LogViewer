@@ -48,6 +48,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     private bool _isStructuredView;
 
     [ObservableProperty]
+    private bool _isColorizeStructuredValues = true;
+
+    [ObservableProperty]
     private bool _hasUnseenChanges;
 
     [ObservableProperty]
@@ -98,6 +101,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _externalTools = externalTools;
         _title = title ?? (Path.GetFileName(sourcePath) is { Length: > 0 } fileName ? fileName : source.DisplayName);
         _isStructuredView = isStructuredView;
+        _isColorizeStructuredValues = true;
 
         if (eventLogChannelName is not null)
         {
@@ -149,6 +153,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _externalTools = tools;
         OnPropertyChanged(nameof(ExternalTools));
     }
+
+    /// <summary>Syncs the global colorize-structured-values setting to this document's own toggle.</summary>
+    public void ApplyColorizeStructuredValues(bool colorize) => IsColorizeStructuredValues = colorize;
 
     [RelayCommand]
     private void RunExternalTool(ExternalToolDefinition? tool)

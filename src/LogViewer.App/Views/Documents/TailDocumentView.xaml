@@ -2,7 +2,8 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="clr-namespace:LogViewer.App.Models"
-             xmlns:controls="clr-namespace:LogViewer.App.Controls">
+             xmlns:controls="clr-namespace:LogViewer.App.Controls"
+             xmlns:converters="clr-namespace:LogViewer.App.Converters">
     <UserControl.Resources>
         <DataTemplate x:Key="PlainLineTemplate" DataType="{x:Type models:LogLineViewModel}">
             <Grid>
@@ -31,7 +32,17 @@
                 <TextBlock Grid.Column="2" Text="{Binding Structured.Timestamp, StringFormat='HH:mm:ss.fff'}" Opacity="0.8" />
                 <TextBlock Grid.Column="3" Text="{Binding Structured.Level}" FontWeight="Bold"
                            Foreground="{Binding Structured.Level, Converter={StaticResource LevelToBrushConverter}}" />
-                <TextBlock Grid.Column="4" Text="{Binding Structured.RenderedMessage}" />
+                <!-- Column 4: rendered message — colorized when the converter produces inlines,
+                     plain text otherwise (no template, or colorization disabled). -->
+                <TextBlock Grid.Column="4" Text="{Binding Structured.RenderedMessage}">
+                    <controls:InlinesHelper.Source>
+                        <MultiBinding Converter="{StaticResource StructuredInlinesConverter}">
+                            <Binding Path="Structured" />
+                            <Binding Path="DataContext.IsColorizeStructuredValues"
+                                     RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                        </MultiBinding>
+                    </controls:InlinesHelper.Source>
+                </TextBlock>
             </Grid>
         </DataTemplate>
 
@@ -50,6 +61,10 @@
         <ToolBar Grid.Row="0" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
             <ToggleButton Content="Follow Tail" IsChecked="{Binding IsFollowingTail}" />
             <ToggleButton Content="Structured View" IsChecked="{Binding IsStructuredView}" ToolTip="Parse this document as Serilog JSON (Time/Level/Message columns + property details)" />
+            <!-- Colorize toggle: only meaningful while in structured view -->
+            <ToggleButton Content="⬤ Colorize Values" IsChecked="{Binding IsColorizeStructuredValues}"
+                          ToolTip="Highlight variable values in the message with distinct colors"
+                          Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
             <Separator />
             <Button Content="Toggle Bookmark" Command="{Binding ToggleBookmarkCommand}" ToolTip="Ctrl+F2" />
             <Button Content="◀ Bookmark" Command="{Binding PreviousBookmarkCommand}" ToolTip="Shift+F2" />

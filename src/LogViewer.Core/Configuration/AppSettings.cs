@@ -36,4 +36,11 @@ public sealed class AppSettings
 
     /// <summary>When true, the UI redraw batching interval is widened automatically under a Remote Desktop session.</summary>
     public bool AutoTuneForRemoteDesktop { get; set; } = true;
+
+    /// <summary>
+    /// When true, variable values inside structured (Serilog JSON) log messages are rendered with
+    /// distinct colors — one color per property name, deterministic across sessions — mimicking the
+    /// .NET console logger output style.
+    /// </summary>
+    public bool ColorizeStructuredValues { get; set; } = true;
 }
