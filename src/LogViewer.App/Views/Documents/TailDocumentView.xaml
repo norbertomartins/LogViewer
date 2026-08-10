@@ -65,6 +65,11 @@
             <ToggleButton Content="⬤ Colorize Values" IsChecked="{Binding IsColorizeStructuredValues}"
                           ToolTip="Highlight variable values in the message with distinct colors"
                           Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <TextBlock Text="Min Level:" VerticalAlignment="Center" Margin="8,0,4,0"
+                       Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <ComboBox ItemsSource="{Binding LevelOptions}" SelectedItem="{Binding MinLevel}" Width="110"
+                      ToolTip="Only show lines at or above this severity"
+                      Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
             <Separator />
             <Button Content="Toggle Bookmark" Command="{Binding ToggleBookmarkCommand}" ToolTip="Ctrl+F2" />
             <Button Content="◀ Bookmark" Command="{Binding PreviousBookmarkCommand}" ToolTip="Shift+F2" />
@@ -104,6 +109,21 @@
                 <Style TargetType="ListViewItem" BasedOn="{StaticResource LogListViewItemStyle}">
                     <Setter Property="Background" Value="{Binding Background}" />
                     <Setter Property="Foreground" Value="{Binding Foreground}" />
+                    <Setter Property="ContextMenu">
+                        <Setter.Value>
+                            <ContextMenu>
+                                <MenuItem Header="Filter by TraceId"
+                                          Command="{Binding ElementName=LineListView, Path=DataContext.FilterByTraceIdCommand}"
+                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="Filter by SpanId"
+                                          Command="{Binding ElementName=LineListView, Path=DataContext.FilterBySpanIdCommand}"
+                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <Separator />
+                                <MenuItem Header="Clear Filter"
+                                          Command="{Binding ElementName=LineListView, Path=DataContext.ClearFilterCommand}" />
+                            </ContextMenu>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplateSelector>
@@ -139,6 +159,13 @@
                                         <ColumnDefinition Width="160" />
                                         <ColumnDefinition Width="*" />
                                     </Grid.ColumnDefinitions>
+                                    <Grid.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Filter by this value"
+                                                      Command="{Binding ElementName=LineListView, Path=DataContext.FilterByPropertyCommand}"
+                                                      CommandParameter="{Binding}" />
+                                        </ContextMenu>
+                                    </Grid.ContextMenu>
                                     <TextBlock Grid.Column="0" Text="{Binding Key}" FontWeight="SemiBold" Margin="0,0,8,0" />
                                     <TextBlock Grid.Column="1" Text="{Binding Value}" TextWrapping="Wrap" />
                                 </Grid>
@@ -165,6 +192,12 @@
             </StatusBar.Template>
             <StatusBarItem>
                 <TextBlock Text="{Binding StatusMessage}" />
+            </StatusBarItem>
+            <StatusBarItem Visibility="{Binding IsFilterActive, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Orientation="Horizontal">
+                    <TextBlock Text="{Binding FilterStatusText}" Margin="0,0,8,0" />
+                    <Button Content="✕ Clear filter" Command="{Binding ClearFilterCommand}" />
+                </StackPanel>
             </StatusBarItem>
         </StatusBar>
     </Grid>

@@ -1,9 +1,11 @@
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Threading;
 using LogViewer.App.Models;
 using LogViewer.App.ViewModels;
+using LogViewer.Core.Structured;
 
 namespace LogViewer.App.Views.Documents;
 
@@ -24,6 +26,7 @@ public partial class TailDocumentView : UserControl
         {
             _viewModel.ScrollToEndRequested -= OnScrollToEndRequested;
             _viewModel.ScrollToLineRequested -= OnScrollToLineRequested;
+            _viewModel.FilterChanged -= OnFilterChanged;
         }
 
         _viewModel = e.NewValue as TailDocumentViewModel;
@@ -32,7 +35,37 @@ public partial class TailDocumentView : UserControl
         {
             _viewModel.ScrollToEndRequested += OnScrollToEndRequested;
             _viewModel.ScrollToLineRequested += OnScrollToLineRequested;
+            _viewModel.FilterChanged += OnFilterChanged;
         }
+
+        OnFilterChanged();
+    }
+
+    /// <summary>Applies (or clears) the active trace/span/property filter over <see cref="TailDocumentView.LineListView"/>
+    /// via WPF's default <see cref="ICollectionView"/> — filtering lives here rather than in the view-model
+    /// because it's a WPF collection-view concern, and it reapplies automatically on every new-lines Reset
+    /// raised by <see cref="LogViewer.App.Controls.DisplayLineCollection"/> without any extra refresh code.</summary>
+    private void OnFilterChanged()
+    {
+        var view = CollectionViewSource.GetDefaultView(LineListView.ItemsSource);
+        if (view is null)
+        {
+            return;
+        }
+
+        var field = _viewModel?.ActiveFilterField;
+        var value = _viewModel?.ActiveFilterValue;
+        var minLevelRank = _viewModel?.MinLevelRank;
+
+        if (value is null && minLevelRank is null)
+        {
+            view.Filter = null;
+            return;
+        }
+
+        view.Filter = item => item is LogLineViewModel line
+            && (value is null || string.Equals(StructuredFieldResolver.Resolve(line.Structured, field!), value, StringComparison.Ordinal))
+            && (minLevelRank is null || (LogLevelSeverity.Rank(line.Structured?.Level) is { } rank && rank >= minLevelRank));
     }
 
     private void OnScrollToEndRequested()

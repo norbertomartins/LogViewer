@@ -59,6 +59,68 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [ObservableProperty]
     private LogLineViewModel? _selectedLine;
 
+    [ObservableProperty]
+    private string? _activeFilterField;
+
+    [ObservableProperty]
+    private string? _activeFilterValue;
+
+    private const string AnyLevel = "Any";
+
+    /// <summary>Options for the "Min Level" toolbar combo box — "Any" (no threshold) followed by every
+    /// recognized severity, low to high, from <see cref="LogLevelSeverity"/>.</summary>
+    public IReadOnlyList<string> LevelOptions { get; } = [AnyLevel, .. LogLevelSeverity.Levels];
+
+    [ObservableProperty]
+    private string _minLevel = AnyLevel;
+
+    public bool IsLevelFilterActive => !string.Equals(MinLevel, AnyLevel, StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>The minimum severity rank to keep, or null when no level threshold is active — lines ranked
+    /// at or above this pass the filter (e.g. selecting "Warning" keeps Warning, Error and Fatal).</summary>
+    public int? MinLevelRank => IsLevelFilterActive ? LogLevelSeverity.Rank(MinLevel) : null;
+
+    public bool IsFilterActive => ActiveFilterValue is not null || IsLevelFilterActive;
+
+    public string? FilterStatusText
+    {
+        get
+        {
+            var parts = new List<string>(2);
+            if (ActiveFilterValue is not null)
+            {
+                parts.Add($"{ActiveFilterField} = {ActiveFilterValue}");
+            }
+
+            if (IsLevelFilterActive)
+            {
+                parts.Add($"Level ≥ {MinLevel}");
+            }
+
+            return parts.Count > 0 ? "Filtered by " + string.Join(" AND ", parts) : null;
+        }
+    }
+
+    /// <summary>Raised whenever the active filter changes so the view can reapply its <c>ICollectionView</c>
+    /// filter over <see cref="Lines"/> — filtering is a view-layer concern (WPF collection views), not
+    /// something the view-model owns directly.</summary>
+    public event Action? FilterChanged;
+
+    partial void OnActiveFilterFieldChanged(string? value) => RaiseFilterChanged();
+
+    partial void OnActiveFilterValueChanged(string? value) => RaiseFilterChanged();
+
+    partial void OnMinLevelChanged(string value) => RaiseFilterChanged();
+
+    private void RaiseFilterChanged()
+    {
+        OnPropertyChanged(nameof(IsFilterActive));
+        OnPropertyChanged(nameof(FilterStatusText));
+        OnPropertyChanged(nameof(IsLevelFilterActive));
+        OnPropertyChanged(nameof(MinLevelRank));
+        FilterChanged?.Invoke();
+    }
+
     // MDI-mode child-window bounds (Phase 2). Only meaningful while the app is in MDI window mode;
     // Tabbed/Floating mode (AvalonDock) ignores these entirely.
     [ObservableProperty]
@@ -395,6 +457,43 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
         _bookmarks.Toggle(SelectedLine.LineNumber);
         SelectedLine.IsBookmarked = _bookmarks.IsBookmarked(SelectedLine.LineNumber);
+    }
+
+    [RelayCommand]
+    private void FilterByTraceId(LogLineViewModel? line) => ApplyPropertyFilter(line, "TraceId");
+
+    [RelayCommand]
+    private void FilterBySpanId(LogLineViewModel? line) => ApplyPropertyFilter(line, "SpanId");
+
+    [RelayCommand]
+    private void FilterByProperty(object? parameter)
+    {
+        if (parameter is KeyValuePair<string, string> kvp)
+        {
+            ActiveFilterField = kvp.Key;
+            ActiveFilterValue = kvp.Value;
+        }
+    }
+
+    [RelayCommand]
+    private void ClearFilter()
+    {
+        ActiveFilterField = null;
+        ActiveFilterValue = null;
+        MinLevel = AnyLevel;
+    }
+
+    private void ApplyPropertyFilter(LogLineViewModel? line, string field)
+    {
+        var value = StructuredFieldResolver.Resolve(line?.Structured, field);
+        if (string.IsNullOrEmpty(value))
+        {
+            StatusMessage = $"Selected line has no {field} property.";
+            return;
+        }
+
+        ActiveFilterField = field;
+        ActiveFilterValue = value;
     }
 
     [RelayCommand]

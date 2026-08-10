@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows.Data;
 using System.Windows.Media;
+using LogViewer.Core.Structured;
 
 namespace LogViewer.App.Converters;
 
@@ -19,15 +20,14 @@ public sealed class LevelToBrushConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var level = value as string;
-        return level?.ToUpperInvariant() switch
+        return LogLevelSeverity.Rank(value as string) switch
         {
-            "VERBOSE" or "VRB" => Verbose,
-            "DEBUG" or "DBG" => Debug,
-            "INFORMATION" or "INFO" or "INF" => Information,
-            "WARNING" or "WARN" or "WRN" => Warning,
-            "ERROR" or "ERR" => Error,
-            "FATAL" or "FTL" => Fatal,
+            0 => Verbose,
+            1 => Debug,
+            2 => Information,
+            3 => Warning,
+            4 => Error,
+            5 => Fatal,
             _ => Default,
         };
     }
