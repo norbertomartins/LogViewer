@@ -38,6 +38,11 @@ public static class InlinesHelper
             return;
         }
 
+        // Inlines and Text share the same backing storage, so Clear() below would also wipe
+        // out any text set via a plain Text binding. Capture it first so it can be restored
+        // when there's no Source (i.e. colorization is off or the message has no variables).
+        var plainText = textBlock.Text;
+
         textBlock.Inlines.Clear();
 
         if (e.NewValue is IEnumerable<Inline> inlines)
@@ -46,6 +51,10 @@ public static class InlinesHelper
             {
                 textBlock.Inlines.Add(inline);
             }
+        }
+        else if (!string.IsNullOrEmpty(plainText))
+        {
+            textBlock.Inlines.Add(new Run(plainText));
         }
     }
 }
