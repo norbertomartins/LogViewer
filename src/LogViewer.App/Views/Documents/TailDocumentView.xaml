@@ -30,7 +30,7 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
                 <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" />
-                <TextBlock Grid.Column="2" Text="{Binding Structured.Timestamp, StringFormat='HH:mm:ss.fff'}" Opacity="0.8" />
+                <TextBlock Grid.Column="2" Text="{Binding Structured.Timestamp, Converter={StaticResource TimestampToLocalTimeConverter}}" Opacity="0.8" />
                 <TextBlock Grid.Column="3" Text="{Binding Structured.Level}" FontWeight="Bold"
                            Foreground="{Binding Structured.Level, Converter={StaticResource LevelToBrushConverter}}" />
                 <TextBlock Grid.Column="4" Text="{Binding ThreadId}" Opacity="0.6" />
