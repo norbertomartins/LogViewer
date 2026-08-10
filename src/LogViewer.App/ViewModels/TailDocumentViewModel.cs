@@ -59,6 +59,21 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [ObservableProperty]
     private LogLineViewModel? _selectedLine;
 
+    /// <summary>Height (in pixels) of the structured-detail panel below the log lines, resized via a
+    /// GridSplitter in <c>TailDocumentView</c> and shared across every open document via <see cref="ApplyDetailPanelHeight"/>.</summary>
+    [ObservableProperty]
+    private double _detailPanelHeight = 220;
+
+    /// <summary>Raised when the user drags the detail-panel splitter, so <c>MainViewModel</c> can persist the
+    /// new height and propagate it to every other open document.</summary>
+    public event Action<double>? DetailPanelHeightChanged;
+
+    partial void OnDetailPanelHeightChanged(double value) => DetailPanelHeightChanged?.Invoke(value);
+
+    /// <summary>Applies a detail-panel height from settings or another document's splitter drag, without
+    /// re-raising <see cref="DetailPanelHeightChanged"/> for the same value.</summary>
+    public void ApplyDetailPanelHeight(double height) => DetailPanelHeight = height;
+
     [ObservableProperty]
     private string? _activeFilterField;
 
@@ -464,6 +479,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     [RelayCommand]
     private void FilterBySpanId(LogLineViewModel? line) => ApplyPropertyFilter(line, "SpanId");
+
+    [RelayCommand]
+    private void FilterByThreadId(LogLineViewModel? line) => ApplyPropertyFilter(line, "ThreadId");
 
     [RelayCommand]
     private void FilterByProperty(object? parameter)

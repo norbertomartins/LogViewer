@@ -98,6 +98,17 @@ public partial class TailDocumentView : UserControl
         Dispatcher.BeginInvoke(() => GetLineListScrollViewer()?.ScrollToHorizontalOffset(0), DispatcherPriority.ContextIdle);
     }
 
+    /// <summary>Persists the detail panel's dragged-to height onto the view-model, which the DetailPanelRow
+    /// height MultiBinding (see <c>DetailPanelRowHeightConverter</c>) then feeds right back — so this is the
+    /// single point where a splitter drag becomes the new source of truth.</summary>
+    private void OnDetailPanelSplitterDragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
+    {
+        if (_viewModel is not null && DetailPanelRow.ActualHeight > 0)
+        {
+            _viewModel.DetailPanelHeight = DetailPanelRow.ActualHeight;
+        }
+    }
+
     private ScrollViewer? GetLineListScrollViewer()
     {
         if (_lineListScrollViewer is null && LineListView.IsLoaded)

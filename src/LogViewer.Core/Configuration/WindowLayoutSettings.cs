@@ -20,4 +20,8 @@ public sealed class WindowLayoutSettings
 
     /// <summary>Dedup key (see <c>MainViewModel</c>) of the document that was active when the app last closed.</summary>
     public string? ActiveSourceDedupKey { get; set; }
+
+    /// <summary>Height (in pixels) of the structured-detail panel in <c>TailDocumentView</c>, shared across
+    /// every open document and remembered across sessions.</summary>
+    public double DetailPanelHeight { get; set; } = 220;
 }

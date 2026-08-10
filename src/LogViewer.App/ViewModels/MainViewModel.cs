@@ -256,12 +256,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.SetInitialMdiBounds(Documents.Count);
         document.ApplyThemeMode(_currentThemeMode);
         document.ApplyColorizeStructuredValues(_settings.ColorizeStructuredValues);
+        document.ApplyDetailPanelHeight(_settings.Layout.DetailPanelHeight);
+        document.DetailPanelHeightChanged += height => OnDetailPanelHeightChanged(document, height);
         document.SearchRequested += () => ShowSearchDialog(document);
         document.CustomizeRequested += () => ShowCustomizeDialog(document);
 
         Documents.Add(document);
         ActiveDocument = document;
         return document;
+    }
+
+    /// <summary>Persists a splitter-dragged detail-panel height and applies it to every other open
+    /// document, so resizing one document's panel keeps every document in sync (equal-value assignments
+    /// are no-ops via <c>ObservableProperty</c>'s equality check, so this can't loop).</summary>
+    private void OnDetailPanelHeightChanged(TailDocumentViewModel source, double height)
+    {
+        _settings.Layout.DetailPanelHeight = height;
+        foreach (var document in Documents)
+        {
+            if (document != source)
+            {
+                document.ApplyDetailPanelHeight(height);
+            }
+        }
     }
 
     private TimeSpan EffectiveUiRefreshInterval()

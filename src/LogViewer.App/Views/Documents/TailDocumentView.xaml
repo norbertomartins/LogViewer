@@ -24,7 +24,8 @@
                     <ColumnDefinition Width="18" />
                     <ColumnDefinition Width="60" />
                     <ColumnDefinition Width="90" />
-                    <ColumnDefinition Width="70" />
+                    <ColumnDefinition Width="88" />
+                    <ColumnDefinition Width="50" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
@@ -32,9 +33,11 @@
                 <TextBlock Grid.Column="2" Text="{Binding Structured.Timestamp, StringFormat='HH:mm:ss.fff'}" Opacity="0.8" />
                 <TextBlock Grid.Column="3" Text="{Binding Structured.Level}" FontWeight="Bold"
                            Foreground="{Binding Structured.Level, Converter={StaticResource LevelToBrushConverter}}" />
-                <!-- Column 4: rendered message — colorized when the converter produces inlines,
-                     plain text otherwise (no template, or colorization disabled). -->
-                <TextBlock Grid.Column="4" Text="{Binding Structured.RenderedMessage}">
+                <TextBlock Grid.Column="4" Text="{Binding ThreadId}" Opacity="0.6" />
+                <!-- Column 5: rendered message — colorized when the converter produces inlines,
+                     plain text otherwise (no template, or colorization disabled). Margin guarantees a
+                     visible gap after Level/ThreadId even when their columns are exactly as wide as the text. -->
+                <TextBlock Grid.Column="5" Text="{Binding Structured.RenderedMessage}" Margin="4,0,0,0">
                     <controls:InlinesHelper.Source>
                         <MultiBinding Converter="{StaticResource StructuredInlinesConverter}">
                             <Binding Path="Structured" />
@@ -49,12 +52,33 @@
         <controls:LogLineTemplateSelector x:Key="LineTemplateSelector"
                                            PlainTemplate="{StaticResource PlainLineTemplate}"
                                            StructuredTemplate="{StaticResource StructuredLineTemplate}" />
+
+        <converters:DetailPanelRowHeightConverter x:Key="DetailPanelRowHeightConverter" />
+
+        <!-- Shared by the detail Border and its GridSplitter so both collapse together when the selected
+             line has no structured detail to show — a splitter for a hidden panel would be confusing. -->
+        <Style x:Key="CollapseWhenNoStructuredDetailStyle" TargetType="FrameworkElement">
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding SelectedLine.Structured}" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="*" MinHeight="80" />
             <RowDefinition Height="Auto" />
+            <RowDefinition x:Name="DetailPanelRow" MinHeight="0">
+                <RowDefinition.Height>
+                    <MultiBinding Converter="{StaticResource DetailPanelRowHeightConverter}">
+                        <Binding Path="DetailPanelHeight" />
+                        <Binding Path="SelectedLine.Structured" />
+                    </MultiBinding>
+                </RowDefinition.Height>
+            </RowDefinition>
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
@@ -100,27 +124,36 @@
                   ItemsSource="{Binding Lines}"
                   SelectedItem="{Binding SelectedLine, Mode=TwoWay}"
                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                  Padding="0,0,0,16"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.VirtualizationMode="Recycling"
                   VirtualizingPanel.ScrollUnit="Pixel"
                   Style="{StaticResource LogListViewStyle}"
                   FontFamily="Consolas" FontSize="12">
             <ListView.ItemContainerStyle>
+                <!-- Tag carries the document view-model down to the row's ContextMenu: a ContextMenu opens in
+                     its own popup tree, so an ElementName binding back to LineListView is not reliable across
+                     that boundary — PlacementTarget.Tag/.DataContext (read directly off the clicked
+                     ListViewItem, no popup-crossing tree-walk involved) is. -->
                 <Style TargetType="ListViewItem" BasedOn="{StaticResource LogListViewItemStyle}">
                     <Setter Property="Background" Value="{Binding Background}" />
                     <Setter Property="Foreground" Value="{Binding Foreground}" />
+                    <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext}" />
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
                                 <MenuItem Header="Filter by TraceId"
-                                          Command="{Binding ElementName=LineListView, Path=DataContext.FilterByTraceIdCommand}"
+                                          Command="{Binding PlacementTarget.Tag.FilterByTraceIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 <MenuItem Header="Filter by SpanId"
-                                          Command="{Binding ElementName=LineListView, Path=DataContext.FilterBySpanIdCommand}"
+                                          Command="{Binding PlacementTarget.Tag.FilterBySpanIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="Filter by ThreadId"
+                                          Command="{Binding PlacementTarget.Tag.FilterByThreadIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 <Separator />
                                 <MenuItem Header="Clear Filter"
-                                          Command="{Binding ElementName=LineListView, Path=DataContext.ClearFilterCommand}" />
+                                          Command="{Binding PlacementTarget.Tag.ClearFilterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>
@@ -131,20 +164,19 @@
             </ListView.ItemTemplateSelector>
         </ListView>
 
+        <!-- Drag to resize the detail panel below; hidden together with it (via the shared style) when the
+             selected line has no structured detail. DragCompleted (code-behind) persists the resulting
+             height onto the view-model, which the DetailPanelRow height MultiBinding feeds right back. -->
+        <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="5"
+                      Background="{DynamicResource Theme.BorderColor}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
+                      Cursor="SizeNS" Style="{StaticResource CollapseWhenNoStructuredDetailStyle}"
+                      DragCompleted="OnDetailPanelSplitterDragCompleted" />
+
         <!-- Structured-log detail: timestamp/template/properties/exception for the selected line, when it
              parsed as Serilog JSON. Collapses entirely for plain-text lines/documents. -->
-        <Border Grid.Row="2" Background="{DynamicResource Theme.LogBackground}" TextElement.Foreground="{DynamicResource Theme.LogForeground}"
-                BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,1,0,0" Padding="8" MaxHeight="220">
-            <Border.Style>
-                <Style TargetType="Border">
-                    <Setter Property="Visibility" Value="Visible" />
-                    <Style.Triggers>
-                        <DataTrigger Binding="{Binding SelectedLine.Structured}" Value="{x:Null}">
-                            <Setter Property="Visibility" Value="Collapsed" />
-                        </DataTrigger>
-                    </Style.Triggers>
-                </Style>
-            </Border.Style>
+        <Border Grid.Row="3" Background="{DynamicResource Theme.LogBackground}" TextElement.Foreground="{DynamicResource Theme.LogForeground}"
+                BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,1,0,0" Padding="8"
+                Style="{StaticResource CollapseWhenNoStructuredDetailStyle}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel DataContext="{Binding SelectedLine.Structured}">
                     <TextBlock Text="{Binding Timestamp, StringFormat='Timestamp: {0:yyyy-MM-dd HH:mm:ss.fff zzz}'}" Margin="0,0,0,2" />
@@ -154,7 +186,8 @@
                     <ItemsControl ItemsSource="{Binding Properties}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Grid Margin="0,0,0,1">
+                                <Grid Margin="0,0,0,1"
+                                      Tag="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext}">
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="160" />
                                         <ColumnDefinition Width="*" />
@@ -162,8 +195,8 @@
                                     <Grid.ContextMenu>
                                         <ContextMenu>
                                             <MenuItem Header="Filter by this value"
-                                                      Command="{Binding ElementName=LineListView, Path=DataContext.FilterByPropertyCommand}"
-                                                      CommandParameter="{Binding}" />
+                                                      Command="{Binding PlacementTarget.Tag.FilterByPropertyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                      CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                         </ContextMenu>
                                     </Grid.ContextMenu>
                                     <TextBlock Grid.Column="0" Text="{Binding Key}" FontWeight="SemiBold" Margin="0,0,8,0" />
@@ -182,7 +215,7 @@
             </ScrollViewer>
         </Border>
 
-        <StatusBar Grid.Row="3" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
+        <StatusBar Grid.Row="4" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
             <StatusBar.Template>
                 <ControlTemplate TargetType="StatusBar">
                     <Border Background="{TemplateBinding Background}">

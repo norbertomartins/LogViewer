@@ -44,6 +44,10 @@ public sealed partial class LogLineViewModel : ObservableObject
     /// this particular line didn't parse (e.g. blank lines, malformed JSON) — the UI falls back to <see cref="Text"/>.</summary>
     public StructuredLogEvent? Structured { get; }
 
+    /// <summary>The event's "ThreadId" property (from Serilog thread enrichment), or null when absent —
+    /// shown as its own structured-view column.</summary>
+    public string? ThreadId => StructuredFieldResolver.Resolve(Structured, "ThreadId");
+
     /// <summary>Re-resolves this line's colors against a (possibly new) highlight match — used both at
     /// append time and to live-recolor already-displayed lines when highlight rules or the theme change.</summary>
     public void ApplyMatch(HighlightMatch? match)
