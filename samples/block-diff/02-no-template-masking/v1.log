@@ -1,0 +1,4 @@
+{"@t":"2026-01-01T03:00:00.000Z","@m":"Job 8f14e45f taking over primary role","@l":"Information","JobId":"job-111"}
+{"@t":"2026-01-01T03:00:00.010Z","@m":"Connecting to database at 10.0.0.5:5432","@l":"Information","JobId":"job-111"}
+{"@t":"2026-01-01T03:00:00.330Z","@m":"Cache warmed with 1450 entries in 320ms","@l":"Information","JobId":"job-111"}
+{"@t":"2026-01-01T03:00:00.410Z","@m":"Job 8f14e45f completed startup in 410ms","@l":"Information","JobId":"job-111"}

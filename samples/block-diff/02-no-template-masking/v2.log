@@ -1,0 +1,6 @@
+{"@t":"2026-02-01T03:00:00.000Z","@m":"Job 3ac2b9d1 taking over primary role","@l":"Information","JobId":"job-222"}
+{"@t":"2026-02-01T03:00:00.010Z","@m":"Connecting to database at 10.0.0.9:5432","@l":"Information","JobId":"job-222"}
+{"@t":"2026-02-01T03:00:01.020Z","@m":"Database connection refused, retrying","@l":"Warning","JobId":"job-222"}
+{"@t":"2026-02-01T03:00:01.040Z","@m":"Connecting to database at 10.0.0.9:5432","@l":"Information","JobId":"job-222"}
+{"@t":"2026-02-01T03:00:06.240Z","@m":"Cache warmed with 1450 entries in 5200ms","@l":"Information","JobId":"job-222"}
+{"@t":"2026-02-01T03:00:06.640Z","@m":"Job 3ac2b9d1 completed startup in 5600ms","@l":"Information","JobId":"job-222"}

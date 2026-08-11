@@ -1,0 +1,5 @@
+{"@t":"2026-02-01T10:00:00.000Z","@mt":"Order {OrderId} received","@l":"Information","OrderId":2001,"TraceId":"trace-xxx"}
+{"@t":"2026-02-01T10:00:00.050Z","@mt":"Validating order {OrderId}","@l":"Information","OrderId":2001,"TraceId":"trace-xxx"}
+{"@t":"2026-02-01T10:00:00.400Z","@m":"Payment gateway timeout, retrying","@l":"Warning","TraceId":"trace-xxx"}
+{"@t":"2026-02-01T10:00:00.900Z","@mt":"Charged card for order {OrderId}, amount {Amount}","@l":"Information","OrderId":2001,"Amount":42.5,"TraceId":"trace-xxx"}
+{"@t":"2026-02-01T10:00:00.950Z","@mt":"Order {OrderId} completed in {DurationMs}ms","@l":"Information","OrderId":2001,"DurationMs":950,"TraceId":"trace-xxx"}

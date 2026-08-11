@@ -1,0 +1,8 @@
+{"@t":"2026-01-01T10:00:00.000Z","@mt":"Order {OrderId} received","@l":"Information","OrderId":1001,"TraceId":"trace-aaa"}
+{"@t":"2026-01-01T10:00:00.050Z","@mt":"Validating order {OrderId}","@l":"Information","OrderId":1001,"TraceId":"trace-aaa"}
+{"@t":"2026-01-01T10:00:00.120Z","@mt":"Charged card for order {OrderId}, amount {Amount}","@l":"Information","OrderId":1001,"Amount":42.5,"TraceId":"trace-aaa"}
+{"@t":"2026-01-01T10:00:00.180Z","@mt":"Order {OrderId} completed in {DurationMs}ms","@l":"Information","OrderId":1001,"DurationMs":180,"TraceId":"trace-aaa"}
+{"@t":"2026-01-01T10:00:05.000Z","@mt":"Order {OrderId} received","@l":"Information","OrderId":1002,"TraceId":"trace-bbb"}
+{"@t":"2026-01-01T10:00:05.060Z","@mt":"Validating order {OrderId}","@l":"Information","OrderId":1002,"TraceId":"trace-bbb"}
+{"@t":"2026-01-01T10:00:05.130Z","@mt":"Charged card for order {OrderId}, amount {Amount}","@l":"Information","OrderId":1002,"Amount":19.99,"TraceId":"trace-bbb"}
+{"@t":"2026-01-01T10:00:05.190Z","@mt":"Order {OrderId} completed in {DurationMs}ms","@l":"Information","OrderId":1002,"DurationMs":190,"TraceId":"trace-bbb"}

@@ -1,0 +1,5 @@
+{"@t":"2026-02-01T00:00:00.000Z","@mt":"Flush batch {BatchId} started, {ItemCount} items","@l":"Information","BatchId":701,"ItemCount":200,"ThreadId":4}
+{"@t":"2026-02-01T00:00:00.050Z","@mt":"Serializing batch {BatchId}","@l":"Information","BatchId":701,"ThreadId":4}
+{"@t":"2026-02-01T00:00:01.200Z","@m":"Lock contention detected, waiting","@l":"Warning","ThreadId":4}
+{"@t":"2026-02-01T00:00:02.400Z","@mt":"Flush batch {BatchId} completed in {DurationMs}ms","@l":"Information","BatchId":701,"DurationMs":2400,"ThreadId":4}
+{"@t":"2026-02-01T00:00:20.000Z","@mt":"Heartbeat","@l":"Debug","ThreadId":9}

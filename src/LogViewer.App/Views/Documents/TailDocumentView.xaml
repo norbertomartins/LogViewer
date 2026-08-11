@@ -5,15 +5,19 @@
              xmlns:controls="clr-namespace:LogViewer.App.Controls"
              xmlns:converters="clr-namespace:LogViewer.App.Converters">
     <UserControl.Resources>
+        <!-- Column widths are Auto + SharedSizeGroup (scoped via IsSharedSizeScope on LineListView) rather
+             than fixed pixel widths, so columns grow with LogFontSize instead of the text overflowing into
+             neighboring columns at larger sizes. Groups are shared between the plain and structured templates
+             so Bookmark/LineNumber stay aligned even when a structured document falls back to plain rows. -->
         <DataTemplate x:Key="PlainLineTemplate" DataType="{x:Type models:LogLineViewModel}">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="18" />
-                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Bookmark" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.LineNumber" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
-                <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" />
+                <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" Margin="0,0,4,0" />
+                <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" Margin="0,0,8,0" />
                 <TextBlock Grid.Column="2" Text="{Binding Text}" />
             </Grid>
         </DataTemplate>
@@ -21,19 +25,19 @@
         <DataTemplate x:Key="StructuredLineTemplate" DataType="{x:Type models:LogLineViewModel}">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="18" />
-                    <ColumnDefinition Width="60" />
-                    <ColumnDefinition Width="90" />
-                    <ColumnDefinition Width="88" />
-                    <ColumnDefinition Width="50" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Bookmark" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.LineNumber" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Timestamp" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Level" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.ThreadId" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
-                <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" />
-                <TextBlock Grid.Column="2" Text="{Binding Structured.Timestamp, Converter={StaticResource TimestampToLocalTimeConverter}}" Opacity="0.8" />
-                <TextBlock Grid.Column="3" Text="{Binding Structured.Level}" FontWeight="Bold"
+                <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" Margin="0,0,4,0" />
+                <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="2" Text="{Binding Structured.Timestamp, Converter={StaticResource TimestampToLocalTimeConverter}}" Opacity="0.8" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="3" Text="{Binding Structured.Level}" FontWeight="Bold" Margin="0,0,8,0"
                            Foreground="{Binding Structured.Level, Converter={StaticResource LevelToBrushConverter}}" />
-                <TextBlock Grid.Column="4" Text="{Binding ThreadId}" Opacity="0.6" />
+                <TextBlock Grid.Column="4" Text="{Binding ThreadId}" Opacity="0.6" Margin="0,0,8,0" />
                 <!-- Column 5: rendered message — colorized when the converter produces inlines,
                      plain text otherwise (no template, or colorization disabled). Margin guarantees a
                      visible gap after Level/ThreadId even when their columns are exactly as wide as the text. -->
@@ -125,6 +129,7 @@
                   SelectedItem="{Binding SelectedLine, Mode=TwoWay}"
                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
                   Padding="0,0,0,16"
+                  Grid.IsSharedSizeScope="True"
                   VirtualizingPanel.IsVirtualizing="True"
                   VirtualizingPanel.VirtualizationMode="Recycling"
                   VirtualizingPanel.ScrollUnit="Pixel"

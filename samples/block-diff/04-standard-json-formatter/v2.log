@@ -1,0 +1,4 @@
+{"Timestamp":"2026-02-01T09:00:00.000+00:00","Level":"Information","MessageTemplate":"Login attempt for {Username}","Properties":{"Username":"bob","CorrelationId":"corr-2"}}
+{"Timestamp":"2026-02-01T09:00:00.080+00:00","Level":"Information","MessageTemplate":"Password verified for {Username}","Properties":{"Username":"bob","CorrelationId":"corr-2"}}
+{"Timestamp":"2026-02-01T09:00:00.900+00:00","Level":"Information","MessageTemplate":"MFA challenge sent to {Username}","Properties":{"Username":"bob","CorrelationId":"corr-2"}}
+{"Timestamp":"2026-02-01T09:00:03.400+00:00","Level":"Information","MessageTemplate":"Login succeeded for {Username} in {DurationMs}ms","Properties":{"Username":"bob","DurationMs":3400,"CorrelationId":"corr-2"}}
