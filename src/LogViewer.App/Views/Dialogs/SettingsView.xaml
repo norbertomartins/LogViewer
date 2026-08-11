@@ -28,6 +28,9 @@
 
             <CheckBox Content="Colorize variable values in structured log messages" IsChecked="{Binding ColorizeStructuredValues}" Margin="0,0,0,10" />
 
+            <TextBlock Text="Log font size (also adjustable via Ctrl+Mouse wheel over the log)" TextWrapping="Wrap" />
+            <TextBox Text="{Binding LogFontSize, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
+
             <TextBlock Text="Theme" />
             <Grid Margin="0,2,0,0">
                 <Grid.ColumnDefinitions>

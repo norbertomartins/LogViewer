@@ -261,8 +261,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.SetInitialMdiBounds(Documents.Count);
         document.ApplyThemeMode(_currentThemeMode);
         document.ApplyColorizeStructuredValues(_settings.ColorizeStructuredValues);
+        document.ApplyLogFontSize(_settings.LogFontSize);
         document.ApplyDetailPanelHeight(_settings.Layout.DetailPanelHeight);
         document.DetailPanelHeightChanged += height => OnDetailPanelHeightChanged(document, height);
+        document.LogFontSizeChanged += fontSize => OnLogFontSizeChanged(document, fontSize);
         document.SearchRequested += () => ShowSearchDialog(document);
         document.CustomizeRequested += () => ShowCustomizeDialog(document);
         document.FindSimilarBlockRequested += line => ShowSimilarBlockDialog(document, line);
@@ -283,6 +285,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             if (document != source)
             {
                 document.ApplyDetailPanelHeight(height);
+            }
+        }
+    }
+
+    /// <summary>Persists a Ctrl+MouseWheel-zoomed log font size and applies it to every other open document,
+    /// so zooming one document's log view keeps every document in sync (equal-value assignments are no-ops
+    /// via <c>ObservableProperty</c>'s equality check, so this can't loop).</summary>
+    private void OnLogFontSizeChanged(TailDocumentViewModel source, double fontSize)
+    {
+        _settings.LogFontSize = fontSize;
+        foreach (var document in Documents)
+        {
+            if (document != source)
+            {
+                document.ApplyLogFontSize(fontSize);
             }
         }
     }
@@ -415,11 +432,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             return;
         }
 
-        // Propagate the colorize-values setting to all currently open documents so the change
-        // takes effect immediately without needing to reopen them.
+        // Propagate the colorize-values and log-font-size settings to all currently open documents so the
+        // change takes effect immediately without needing to reopen them.
         foreach (var document in Documents)
         {
             document.ApplyColorizeStructuredValues(_settings.ColorizeStructuredValues);
+            document.ApplyLogFontSize(_settings.LogFontSize);
         }
     }
 

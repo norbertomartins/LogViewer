@@ -43,4 +43,7 @@ public sealed class AppSettings
     /// .NET console logger output style.
     /// </summary>
     public bool ColorizeStructuredValues { get; set; } = true;
+
+    /// <summary>Font size (in points) for the log line list, adjustable via Ctrl+MouseWheel over the log view.</summary>
+    public double LogFontSize { get; set; } = 12;
 }

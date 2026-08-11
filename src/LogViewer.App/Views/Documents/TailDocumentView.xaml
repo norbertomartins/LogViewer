@@ -129,7 +129,8 @@
                   VirtualizingPanel.VirtualizationMode="Recycling"
                   VirtualizingPanel.ScrollUnit="Pixel"
                   Style="{StaticResource LogListViewStyle}"
-                  FontFamily="Consolas" FontSize="12">
+                  FontFamily="Consolas" FontSize="{Binding LogFontSize}"
+                  PreviewMouseWheel="OnLineListPreviewMouseWheel">
             <ListView.ItemContainerStyle>
                 <!-- Tag carries the document view-model down to the row's ContextMenu: a ContextMenu opens in
                      its own popup tree, so an ElementName binding back to LineListView is not reliable across

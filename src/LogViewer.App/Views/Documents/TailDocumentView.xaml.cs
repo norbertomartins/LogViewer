@@ -1,6 +1,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
 using LogViewer.App.Models;
@@ -107,6 +108,19 @@ public partial class TailDocumentView : UserControl
         {
             _viewModel.DetailPanelHeight = DetailPanelRow.ActualHeight;
         }
+    }
+
+    /// <summary>Ctrl+MouseWheel zooms the log font size instead of scrolling; a plain wheel scrolls as usual
+    /// (left unhandled so the ListView's own ScrollViewer still processes it).</summary>
+    private void OnLineListPreviewMouseWheel(object sender, MouseWheelEventArgs e)
+    {
+        if (Keyboard.Modifiers != ModifierKeys.Control || _viewModel is null)
+        {
+            return;
+        }
+
+        _viewModel.AdjustLogFontSize(e.Delta > 0 ? 1 : -1);
+        e.Handled = true;
     }
 
     private ScrollViewer? GetLineListScrollViewer()

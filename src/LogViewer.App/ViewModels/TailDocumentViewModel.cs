@@ -50,6 +50,27 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [ObservableProperty]
     private bool _isColorizeStructuredValues = true;
 
+    private const double MinLogFontSize = 8;
+    private const double MaxLogFontSize = 32;
+
+    [ObservableProperty]
+    private double _logFontSize = 12;
+
+    /// <summary>Raised when the user Ctrl+MouseWheel-zooms this document's log font size, so <c>MainViewModel</c>
+    /// can persist the new size and propagate it to every other open document.</summary>
+    public event Action<double>? LogFontSizeChanged;
+
+    partial void OnLogFontSizeChanged(double value) => LogFontSizeChanged?.Invoke(value);
+
+    /// <summary>Applies a log font size from settings or another document's Ctrl+MouseWheel zoom, without
+    /// re-raising <see cref="LogFontSizeChanged"/> for the same value.</summary>
+    public void ApplyLogFontSize(double fontSize) => LogFontSize = fontSize;
+
+    /// <summary>Nudges the log font size by <paramref name="steps"/> points (positive = larger), clamped to a
+    /// readable range — driven by Ctrl+MouseWheel over the log view.</summary>
+    public void AdjustLogFontSize(int steps) =>
+        LogFontSize = Math.Clamp(LogFontSize + steps, MinLogFontSize, MaxLogFontSize);
+
     [ObservableProperty]
     private bool _hasUnseenChanges;
 
