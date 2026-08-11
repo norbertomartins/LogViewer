@@ -152,6 +152,10 @@
                                           Command="{Binding PlacementTarget.Tag.FilterByThreadIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 <Separator />
+                                <MenuItem Header="Find Similar Block In..."
+                                          Command="{Binding PlacementTarget.Tag.FindSimilarBlockCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <Separator />
                                 <MenuItem Header="Clear Filter"
                                           Command="{Binding PlacementTarget.Tag.ClearFilterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                             </ContextMenu>

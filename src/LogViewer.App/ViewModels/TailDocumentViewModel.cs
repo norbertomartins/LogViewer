@@ -483,6 +483,27 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [RelayCommand]
     private void FilterByThreadId(LogLineViewModel? line) => ApplyPropertyFilter(line, "ThreadId");
 
+    /// <summary>Raised when the user asks to find a similar block of logs elsewhere, anchored at
+    /// <c>line</c> — <see cref="MainViewModel"/> opens the comparison dialog in response.</summary>
+    public event Action<LogLineViewModel>? FindSimilarBlockRequested;
+
+    [RelayCommand]
+    private void FindSimilarBlock(LogLineViewModel? line)
+    {
+        if (line?.Structured is null)
+        {
+            StatusMessage = "Selected line is not a structured log event.";
+            return;
+        }
+
+        FindSimilarBlockRequested?.Invoke(line);
+    }
+
+    /// <summary>Every currently displayed line that parsed as a structured event, in display order — the
+    /// pool <see cref="Core.BlockDiff.LogBlockExtractor"/> extracts the anchor block from.</summary>
+    public IReadOnlyList<(long LineNumber, StructuredLogEvent Event)> StructuredLines =>
+        Lines.Where(l => l.Structured is not null).Select(l => (l.LineNumber, l.Structured!)).ToList();
+
     [RelayCommand]
     private void FilterByProperty(object? parameter)
     {

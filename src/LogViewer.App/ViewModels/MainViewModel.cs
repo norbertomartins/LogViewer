@@ -3,7 +3,9 @@ using System.IO;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LogViewer.App.Models;
 using LogViewer.App.Services;
+using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.ExternalTools;
@@ -22,6 +24,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IDialogService _dialogService;
     private readonly IFullTextSearchService _fileSearchService;
     private readonly IEventLogSearchService _eventLogSearchService;
+    private readonly ISimilarBlockFinder _blockFinder;
     private readonly ThemeService _themeService;
     private readonly AppSettings _settings;
     private readonly ProcessStatsService _processStats = new();
@@ -44,12 +47,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         DockingWindowModeHost host,
         IFullTextSearchService fileSearchService,
         IEventLogSearchService eventLogSearchService,
+        ISimilarBlockFinder blockFinder,
         ThemeService themeService)
     {
         _settingsStore = settingsStore;
         _dialogService = dialogService;
         _fileSearchService = fileSearchService;
         _eventLogSearchService = eventLogSearchService;
+        _blockFinder = blockFinder;
         _themeService = themeService;
         Host = host;
 
@@ -260,6 +265,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.DetailPanelHeightChanged += height => OnDetailPanelHeightChanged(document, height);
         document.SearchRequested += () => ShowSearchDialog(document);
         document.CustomizeRequested += () => ShowCustomizeDialog(document);
+        document.FindSimilarBlockRequested += line => ShowSimilarBlockDialog(document, line);
 
         Documents.Add(document);
         ActiveDocument = document;
@@ -292,6 +298,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _dialogService.ShowSearchDialog(document, _fileSearchService, _eventLogSearchService);
 
     private void ShowCustomizeDialog(TailDocumentViewModel document) => _dialogService.ShowCustomizeDialog(document);
+
+    private void ShowSimilarBlockDialog(TailDocumentViewModel document, LogLineViewModel anchorLine) =>
+        _dialogService.ShowSimilarBlockDialog(document, anchorLine, Documents, _blockFinder);
 
     [RelayCommand]
     private void CloseDocument(TailDocumentViewModel? document)

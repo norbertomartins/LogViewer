@@ -1,6 +1,8 @@
 using System.Windows;
+using LogViewer.App.Models;
 using LogViewer.App.ViewModels;
 using LogViewer.App.Views.Dialogs;
+using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.ExternalTools;
@@ -156,6 +158,21 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         var window = new SearchView
         {
             DataContext = new SearchViewModel(document, fileSearchService, eventLogSearchService),
+            Owner = Application.Current?.MainWindow,
+        };
+
+        window.Show();
+    }
+
+    public void ShowSimilarBlockDialog(
+        TailDocumentViewModel sourceDocument,
+        LogLineViewModel anchorLine,
+        IReadOnlyList<TailDocumentViewModel> openDocuments,
+        ISimilarBlockFinder blockFinder)
+    {
+        var window = new SimilarBlockView
+        {
+            DataContext = new SimilarBlockViewModel(sourceDocument, anchorLine, openDocuments, blockFinder, this),
             Owner = Application.Current?.MainWindow,
         };
 

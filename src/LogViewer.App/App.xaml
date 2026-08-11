@@ -17,6 +17,7 @@
         <converters:TimestampToLocalTimeConverter x:Key="TimestampToLocalTimeConverter" />
         <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
         <converters:StructuredInlinesConverter x:Key="StructuredInlinesConverter" />
+        <converters:DiffEntryBrushConverter x:Key="DiffEntryBrushConverter" />
 
         <!-- Global template: every window-mode host (Tabbed/Floating via AvalonDock, MDI via MdiHostView)
              resolves TailDocumentViewModel through this SAME template, so it's structurally guaranteed

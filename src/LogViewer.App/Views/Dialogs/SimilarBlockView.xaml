@@ -1,0 +1,86 @@
+<Window x:Class="LogViewer.App.Views.Dialogs.SimilarBlockView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Find Similar Block"
+        Width="1000" Height="640"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="90" />
+            <RowDefinition Height="*" MinHeight="120" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="{Binding SourceDescription}" Opacity="0.7" Margin="0,0,0,6" />
+
+        <Grid Grid.Row="1" Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="180" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Correlation field:" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <ComboBox Grid.Column="1" IsEditable="True" Text="{Binding SelectedCorrelationField, UpdateSourceTrigger=PropertyChanged}"
+                      ItemsSource="{Binding SuggestedCorrelationFields}"
+                      ToolTip="Groups this operation's log lines by this property (auto-suggested — clear it to fall back to line/time proximity instead)" />
+            <TextBlock Grid.Column="2" Text="Compare with:" VerticalAlignment="Center" Margin="12,0,8,0" />
+            <ComboBox Grid.Column="3" ItemsSource="{Binding OpenTargetDocuments}" SelectedItem="{Binding SelectedTargetDocument}"
+                      DisplayMemberPath="Title" />
+            <Button Grid.Column="4" Content="Browse…" Command="{Binding BrowseTargetCommand}" Margin="8,0,0,0" Width="80" />
+            <Button Grid.Column="5" Content="Find" Command="{Binding FindCommand}" Margin="8,0,0,0" Width="80" />
+        </Grid>
+
+        <TextBlock Grid.Row="2" Text="{Binding BrowsedTargetPath, StringFormat='File: {0}'}" Opacity="0.7" Margin="0,0,0,6"
+                   Visibility="{Binding BrowsedTargetPath, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+
+        <ListBox Grid.Row="3" ItemsSource="{Binding Candidates}" SelectedItem="{Binding SelectedCandidate, Mode=TwoWay}" Margin="0,0,0,6">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding Score, StringFormat='{}{0:P0} match'}" FontWeight="Bold" Margin="0,0,10,0" />
+                        <TextBlock Text="{Binding Block.CorrelationValue}" Opacity="0.8" Margin="0,0,10,0" />
+                        <TextBlock Text="{Binding Block.Lines.Count, StringFormat='{}{0} lines'}" Opacity="0.6" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ListView Grid.Row="4" x:Name="DiffListView" ItemsSource="{Binding DiffEntries}"
+                  SelectedItem="{Binding SelectedDiffEntry, Mode=TwoWay}"
+                  Style="{StaticResource LogListViewStyle}"
+                  FontFamily="Consolas" FontSize="12">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource LogListViewItemStyle}">
+                    <Setter Property="Background" Value="{Binding Converter={StaticResource DiffEntryBrushConverter}}" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Line" Width="60" DisplayMemberBinding="{Binding Left.LineNumber}" />
+                    <GridViewColumn Header="Source" Width="400" DisplayMemberBinding="{Binding Left.Event.RenderedMessage}" />
+                    <GridViewColumn Header="Line" Width="60" DisplayMemberBinding="{Binding Right.LineNumber}" />
+                    <GridViewColumn Header="Target" Width="400" DisplayMemberBinding="{Binding Right.Event.RenderedMessage}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <StackPanel Grid.Row="5" Orientation="Horizontal" Margin="0,6,0,0">
+            <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
+            <TextBlock Text="  |  Red = only in source · Green = only in target · Yellow = same shape, different values" Opacity="0.6" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="Jump to Source Line" Command="{Binding JumpToLeftCommand}" CommandParameter="{Binding SelectedDiffEntry}" Width="140" Margin="0,0,6,0" />
+            <Button Content="Jump to Target Line" Command="{Binding JumpToRightCommand}" CommandParameter="{Binding SelectedDiffEntry}" Width="140" Margin="0,0,6,0" />
+            <Button Content="Cancel" Command="{Binding CancelFindCommand}" IsEnabled="{Binding IsSearching}" Width="80" Margin="0,0,6,0" />
+            <Button Content="Close" Width="80" Click="OnCloseClick" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -4,6 +4,7 @@ using System.Windows.Controls.Primitives;
 using LogViewer.App.Services;
 using LogViewer.App.ViewModels;
 using LogViewer.App.Views.Shell;
+using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.Search;
@@ -41,6 +42,8 @@ public partial class App : Application
         services.AddSingleton<IDialogService, DialogService>();
         services.AddSingleton<IFullTextSearchService, FileFullTextSearchService>();
         services.AddSingleton<IEventLogSearchService, EventLogSearchService>();
+        services.AddSingleton<IBlockScanService, FileBlockScanService>();
+        services.AddSingleton<ISimilarBlockFinder, SimilarBlockFinder>();
         services.AddSingleton<DockingWindowModeHost>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<MainWindow>();

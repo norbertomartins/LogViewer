@@ -1,4 +1,6 @@
+using LogViewer.App.Models;
 using LogViewer.App.ViewModels;
+using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.ExternalTools;
@@ -40,4 +42,13 @@ public interface IDialogService
 
     /// <summary>Opens the per-document tab/MDI color-and-icon customization dialog. Returns true if the user saved changes.</summary>
     bool ShowCustomizeDialog(TailDocumentViewModel document);
+
+    /// <summary>Opens the non-modal "Find Similar Block" comparison window, anchored at <paramref name="anchorLine"/>
+    /// in <paramref name="sourceDocument"/>. <paramref name="openDocuments"/> populates the comparison-target picker
+    /// alongside a "browse for file" option.</summary>
+    void ShowSimilarBlockDialog(
+        TailDocumentViewModel sourceDocument,
+        LogLineViewModel anchorLine,
+        IReadOnlyList<TailDocumentViewModel> openDocuments,
+        ISimilarBlockFinder blockFinder);
 }
