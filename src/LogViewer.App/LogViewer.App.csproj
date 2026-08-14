@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LogViewer.Core\LogViewer.Core.csproj" />
+    <ProjectReference Include="..\LogViewer.Mcp\LogViewer.Mcp.csproj" />
   </ItemGroup>
 
   <ItemGroup>

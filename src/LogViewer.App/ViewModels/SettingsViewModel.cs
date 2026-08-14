@@ -38,6 +38,12 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private AppTheme _selectedTheme;
 
+    [ObservableProperty]
+    private bool _mcpEnabled;
+
+    [ObservableProperty]
+    private int _mcpPort;
+
     public SettingsViewModel(AppSettings settings, IDialogService dialogService)
     {
         _settings = settings;
@@ -50,6 +56,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         _autoTuneForRemoteDesktop = settings.AutoTuneForRemoteDesktop;
         _colorizeStructuredValues = settings.ColorizeStructuredValues;
         _logFontSize = settings.LogFontSize;
+        _mcpEnabled = settings.Mcp.Enabled;
+        _mcpPort = settings.Mcp.Port;
 
         _availableThemes = BuildAvailableThemes();
         _selectedTheme = _availableThemes.FirstOrDefault(t => t.Id == settings.ActiveThemeId) ?? _availableThemes[0];
@@ -81,5 +89,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         settings.ColorizeStructuredValues = ColorizeStructuredValues;
         settings.LogFontSize = LogFontSize;
         settings.ActiveThemeId = SelectedTheme.Id;
+        settings.Mcp.Enabled = McpEnabled;
+        settings.Mcp.Port = McpPort;
     }
 }

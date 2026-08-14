@@ -10,7 +10,7 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 4;
+    public int SchemaVersion { get; set; } = 5;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
 
@@ -46,4 +46,8 @@ public sealed class AppSettings
 
     /// <summary>Font size (in points) for the log line list, adjustable via Ctrl+MouseWheel over the log view.</summary>
     public double LogFontSize { get; set; } = 12;
+
+    /// <summary>Embedded MCP server settings, letting an external AI agent analyze the logs this app is
+    /// tailing. Disabled by default.</summary>
+    public McpServerSettings Mcp { get; set; } = new();
 }

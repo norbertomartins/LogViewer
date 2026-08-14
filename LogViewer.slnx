@@ -2,8 +2,10 @@
   <Folder Name="/src/">
     <Project Path="src/LogViewer.App/LogViewer.App.csproj" />
     <Project Path="src/LogViewer.Core/LogViewer.Core.csproj" />
+    <Project Path="src/LogViewer.Mcp/LogViewer.Mcp.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/LogViewer.Core.Tests/LogViewer.Core.Tests.csproj" />
+    <Project Path="tests/LogViewer.Mcp.Tests/LogViewer.Mcp.Tests.csproj" />
   </Folder>
 </Solution>

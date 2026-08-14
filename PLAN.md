@@ -7,6 +7,27 @@
 - **Phase 3 — done.** External tool definitions are now fully wired: manual invocation (toolbar "Run Tool" menu + per-tool shortcut gestures) and auto-trigger on highlight match, via `ExternalToolLauncher` (Core). Full-file search (`FileFullTextSearchService`) and full-EventLog-channel search (`EventLogSearchService`), both streaming/cancellable, surfaced through a non-modal Search window per document. Per-document tab-text/MDI-title-bar color and icon-glyph customization, persisted across restarts. Verified via 55 unit tests (13 new) + build + a non-interactive startup smoke test; see caveat below.
 - **Phase 4 — done.** `TailSourceSettings` generalized to cover all three source kinds (File/DirectoryWatch/EventLog) plus per-document customization and MDI bounds, so session-restore now reopens directory watches and EventLog sources (previously silently dropped) and restores the last-active document. Main window bounds/maximize state and the AvalonDock docking layout (tab/float arrangement) now persist and restore across restarts. Directory drag-drop opens the "Open Directory (Watch)" dialog pre-filled with the dropped folder. RDP sessions auto-widen the UI redraw-batching interval (toggle in Settings) via `RemoteSessionDetector`. Verified via unit tests + build + startup smoke test; see caveat below.
 
+- **Phase 5 — done.** An embedded MCP (Model Context Protocol) server, disabled by default, lets an
+  external AI agent (Claude Desktop, Claude Code, or any MCP client) query the logs this app is tailing —
+  discover open documents, search, pull context around a line, find the most frequent recurring message
+  patterns, and rank which functions/call-sites are repeatedly logging errors, plus reuse the existing
+  block-diff/similarity engine. Verified via 21 new `LogViewer.Mcp.Tests` unit tests (150 total across both
+  test projects) + build + a live JSON-RPC handshake against a running instance; see caveat below.
+
+### Phase 5 verification caveat
+Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
+the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was
+launched with `Mcp.Enabled=true`, Kestrel logged `Now listening on: http://127.0.0.1:38173`, and raw
+`initialize` / `tools/list` / `tools/call` (`logs_list_open_documents`) JSON-RPC requests over Streamable
+HTTP (via `curl`) all round-tripped correctly — `tools/list` returned all 11 tools with correct schemas,
+and the `logs_list_open_documents` call correctly resolved the live `MainViewModel` through the shared DI
+singletons. The process was then force-killed (no interactive window to close gracefully in that
+environment) and the port was confirmed free afterward. **Still needs a manual pass in an interactive
+session**: closing the app window normally to confirm `OnExit`/`McpServerHost.StopAsync` releases the port
+gracefully (rather than relying on OS cleanup after a forced kill), driving the handshake from a real MCP
+client (Claude Desktop/Code or the MCP Inspector) instead of raw `curl`, and the Settings dialog's new
+checkbox/port field.
+
 ### Phase 3/4 verification caveat
 Unlike Phases 1–2, this pass did **not** include a live screenshot-driven UI walkthrough — the environment that implemented Phase 3/4 only had build/test/non-interactive-launch tooling available, not native WPF UI automation. Everything above is confirmed via `dotnet build`, the unit test suite (55/55 green), and a background `dotnet run` smoke test (process starts cleanly, no crash/error output, existing settings file left untouched). The interactive paths — external tool launch/auto-trigger, search-dialog results and jump-to-line, tab/MDI customization dialog, directory drag-drop, and window-bounds/AvalonDock-layout restore across a real restart — still need a manual pass in a running session before being considered fully verified end-to-end.
 
@@ -42,8 +63,13 @@ C:\Dev\LogViewer\
     ExternalTools\             # ExternalToolDefinition, ExternalToolLauncher (arg-template substitution + Process.Start)
     EventLogging\               # WindowsEventLogSource, EventLogFilterRule, EventLogSearchService, EventRecordFormatter/FilterEvaluator
     Search\                     # IFullTextSearchService, FileFullTextSearchService (streaming, cancellable)
+    Analysis\                   # IPatternFrequencyAnalyzer, ILineWindowReader, ExceptionFrameExtractor (Phase 5)
+    Documents\                  # IOpenDocumentCatalog, OpenDocumentInfo (Phase 5)
     Services\Diagnostics\       # ProcessStatsService, RemoteSessionDetector
     Services\ServiceControl\    # ServiceControlService, WindowsServiceInfo
+
+  src\LogViewer.Mcp\           # net10.0, no WPF; FrameworkReference Microsoft.AspNetCore.App (Phase 5)
+    Tools\                      # LogDiscoveryTools, LogSearchTools, LogPatternTools, LogBlockTools
 
   src\LogViewer.App\           # net10.0-windows, UseWPF
     Views\Shell\   Views\Documents\   Views\Dialogs\
@@ -53,10 +79,11 @@ C:\Dev\LogViewer\
     Converters\
     Models\
 
-  tests\LogViewer.Core.Tests\  # net10.0, xUnit — 55 tests
+  tests\LogViewer.Core.Tests\  # net10.0, xUnit — 129 tests
+  tests\LogViewer.Mcp.Tests\   # net10.0, xUnit — 21 tests (Phase 5)
 ```
 
-Key packages: `CommunityToolkit.Mvvm`, `AvalonDock` (Tabbed + Floating docking panes), `Hardcodet.NotifyIcon.Wpf` (tray icon), `Microsoft.Extensions.DependencyInjection` (composition root), `System.Diagnostics.EventLog`, `System.ServiceProcess.ServiceController`, `System.Text.Encoding.CodePages`, `xunit`.
+Key packages: `CommunityToolkit.Mvvm`, `AvalonDock` (Tabbed + Floating docking panes), `Hardcodet.NotifyIcon.Wpf` (tray icon), `Microsoft.Extensions.DependencyInjection` (composition root), `System.Diagnostics.EventLog`, `System.ServiceProcess.ServiceController`, `System.Text.Encoding.CodePages`, `ModelContextProtocol`/`ModelContextProtocol.AspNetCore` (Phase 5), `xunit`.
 
 ## Core Tailing Engine
 
@@ -122,10 +149,24 @@ Dropping a directory onto the main window (in addition to the existing file-drop
 
 `RemoteSessionDetector` (P/Invoke `GetSystemMetrics(SM_REMOTESESSION)`) widens the UI redraw-batching interval to a 250ms floor under a Remote Desktop session, via a pure/testable `EffectiveRefreshInterval` helper; togglable in Settings (`AutoTuneForRemoteDesktop`, on by default).
 
+## MCP Server (Phase 5)
+
+A third project, `LogViewer.Mcp` (plain `net10.0`, no WPF, `<FrameworkReference Include="Microsoft.AspNetCore.App" />`), hosts an embedded Kestrel server exposing the official `ModelContextProtocol`/`ModelContextProtocol.AspNetCore` C# SDK over **Streamable HTTP**, bound to `127.0.0.1:<configurable port>` (default `38173`). Streamable HTTP was chosen over stdio because the app is already a long-running GUI process with live state (open documents) — stdio would mean spawning a second, headless copy of the app per MCP client connection. `McpServerHost` (in `LogViewer.Mcp`) owns the `WebApplication`, is constructed in `App.xaml.cs OnStartup` (only when `AppSettings.Mcp.Enabled`, default `false`) sharing the same Core singleton instances the WPF app already resolved, and is stopped in `OnExit`; a port-bind failure is caught inside `McpServerHost.StartAsync` and surfaced via `MainViewModel.StatusMessage` rather than crashing startup.
+
+Two new Core subsystems back the MCP tools, both UI-free and unit-tested like everything else in `LogViewer.Core`:
+- `Analysis/` — `IPatternFrequencyAnalyzer`/`FilePatternFrequencyAnalyzer` aggregates a whole structured file into frequency tables, either by `MessageSignature` (recurring message *shapes*) or by a structured property's value (e.g. which `SourceContext` produced the most errors), with an `ExceptionFrameExtractor` fallback to the topmost stack frame when the call-site property is absent. `ILineWindowReader`/`FileLineWindowReader` reads a bounded window of raw lines around a line number. Both stream via the shared `StructuredFileReader` (extracted out of `FileBlockScanService`, which now reuses it too).
+- `Documents/IOpenDocumentCatalog` — a Core-layer abstraction over "what documents are open right now", implemented in `LogViewer.App` by `WpfOpenDocumentCatalog` (projects `MainViewModel.Documents`) so the MCP tool layer never takes a WPF dependency.
+
+`LogViewer.Mcp/Tools/` exposes 11 `[McpServerTool]` methods across four `[McpServerToolType]` classes (`LogDiscoveryTools`, `LogSearchTools`, `LogPatternTools`, `LogBlockTools`): listing open documents, describing/sampling a source, full-text search, line-context lookup, listing structured properties, top recurring patterns, top error sources by call site (the purpose-built "which functions keep erroring" tool), top values of any property, drilling into a pattern's occurrences, correlation/proximity block scanning, and similar-block finding — the last two wrapping the existing `IBlockScanService`/`ISimilarBlockFinder` block-diff engine. Every tool clamps its result count and truncates line text through `ResponseLimits`, independent of what the caller requests, so a broad query can't blow up the response payload.
+
+`AppSettings.Mcp` (`McpServerSettings`: `Enabled`, `BindAddress`, `Port`, `MaxResultsPerCall`, `MaxLineTextLength`, `RequireApiKeyHeader`, `ApiKey`) is new in schema v5 (`JsonSettingsStore` migrates v4→v5 with no field-level work needed, same as the v2→v3 theme migration). The Settings dialog exposes an enable checkbox and port field (restart required to apply, noted in the UI).
+
 ## Verification
 
-1. `dotnet build LogViewer.slnx -c Debug` from `C:\Dev\LogViewer` — all three projects restore/compile against `net10.0`/`net10.0-windows`.
-2. `dotnet test tests\LogViewer.Core.Tests\LogViewer.Core.Tests.csproj` — 55/55 green (42 from Phases 1–2 + 13 from Phase 3/4: `ExternalToolLauncher` argument substitution/launch-failure handling, `FileFullTextSearchService` plain/regex/case-sensitivity/cancellation, `RemoteSessionDetector`'s pure interval helper, generalized `TailSourceSettings` round-trip), including truncation/rename/directory-auto-switch/EventLog-channel simulations against real temp files and the real Windows Application log.
-3. `dotnet run --project src\LogViewer.App\LogViewer.App.csproj`.
-4. Phases 1–2 were manually verified end-to-end via screenshot-driven UI automation: growing-file live tailing with burst appends, highlight rule creation + live application, bookmark toggle/navigation, truncation/rotation reset-and-resume, tabbed multi-document, floating mode (independent OS windows), MDI mode (drag/resize/cascade/tile), directory-watch auto-switch, live EventLog tailing (including catching the app's own crash-log entry), Windows Services listing (316 real services), tray minimize/restore, tab file-change indicator, settings/session persistence across restart.
-5. Phase 3/4 verification, by contrast, only had build/test/non-interactive-launch tooling available — confirmed via build, the 55/55 test suite, and a background `dotnet run` smoke test (process starts cleanly, no crash/error output). **Still needs a manual UI pass**: external tool launch (manual + auto-trigger + shortcut gestures), search-dialog results and jump-to-line for both files and EventLog channels, the tab/MDI customize dialog, directory drag-drop, and window-bounds/AvalonDock-layout restore across a real restart.
+1. `dotnet build LogViewer.slnx -c Debug` from `C:\Dev\LogViewer` — all five projects (as of Phase 5: `LogViewer.Core`, `LogViewer.Mcp`, `LogViewer.App`, `LogViewer.Core.Tests`, `LogViewer.Mcp.Tests`) restore/compile.
+2. `dotnet test tests\LogViewer.Core.Tests\LogViewer.Core.Tests.csproj` — 129/129 green (114 from Phases 1–4 + 15 from Phase 5: `FilePatternFrequencyAnalyzer` signature/property grouping, level filtering, `topN`, exception-frame fallback; `ExceptionFrameExtractor`; `FileLineWindowReader` windowing/clamping/out-of-range; `BlockLookup`), including truncation/rename/directory-auto-switch/EventLog-channel simulations against real temp files and the real Windows Application log.
+3. `dotnet test tests\LogViewer.Mcp.Tests\LogViewer.Mcp.Tests.csproj` — 21/21 green, exercising every one of the 11 MCP tool methods directly against real fixture files (clamping/truncation, correlation vs. proximity block scanning, exception-frame fallback, error-level filtering), independent of the HTTP transport.
+4. `dotnet run --project src\LogViewer.App\LogViewer.App.csproj`.
+5. Phases 1–2 were manually verified end-to-end via screenshot-driven UI automation: growing-file live tailing with burst appends, highlight rule creation + live application, bookmark toggle/navigation, truncation/rotation reset-and-resume, tabbed multi-document, floating mode (independent OS windows), MDI mode (drag/resize/cascade/tile), directory-watch auto-switch, live EventLog tailing (including catching the app's own crash-log entry), Windows Services listing (316 real services), tray minimize/restore, tab file-change indicator, settings/session persistence across restart.
+6. Phase 3/4 verification, by contrast, only had build/test/non-interactive-launch tooling available — confirmed via build, the test suite, and a background `dotnet run` smoke test (process starts cleanly, no crash/error output). **Still needs a manual UI pass**: external tool launch (manual + auto-trigger + shortcut gestures), search-dialog results and jump-to-line for both files and EventLog channels, the tab/MDI customize dialog, directory drag-drop, and window-bounds/AvalonDock-layout restore across a real restart.
+7. Phase 5 likewise only had build/test/non-interactive-launch tooling available — confirmed via build, both test suites, and a background `dotnet run` smoke test with `Mcp.Enabled=true` (process starts cleanly, the configured port accepts a TCP connection, no crash/error output, and closing the app frees the port). **Still needs a manual pass with a real MCP client** (Claude Desktop/Code or the MCP Inspector) driving the actual tool-list/tool-call handshake over Streamable HTTP end-to-end, plus the Settings dialog's new checkbox/port field.

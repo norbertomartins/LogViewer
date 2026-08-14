@@ -5,6 +5,7 @@ using LogViewer.App.Controls;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
 using LogViewer.Core.Bookmarks;
+using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.ExternalTools;
 using LogViewer.Core.Highlighting;
@@ -230,6 +231,15 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         FileTailSource => SourcePath,
         DirectoryWatchTailSource dirWatch => dirWatch.ActiveFilePath,
         _ => null,
+    };
+
+    /// <summary>What kind of source this document wraps, mirroring <see cref="SearchableFilePath"/>'s switch —
+    /// used e.g. by <see cref="Services.WpfOpenDocumentCatalog"/> to describe open documents to MCP tools.</summary>
+    public TailSourceKind Kind => _source switch
+    {
+        FileTailSource => TailSourceKind.File,
+        DirectoryWatchTailSource => TailSourceKind.DirectoryWatch,
+        _ => TailSourceKind.EventLog,
     };
 
     /// <summary>The EventLog channel + filters a full-channel search should scan, or null for file-backed documents.</summary>

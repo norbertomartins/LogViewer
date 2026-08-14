@@ -72,7 +72,9 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
             }
         }
 
-        settings.SchemaVersion = 4;
+        // v4 -> v5: Mcp is new; AppSettings' field initializer already gives pre-v5 files a sensible
+        // disabled-by-default McpServerSettings, so no field-level migration is needed.
+        settings.SchemaVersion = 5;
         return settings;
     }
 

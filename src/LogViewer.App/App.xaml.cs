@@ -4,10 +4,13 @@ using System.Windows.Controls.Primitives;
 using LogViewer.App.Services;
 using LogViewer.App.ViewModels;
 using LogViewer.App.Views.Shell;
+using LogViewer.Core.Analysis;
 using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
+using LogViewer.Core.Documents;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.Search;
+using LogViewer.Mcp;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace LogViewer.App;
@@ -15,6 +18,7 @@ namespace LogViewer.App;
 public partial class App : Application
 {
     private ServiceProvider? _serviceProvider;
+    private McpServerHost? _mcpServerHost;
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -44,8 +48,11 @@ public partial class App : Application
         services.AddSingleton<IEventLogSearchService, EventLogSearchService>();
         services.AddSingleton<IBlockScanService, FileBlockScanService>();
         services.AddSingleton<ISimilarBlockFinder, SimilarBlockFinder>();
+        services.AddSingleton<IPatternFrequencyAnalyzer, FilePatternFrequencyAnalyzer>();
+        services.AddSingleton<ILineWindowReader, FileLineWindowReader>();
         services.AddSingleton<DockingWindowModeHost>();
         services.AddSingleton<MainViewModel>();
+        services.AddSingleton<IOpenDocumentCatalog, WpfOpenDocumentCatalog>();
         services.AddSingleton<MainWindow>();
 
         _serviceProvider = services.BuildServiceProvider();
@@ -54,13 +61,40 @@ public partial class App : Application
         var themeService = _serviceProvider.GetRequiredService<ThemeService>();
         themeService.Apply(themeService.ResolveActiveTheme(settings));
 
+        var mainViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-        mainWindow.DataContext = _serviceProvider.GetRequiredService<MainViewModel>();
+        mainWindow.DataContext = mainViewModel;
         mainWindow.Show();
+
+        if (settings.Mcp.Enabled)
+        {
+            _mcpServerHost = new McpServerHost(
+                settings.Mcp,
+                _serviceProvider.GetRequiredService<IOpenDocumentCatalog>(),
+                _serviceProvider.GetRequiredService<IFullTextSearchService>(),
+                _serviceProvider.GetRequiredService<IBlockScanService>(),
+                _serviceProvider.GetRequiredService<ISimilarBlockFinder>(),
+                _serviceProvider.GetRequiredService<IPatternFrequencyAnalyzer>(),
+                _serviceProvider.GetRequiredService<ILineWindowReader>());
+
+            _ = StartMcpServerAsync(_mcpServerHost, mainViewModel);
+        }
+    }
+
+    private static async Task StartMcpServerAsync(McpServerHost host, MainViewModel mainViewModel)
+    {
+        // Deliberately no ConfigureAwait(false): the continuation must resume on the WPF dispatcher
+        // thread to set mainViewModel.StatusMessage, which is bound to the UI.
+        var started = await host.StartAsync(CancellationToken.None);
+        if (!started)
+        {
+            mainViewModel.StatusMessage = $"MCP server failed to start: {host.StartupError}";
+        }
     }
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _mcpServerHost?.StopAsync(CancellationToken.None).GetAwaiter().GetResult();
         _serviceProvider?.GetService<MainViewModel>()?.SaveAndDispose();
         _serviceProvider?.Dispose();
         base.OnExit(e);

@@ -1,17 +1,14 @@
 using System.Runtime.CompilerServices;
 using LogViewer.Core.Structured;
-using LogViewer.Core.Tailing;
 
 namespace LogViewer.Core.BlockDiff;
 
 /// <summary>
-/// Streams a target file from the start (reusing <see cref="Search.FileFullTextSearchService"/>'s
-/// exact streaming approach: <see cref="EncodingDetector"/>/<see cref="LineSplitter"/>, a 64KB read
-/// buffer, never materializing the whole file) and segments its structured lines into <see cref="LogBlock"/>s.
+/// Streams a target file from the start via <see cref="StructuredFileReader"/> and segments its
+/// structured lines into <see cref="LogBlock"/>s.
 /// </summary>
 public sealed class FileBlockScanService : IBlockScanService
 {
-    private const int ReadBufferSize = 64 * 1024;
     private const int CorrelationSweepInterval = 1000;
 
     public async IAsyncEnumerable<LogBlock> ScanAsync(
@@ -19,7 +16,7 @@ public sealed class FileBlockScanService : IBlockScanService
         BlockDetectionOptions options,
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        var events = ReadStructuredEventsAsync(targetPath, cancellationToken);
+        var events = StructuredFileReader.ReadAsync(targetPath, cancellationToken);
 
         var blocks = options.Strategy == BlockDetectionStrategy.ByCorrelationField
             ? ScanByCorrelation(events, targetPath, options, cancellationToken)
@@ -30,34 +27,6 @@ public sealed class FileBlockScanService : IBlockScanService
             if (block.Lines.Count > 0)
             {
                 yield return block;
-            }
-        }
-    }
-
-    private static async IAsyncEnumerable<(long LineNumber, StructuredLogEvent Event)> ReadStructuredEventsAsync(
-        string path, [EnumeratorCancellation] CancellationToken cancellationToken)
-    {
-        await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-        var (encoding, preambleLength) = EncodingDetector.Detect(stream);
-        stream.Position = preambleLength;
-
-        var splitter = new LineSplitter(encoding);
-        var buffer = new byte[ReadBufferSize];
-        var lineNumber = 0L;
-
-        int read;
-        while ((read = await stream.ReadAsync(buffer, cancellationToken).ConfigureAwait(false)) > 0)
-        {
-            var lines = splitter.Append(buffer.AsSpan(0, read));
-            foreach (var text in lines)
-            {
-                lineNumber++;
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (SerilogEventParser.TryParse(text, out var evt) && evt is not null)
-                {
-                    yield return (lineNumber, evt);
-                }
             }
         }
     }
