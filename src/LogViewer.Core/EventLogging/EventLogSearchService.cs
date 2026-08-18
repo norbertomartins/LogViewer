@@ -53,8 +53,16 @@ public sealed class EventLogSearchService : IEventLogSearchService
         Exception? failure = null;
         try
         {
-            var regex = isRegex ? new Regex(pattern, isCaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase) : null;
+            // Deliberately not RegexOptions.Compiled — see the comment in FileFullTextSearchService.SearchAsync:
+            // this regex is built fresh per search and matched in one pass, so Compiled's one-time JIT cost
+            // (benchmarked at ~4.3ms) outweighs its faster per-call matching except on very large channel scans.
+            var regex = isRegex
+                ? new Regex(pattern, isCaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase)
+                : null;
             var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+
+            var filterEvaluator = new EventLogFilterEvaluator();
+            filterEvaluator.SetFilters(filters);
 
             using var reader = new EventLogReader(new EventLogQuery(channelName, PathType.LogName));
             var lineNumber = 0L;
@@ -68,7 +76,7 @@ public sealed class EventLogSearchService : IEventLogSearchService
                 }
 
                 var formatted = EventRecordFormatter.Format(record);
-                if (formatted is null || !EventLogFilterEvaluator.PassesFilters(record, formatted, filters))
+                if (formatted is null || !filterEvaluator.PassesFilters(record, formatted))
                 {
                     continue;
                 }

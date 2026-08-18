@@ -15,6 +15,7 @@ namespace LogViewer.App.Controls;
 public sealed class DisplayLineCollection : IReadOnlyList<LogLineViewModel>, INotifyCollectionChanged, INotifyPropertyChanged
 {
     private readonly List<LogLineViewModel> _items;
+    private readonly Dictionary<long, int> _indexByLineNumber = new();
     private readonly int _capacity;
 
     public DisplayLineCollection(int capacity)
@@ -45,6 +46,7 @@ public sealed class DisplayLineCollection : IReadOnlyList<LogLineViewModel>, INo
             _items.RemoveRange(0, overflow);
         }
 
+        RebuildIndex();
         RaiseReset();
     }
 
@@ -56,10 +58,24 @@ public sealed class DisplayLineCollection : IReadOnlyList<LogLineViewModel>, INo
         }
 
         _items.Clear();
+        _indexByLineNumber.Clear();
         RaiseReset();
     }
 
-    public LogLineViewModel? FindByLineNumber(long lineNumber) => _items.Find(l => l.LineNumber == lineNumber);
+    /// <summary>O(1) lookup backed by <see cref="_indexByLineNumber"/>, rebuilt once per <see cref="AppendRange"/>/
+    /// <see cref="Clear"/> call rather than scanned per lookup — callers (search-result jumps, bookmark and
+    /// highlight navigation) invoke this far more often than the collection mutates.</summary>
+    public LogLineViewModel? FindByLineNumber(long lineNumber) =>
+        _indexByLineNumber.TryGetValue(lineNumber, out var index) ? _items[index] : null;
+
+    private void RebuildIndex()
+    {
+        _indexByLineNumber.Clear();
+        for (var i = 0; i < _items.Count; i++)
+        {
+            _indexByLineNumber[_items[i].LineNumber] = i;
+        }
+    }
 
     private void RaiseReset()
     {

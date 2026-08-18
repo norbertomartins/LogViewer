@@ -18,7 +18,7 @@ public sealed class WindowsEventLogSource : IEventLogSource
     private readonly TailSourceOptions _options;
     private readonly object _sync = new();
 
-    private List<EventLogFilterRule> _filters;
+    private readonly EventLogFilterEvaluator _filterEvaluator = new();
     private EventLogWatcher? _watcher;
     private long _lineNumber;
     private bool _started;
@@ -26,7 +26,7 @@ public sealed class WindowsEventLogSource : IEventLogSource
     public WindowsEventLogSource(string channelName, IEnumerable<EventLogFilterRule>? filters = null, TailSourceOptions? options = null)
     {
         _channelName = channelName;
-        _filters = filters?.ToList() ?? [];
+        _filterEvaluator.SetFilters(filters?.ToList() ?? []);
         _options = options ?? new TailSourceOptions();
         DisplayName = channelName;
     }
@@ -48,7 +48,7 @@ public sealed class WindowsEventLogSource : IEventLogSource
     {
         lock (_sync)
         {
-            _filters = filters.ToList();
+            _filterEvaluator.SetFilters(filters.ToList());
         }
     }
 
@@ -181,12 +181,9 @@ public sealed class WindowsEventLogSource : IEventLogSource
     /// <summary>No enabled filter means everything passes; otherwise an event must match at least one enabled filter.</summary>
     private bool PassesFilters(EventRecord record, string formattedMessage)
     {
-        List<EventLogFilterRule> filters;
         lock (_sync)
         {
-            filters = _filters;
+            return _filterEvaluator.PassesFilters(record, formattedMessage);
         }
-
-        return EventLogFilterEvaluator.PassesFilters(record, formattedMessage, filters);
     }
 }

@@ -1,4 +1,5 @@
 using System.IO;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LogViewer.App.Controls;
@@ -30,6 +31,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     private readonly SortedSet<long> _highlightedLineNumbers = new();
     private readonly UiDispatcherLineSink _sink;
     private readonly Dictionary<Guid, DateTime> _lastAutoTriggerAt = new();
+    private CancellationTokenSource? _reprocessCts;
 
     private IReadOnlyList<ExternalToolDefinition> _externalTools;
 
@@ -196,6 +198,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         SourcePath = sourcePath;
         _buffer = new RingLineBuffer(ringBufferCapacity);
         Lines = new DisplayLineCollection(ringBufferCapacity);
+        Lines.CollectionChanged += (_, _) => _structuredLinesCache = null;
         _highlightEngine.SetRules(HighlightPreset.FlattenForMatching(highlightPresets));
         _externalTools = externalTools;
         _title = title ?? (Path.GetFileName(sourcePath) is { Length: > 0 } fileName ? fileName : source.DisplayName);
@@ -359,33 +362,67 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
     }
 
-    partial void OnIsStructuredViewChanged(bool value) => ReprocessAllLines();
+    partial void OnIsStructuredViewChanged(bool value) => _ = ReprocessAllLinesAsync();
 
     /// <summary>Rebuilds every displayed line from its raw text when <see cref="IsStructuredView"/> is toggled —
     /// unlike highlight colors, <see cref="LogLineViewModel.Structured"/> isn't a mutable per-line property, so
-    /// the display items themselves need replacing rather than just re-evaluated in place.</summary>
-    private void ReprocessAllLines()
+    /// the display items themselves need replacing rather than just re-evaluated in place. Stays on the UI
+    /// thread throughout (JSON parsing, highlight matching and <see cref="LogLineViewModel"/>'s brush cache are
+    /// all plain, non-thread-safe state shared with the live tail path), but periodically yields via
+    /// <see cref="Dispatcher.Yield(DispatcherPriority)"/> so a large buffer doesn't freeze the UI for one long
+    /// synchronous pass — input and rendering get interleaved between chunks instead.</summary>
+    private async Task ReprocessAllLinesAsync()
     {
-        var selectedLineNumber = SelectedLine?.LineNumber;
-        var rebuilt = new List<LogLineViewModel>(Lines.Count);
-        _highlightedLineNumbers.Clear();
+        const int ChunkSize = 500;
 
-        foreach (var existing in Lines)
+        _reprocessCts?.Cancel();
+        var cts = new CancellationTokenSource();
+        _reprocessCts = cts;
+        var token = cts.Token;
+
+        var isStructuredView = IsStructuredView;
+        var selectedLineNumber = SelectedLine?.LineNumber;
+        var snapshot = Lines.ToList();
+        var rebuilt = new List<LogLineViewModel>(snapshot.Count);
+        var highlighted = new SortedSet<long>();
+
+        for (var i = 0; i < snapshot.Count; i++)
         {
-            var structured = IsStructuredView && SerilogEventParser.TryParse(existing.Text, out var parsed) ? parsed : null;
+            var existing = snapshot[i];
+            var structured = isStructuredView && SerilogEventParser.TryParse(existing.Text, out var parsed) ? parsed : null;
             var match = _highlightEngine.Evaluate(existing.Text, structured);
             if (match is not null)
             {
-                _highlightedLineNumbers.Add(existing.LineNumber);
+                highlighted.Add(existing.LineNumber);
             }
 
             rebuilt.Add(new LogLineViewModel(existing.LineNumber, existing.Text, structured, match, existing.IsBookmarked));
+
+            if (i % ChunkSize == ChunkSize - 1)
+            {
+                await Dispatcher.Yield(DispatcherPriority.Background);
+                if (token.IsCancellationRequested)
+                {
+                    return;
+                }
+            }
+        }
+
+        if (token.IsCancellationRequested)
+        {
+            return;
+        }
+
+        _highlightedLineNumbers.Clear();
+        foreach (var lineNumber in highlighted)
+        {
+            _highlightedLineNumbers.Add(lineNumber);
         }
 
         Lines.Clear();
         Lines.AppendRange(rebuilt);
 
-        SelectedLine = selectedLineNumber is { } lineNumber ? Lines.FindByLineNumber(lineNumber) : null;
+        SelectedLine = selectedLineNumber is { } selected ? Lines.FindByLineNumber(selected) : null;
     }
 
     /// <summary>Staggers this document's initial MDI position so newly opened documents don't fully overlap.</summary>
@@ -530,10 +567,15 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         FindSimilarBlockRequested?.Invoke(line);
     }
 
+    private List<(long LineNumber, StructuredLogEvent Event)>? _structuredLinesCache;
+
     /// <summary>Every currently displayed line that parsed as a structured event, in display order — the
-    /// pool <see cref="Core.BlockDiff.LogBlockExtractor"/> extracts the anchor block from.</summary>
+    /// pool <see cref="Core.BlockDiff.LogBlockExtractor"/> extracts the anchor block from. Cached until
+    /// <see cref="Lines"/> next raises its Reset notification (<see cref="DisplayLineCollection.AppendRange"/>/
+    /// <see cref="DisplayLineCollection.Clear"/>), since this is re-read on every similar-block lookup but the
+    /// underlying lines only change on tail flush, reset, or a structured-view toggle.</summary>
     public IReadOnlyList<(long LineNumber, StructuredLogEvent Event)> StructuredLines =>
-        Lines.Where(l => l.Structured is not null).Select(l => (l.LineNumber, l.Structured!)).ToList();
+        _structuredLinesCache ??= Lines.Where(l => l.Structured is not null).Select(l => (l.LineNumber, l.Structured!)).ToList();
 
     [RelayCommand]
     private void FilterByProperty(object? parameter)
@@ -626,6 +668,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public void Dispose()
     {
+        _reprocessCts?.Cancel();
         _sink.LinesFlushed -= OnLinesFlushed;
         _sink.ResetFlushed -= OnResetFlushed;
         _sink.Dispose();

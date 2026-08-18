@@ -28,7 +28,15 @@ public sealed class FileFullTextSearchService : IFullTextSearchService
             yield break;
         }
 
-        Regex? regex = isRegex ? new Regex(pattern, isCaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase) : null;
+        // Deliberately not RegexOptions.Compiled: this regex is built fresh per search and used for one
+        // streaming pass, never reused across searches. Benchmarked (see benchmarks/LogViewer.Benchmarks/
+        // FullTextSearchRegexBenchmarks.cs): Compiled's one-time JIT cost (~4.3ms) made a 1,000-line search
+        // ~29x slower overall, and only broke even somewhere past ~40k matched lines — a regression for the
+        // common case. Compiled pays off only when the same Regex instance is matched many times, which is
+        // the pattern EventLogFilterEvaluator's per-rule cache exploits, not this one-shot usage.
+        Regex? regex = isRegex
+            ? new Regex(pattern, isCaseSensitive ? RegexOptions.None : RegexOptions.IgnoreCase)
+            : null;
         var comparison = isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
 
         await using var stream = new FileStream(sourcePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
