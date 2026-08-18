@@ -48,6 +48,12 @@ public sealed partial class LogLineViewModel : ObservableObject
     /// shown as its own structured-view column.</summary>
     public string? ThreadId => StructuredFieldResolver.Resolve(Structured, "ThreadId");
 
+    /// <summary>True when this line parsed as a structured event. Used by the structured row template to
+    /// keep highlight colors (especially background) off the Bookmark/LineNumber/Timestamp/Level/ThreadId
+    /// columns — a highlight background spanning the whole row can make the Level column's own foreground
+    /// color (see <see cref="Converters.LevelToBrushConverter"/>) unreadable.</summary>
+    public bool HasStructured => Structured is not null;
+
     /// <summary>Re-resolves this line's colors against a (possibly new) highlight match — used both at
     /// append time and to live-recolor already-displayed lines when highlight rules or the theme change.</summary>
     public void ApplyMatch(HighlightMatch? match)

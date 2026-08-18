@@ -40,8 +40,12 @@
                 <TextBlock Grid.Column="4" Text="{Binding ThreadId}" Opacity="0.6" Margin="0,0,8,0" />
                 <!-- Column 5: rendered message — colorized when the converter produces inlines,
                      plain text otherwise (no template, or colorization disabled). Margin guarantees a
-                     visible gap after Level/ThreadId even when their columns are exactly as wide as the text. -->
-                <TextBlock Grid.Column="5" Text="{Binding Structured.RenderedMessage}" Margin="4,0,0,0">
+                     visible gap after Level/ThreadId even when their columns are exactly as wide as the text.
+                     Highlight Background/Foreground are applied here rather than on the row (see
+                     ItemContainerStyle below) so a highlight's background doesn't wash over the Level
+                     column's own color-coded foreground. -->
+                <TextBlock Grid.Column="5" Text="{Binding Structured.RenderedMessage}" Margin="4,0,0,0"
+                           Background="{Binding Background}" Foreground="{Binding Foreground}">
                     <controls:InlinesHelper.Source>
                         <MultiBinding Converter="{StaticResource StructuredInlinesConverter}">
                             <Binding Path="Structured" />
@@ -167,6 +171,15 @@
                             </ContextMenu>
                         </Setter.Value>
                     </Setter>
+                    <Style.Triggers>
+                        <!-- Structured rows apply the highlight's Background/Foreground on the message
+                             TextBlock only (StructuredLineTemplate above); keep the row itself on the
+                             theme default so Bookmark/LineNumber/Timestamp/Level/ThreadId aren't tinted. -->
+                        <DataTrigger Binding="{Binding HasStructured}" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource Theme.LogBackground}" />
+                            <Setter Property="Foreground" Value="{DynamicResource Theme.LogForeground}" />
+                        </DataTrigger>
+                    </Style.Triggers>
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.ItemTemplateSelector>
