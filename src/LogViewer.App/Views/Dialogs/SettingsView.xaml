@@ -11,7 +11,7 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto" Padding="0,0,10,0">
         <StackPanel>
             <TextBlock Text="Default window mode" />
             <ComboBox ItemsSource="{Binding AvailableWindowModes}" SelectedItem="{Binding DefaultWindowMode}" Margin="0,2,0,10" />
@@ -22,11 +22,17 @@
             <TextBlock Text="UI refresh interval (ms)" />
             <TextBox Text="{Binding UiRefreshIntervalMs, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
 
-            <CheckBox Content="Restore previous session on startup" IsChecked="{Binding RestorePreviousSessionOnStartup}" Margin="0,0,0,10" />
+            <CheckBox IsChecked="{Binding RestorePreviousSessionOnStartup}" Margin="0,0,0,10">
+                <TextBlock Text="Restore previous session on startup" TextWrapping="Wrap" />
+            </CheckBox>
 
-            <CheckBox Content="Reduce UI redraw rate when running over Remote Desktop" IsChecked="{Binding AutoTuneForRemoteDesktop}" Margin="0,0,0,10" />
+            <CheckBox IsChecked="{Binding AutoTuneForRemoteDesktop}" Margin="0,0,0,10">
+                <TextBlock Text="Reduce UI redraw rate when running over Remote Desktop" TextWrapping="Wrap" />
+            </CheckBox>
 
-            <CheckBox Content="Colorize variable values in structured log messages" IsChecked="{Binding ColorizeStructuredValues}" Margin="0,0,0,10" />
+            <CheckBox IsChecked="{Binding ColorizeStructuredValues}" Margin="0,0,0,10">
+                <TextBlock Text="Colorize variable values in structured log messages" TextWrapping="Wrap" />
+            </CheckBox>
 
             <TextBlock Text="Log font size (also adjustable via Ctrl+Mouse wheel over the log)" TextWrapping="Wrap" />
             <TextBox Text="{Binding LogFontSize, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
@@ -45,7 +51,9 @@
 
             <Separator Margin="0,14,0,10" />
 
-            <CheckBox Content="Enable MCP server (lets an AI agent analyze open logs)" IsChecked="{Binding McpEnabled}" Margin="0,0,0,10" />
+            <CheckBox IsChecked="{Binding McpEnabled}" Margin="0,0,0,10">
+                <TextBlock Text="Enable MCP server (lets an AI agent analyze open logs)" TextWrapping="Wrap" />
+            </CheckBox>
 
             <TextBlock Text="MCP server port (localhost only; restart required to apply)" TextWrapping="Wrap" />
             <TextBox Text="{Binding McpPort, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />

@@ -11,6 +11,8 @@
         <converters:InverseBoolConverter x:Key="InverseBoolConverter" />
         <converters:EnumEqualsConverter x:Key="EnumEqualsConverter" />
         <converters:HexToBrushConverter x:Key="HexToBrushConverter" />
+        <converters:HexToTabIconConverter x:Key="HexToTabIconConverter" />
+        <converters:CustomColorOrTitleBarBrushConverter x:Key="CustomColorOrTitleBarBrushConverter" />
         <converters:ValidityToBrushConverter x:Key="ValidityToBrushConverter" />
         <converters:BookmarkGlyphConverter x:Key="BookmarkGlyphConverter" />
         <converters:LevelToBrushConverter x:Key="LevelToBrushConverter" />

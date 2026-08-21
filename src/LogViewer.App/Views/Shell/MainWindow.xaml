@@ -217,11 +217,12 @@
                 <xcad:DockingManager.LayoutItemContainerStyle>
                     <Style TargetType="{x:Type xcad:LayoutItem}">
                         <!-- AvalonDock's LayoutItem exposes no Background/Foreground styling surface for tab
-                             headers, so per-document color customization only reaches the tab text via the
-                             glyph baked into DisplayTitle — full color-coded tabs are MDI-mode only (see
-                             MdiChildWindowControl's title-bar background). -->
+                             headers, so per-document color customization can't repaint the tab itself the way
+                             MdiChildWindowControl's title-bar does for MDI mode. An IconSource swatch is the
+                             one header surface AvalonDock does render, so it carries the color in Tabbed mode. -->
                         <Setter Property="Title" Value="{Binding Model.DisplayTitle}" />
                         <Setter Property="ContentId" Value="{Binding Model.SourcePath}" />
+                        <Setter Property="IconSource" Value="{Binding Model.CustomColorHex, Converter={StaticResource HexToTabIconConverter}}" />
                     </Style>
                 </xcad:DockingManager.LayoutItemContainerStyle>
                 <xcad:LayoutRoot>

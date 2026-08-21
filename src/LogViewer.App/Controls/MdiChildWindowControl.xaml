@@ -12,17 +12,7 @@
             <Thumb x:Name="DragThumb" Grid.Row="0" DragDelta="OnDragThumbDragDelta" Cursor="SizeAll">
                 <Thumb.Template>
                     <ControlTemplate TargetType="Thumb">
-                        <Grid>
-                            <Grid.Style>
-                                <Style TargetType="Grid">
-                                    <Setter Property="Background" Value="{Binding CustomColorHex, Converter={StaticResource HexToBrushConverter}}" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding CustomColorHex}" Value="{x:Null}">
-                                            <Setter Property="Background" Value="{DynamicResource Theme.TitleBarBackground}" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Grid.Style>
+                        <Grid Background="{Binding CustomColorHex, Converter={StaticResource CustomColorOrTitleBarBrushConverter}}">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
