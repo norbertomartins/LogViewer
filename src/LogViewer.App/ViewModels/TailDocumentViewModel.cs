@@ -32,6 +32,8 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     private readonly UiDispatcherLineSink _sink;
     private readonly Dictionary<Guid, DateTime> _lastAutoTriggerAt = new();
     private CancellationTokenSource? _reprocessCts;
+    private bool _isReprocessing;
+    private readonly List<LogLineViewModel> _pendingDuringReprocess = new();
 
     private IReadOnlyList<ExternalToolDefinition> _externalTools;
 
@@ -362,7 +364,24 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
     }
 
-    partial void OnIsStructuredViewChanged(bool value) => _ = ReprocessAllLinesAsync();
+    partial void OnIsStructuredViewChanged(bool value) => _ = ReprocessAllLinesSafeAsync();
+
+    /// <summary>Fire-and-forget wrapper around <see cref="ReprocessAllLinesAsync"/> — the property changed
+    /// handler can't be async itself, so without this an exception (e.g. a future parser change that throws
+    /// instead of returning false) would become an unobserved task exception and vanish silently, leaving the
+    /// document stuck mid-reprocess with <see cref="_isReprocessing"/> never cleared.</summary>
+    private async Task ReprocessAllLinesSafeAsync()
+    {
+        try
+        {
+            await ReprocessAllLinesAsync();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            StatusMessage = $"Failed to switch structured view: {ex.Message}";
+            _isReprocessing = false;
+        }
+    }
 
     /// <summary>Rebuilds every displayed line from its raw text when <see cref="IsStructuredView"/> is toggled —
     /// unlike highlight colors, <see cref="LogLineViewModel.Structured"/> isn't a mutable per-line property, so
@@ -370,7 +389,12 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// thread throughout (JSON parsing, highlight matching and <see cref="LogLineViewModel"/>'s brush cache are
     /// all plain, non-thread-safe state shared with the live tail path), but periodically yields via
     /// <see cref="Dispatcher.Yield(DispatcherPriority)"/> so a large buffer doesn't freeze the UI for one long
-    /// synchronous pass — input and rendering get interleaved between chunks instead.</summary>
+    /// synchronous pass — input and rendering get interleaved between chunks instead. While reprocessing is in
+    /// flight, live-tailed lines that arrive from <see cref="OnLinesFlushed"/> are diverted into
+    /// <see cref="_pendingDuringReprocess"/> instead of the ring-buffered <see cref="Lines"/> snapshot this
+    /// method took at the start — without that, the closing <c>Lines.Clear()</c>/<c>AppendRange(rebuilt)</c>
+    /// would silently wipe out anything tailed in during the yields (visible as "lines go missing" when
+    /// toggling Structured View while a file is actively being written to).</summary>
     private async Task ReprocessAllLinesAsync()
     {
         const int ChunkSize = 500;
@@ -380,49 +404,74 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _reprocessCts = cts;
         var token = cts.Token;
 
-        var isStructuredView = IsStructuredView;
-        var selectedLineNumber = SelectedLine?.LineNumber;
-        var snapshot = Lines.ToList();
-        var rebuilt = new List<LogLineViewModel>(snapshot.Count);
-        var highlighted = new SortedSet<long>();
+        _isReprocessing = true;
+        _pendingDuringReprocess.Clear();
 
-        for (var i = 0; i < snapshot.Count; i++)
+        try
         {
-            var existing = snapshot[i];
-            var structured = isStructuredView && SerilogEventParser.TryParse(existing.Text, out var parsed) ? parsed : null;
-            var match = _highlightEngine.Evaluate(existing.Text, structured);
-            if (match is not null)
-            {
-                highlighted.Add(existing.LineNumber);
-            }
+            var isStructuredView = IsStructuredView;
+            var selectedLineNumber = SelectedLine?.LineNumber;
+            var snapshot = Lines.ToList();
+            var rebuilt = new List<LogLineViewModel>(snapshot.Count);
+            var highlighted = new SortedSet<long>();
 
-            rebuilt.Add(new LogLineViewModel(existing.LineNumber, existing.Text, structured, match, existing.IsBookmarked));
-
-            if (i % ChunkSize == ChunkSize - 1)
+            for (var i = 0; i < snapshot.Count; i++)
             {
-                await Dispatcher.Yield(DispatcherPriority.Background);
-                if (token.IsCancellationRequested)
+                var existing = snapshot[i];
+                var structured = isStructuredView && SerilogEventParser.TryParse(existing.Text, out var parsed) ? parsed : null;
+                var match = _highlightEngine.Evaluate(existing.Text, structured);
+                if (match is not null)
                 {
-                    return;
+                    highlighted.Add(existing.LineNumber);
+                }
+
+                rebuilt.Add(new LogLineViewModel(existing.LineNumber, existing.Text, structured, match, existing.IsBookmarked));
+
+                if (i % ChunkSize == ChunkSize - 1)
+                {
+                    await Dispatcher.Yield(DispatcherPriority.Background);
+                    if (token.IsCancellationRequested)
+                    {
+                        return;
+                    }
                 }
             }
-        }
 
-        if (token.IsCancellationRequested)
+            if (token.IsCancellationRequested)
+            {
+                return;
+            }
+
+            // Stale highlight entries for the reprocessed range only — anything a concurrent
+            // OnLinesFlushed already added for pending lines (line numbers beyond the snapshot) must survive.
+            var maxSnapshotLineNumber = snapshot.Count > 0 ? snapshot[^1].LineNumber : long.MinValue;
+            _highlightedLineNumbers.RemoveWhere(n => n <= maxSnapshotLineNumber);
+            foreach (var lineNumber in highlighted)
+            {
+                _highlightedLineNumbers.Add(lineNumber);
+            }
+
+            Lines.Clear();
+            Lines.AppendRange(rebuilt);
+            if (_pendingDuringReprocess.Count > 0)
+            {
+                Lines.AppendRange(_pendingDuringReprocess);
+                _pendingDuringReprocess.Clear();
+            }
+
+            TrimEvictedLineNumbers();
+
+            SelectedLine = selectedLineNumber is { } selected ? Lines.FindByLineNumber(selected) : null;
+
+            if (IsFollowingTail)
+            {
+                ScrollToEndRequested?.Invoke();
+            }
+        }
+        finally
         {
-            return;
+            _isReprocessing = false;
         }
-
-        _highlightedLineNumbers.Clear();
-        foreach (var lineNumber in highlighted)
-        {
-            _highlightedLineNumbers.Add(lineNumber);
-        }
-
-        Lines.Clear();
-        Lines.AppendRange(rebuilt);
-
-        SelectedLine = selectedLineNumber is { } selected ? Lines.FindByLineNumber(selected) : null;
     }
 
     /// <summary>Staggers this document's initial MDI position so newly opened documents don't fully overlap.</summary>
@@ -480,6 +529,16 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
 
         _buffer.AppendRange(lines);
+
+        if (_isReprocessing)
+        {
+            // ReprocessAllLinesAsync took a snapshot of Lines and will replace it wholesale when done —
+            // append there directly and it either gets clobbered or duplicated. Queue instead; the
+            // reprocess appends this queue onto its rebuilt list once it finishes.
+            _pendingDuringReprocess.AddRange(displayItems);
+            return;
+        }
+
         Lines.AppendRange(displayItems);
         TrimEvictedLineNumbers();
 
@@ -495,6 +554,12 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     private void OnResetFlushed(TailResetReason reason)
     {
+        // A source reset (truncate/rotate) invalidates whatever snapshot a concurrent
+        // ReprocessAllLinesAsync took — cancel it so it doesn't later overwrite this reset with stale lines.
+        _reprocessCts?.Cancel();
+        _isReprocessing = false;
+        _pendingDuringReprocess.Clear();
+
         _buffer.Clear();
         Lines.Clear();
         _bookmarks.Clear();
