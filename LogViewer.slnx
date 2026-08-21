@@ -7,6 +7,8 @@
   <Folder Name="/tests/">
     <Project Path="tests/LogViewer.Core.Tests/LogViewer.Core.Tests.csproj" />
     <Project Path="tests/LogViewer.Mcp.Tests/LogViewer.Mcp.Tests.csproj" />
+    <Project Path="tests/LogViewer.App.Tests/LogViewer.App.Tests.csproj" />
+    <Project Path="tests/LogViewer.UITests/LogViewer.UITests.csproj" />
   </Folder>
   <Folder Name="/benchmarks/">
     <Project Path="benchmarks/LogViewer.Benchmarks/LogViewer.Benchmarks.csproj" />
