@@ -1,0 +1,46 @@
+name: Build
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+    branches: [master]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+
+      - name: Restore
+        run: dotnet restore LogViewer.slnx
+
+      - name: Test Core
+        run: dotnet test tests/LogViewer.Core.Tests/LogViewer.Core.Tests.csproj --configuration Release --no-restore
+
+      - name: Test Mcp
+        run: dotnet test tests/LogViewer.Mcp.Tests/LogViewer.Mcp.Tests.csproj --configuration Release --no-restore
+
+      - name: Publish
+        run: dotnet publish src/LogViewer.App/LogViewer.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: LogViewer-exe
+          path: publish/LogViewer.App.exe
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: publish/LogViewer.App.exe
