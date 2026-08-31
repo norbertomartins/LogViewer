@@ -15,4 +15,13 @@ public enum TailSourceKind
 
     /// <summary>A log stream tailed over a WebSocket (<c>ws://</c> / <c>wss://</c>; <see cref="TailSourceSettings.Path"/> holds the URL).</summary>
     RemoteWebSocket,
+
+    /// <summary>The stdout/stderr of a spawned command (<c>journalctl -f</c>, <c>docker logs -f</c>, …).</summary>
+    Process,
+
+    /// <summary>The output of a command run over SSH on a remote host.</summary>
+    Ssh,
+
+    /// <summary>A real-time Event Tracing for Windows (ETW) provider.</summary>
+    Etw,
 }
