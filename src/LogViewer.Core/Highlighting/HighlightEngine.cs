@@ -39,26 +39,29 @@ public sealed class HighlightEngine
     {
         foreach (var rule in _rulesInMatchOrder)
         {
-            if (IsMatch(rule, line, structured))
+            if (IsMatch(rule, line, structured, out var spans))
             {
                 var (foreground, background) = rule.ResolveColors(_themeMode);
-                return new HighlightMatch(rule.Id, foreground, background);
+                return new HighlightMatch(rule.Id, foreground, background, spans);
             }
         }
 
         return null;
     }
 
-    private bool IsMatch(HighlightRule rule, string line, StructuredLogEvent? structured)
+    private bool IsMatch(HighlightRule rule, string line, StructuredLogEvent? structured, out IReadOnlyList<HighlightSpan> spans)
     {
+        spans = [];
+
         if (string.IsNullOrEmpty(rule.Pattern))
         {
             return false;
         }
 
-        var candidate = string.IsNullOrEmpty(rule.TargetProperty)
-            ? line
-            : StructuredFieldResolver.Resolve(structured, rule.TargetProperty);
+        // Rules that target a structured property match against the property value, not the raw line —
+        // there's no meaningful span to draw on the displayed text, so those stay whole-line only.
+        var isLineTarget = string.IsNullOrEmpty(rule.TargetProperty);
+        var candidate = isLineTarget ? line : StructuredFieldResolver.Resolve(structured, rule.TargetProperty!);
 
         if (candidate is null)
         {
@@ -68,7 +71,17 @@ public sealed class HighlightEngine
         if (!rule.IsRegex)
         {
             var comparison = rule.IsCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            return candidate.Contains(rule.Pattern, comparison);
+            if (!candidate.Contains(rule.Pattern, comparison))
+            {
+                return false;
+            }
+
+            if (isLineTarget)
+            {
+                spans = FindKeywordSpans(line, rule.Pattern, comparison);
+            }
+
+            return true;
         }
 
         if (!_compiledRegexCache.TryGetValue(rule.Id, out var regex))
@@ -80,11 +93,50 @@ public sealed class HighlightEngine
 
         try
         {
-            return regex.IsMatch(candidate);
+            var matches = regex.Matches(candidate);
+            if (matches.Count == 0)
+            {
+                return false;
+            }
+
+            if (isLineTarget)
+            {
+                var list = new List<HighlightSpan>(matches.Count);
+                foreach (Match m in matches)
+                {
+                    if (m.Length > 0)
+                    {
+                        list.Add(new HighlightSpan(m.Index, m.Length));
+                    }
+                }
+
+                spans = list;
+            }
+
+            return true;
         }
         catch (RegexMatchTimeoutException)
         {
             return false;
         }
+    }
+
+    private static IReadOnlyList<HighlightSpan> FindKeywordSpans(string line, string keyword, StringComparison comparison)
+    {
+        var spans = new List<HighlightSpan>();
+        var from = 0;
+        while (from <= line.Length)
+        {
+            var idx = line.IndexOf(keyword, from, comparison);
+            if (idx < 0)
+            {
+                break;
+            }
+
+            spans.Add(new HighlightSpan(idx, keyword.Length));
+            from = idx + keyword.Length;
+        }
+
+        return spans;
     }
 }
