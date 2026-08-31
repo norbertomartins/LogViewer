@@ -259,33 +259,39 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
-    private void OpenHttpTail()
+    private void OpenRemoteEndpoint()
     {
         var selection = _dialogService.ShowOpenHttpTailDialog();
         if (selection is not null)
         {
-            OpenHttpTail(selection.Url, selection.Mode, selection.Headers);
+            OpenRemoteEndpoint(selection.Url, selection.Mode, selection.Headers);
         }
     }
 
-    public TailDocumentViewModel OpenHttpTail(string url, string mode, IReadOnlyList<string> headers)
+    /// <summary>Opens a remote log endpoint. A <c>ws://</c>/<c>wss://</c> URL is tailed over a WebSocket;
+    /// an <c>http(s)://</c> URL is streamed or polled per <paramref name="mode"/>.</summary>
+    public TailDocumentViewModel OpenRemoteEndpoint(string url, string mode, IReadOnlyList<string> headers)
     {
-        var dedupKey = $"http:{url}";
+        var uri = new Uri(url);
+        var isWebSocket = uri.Scheme is "ws" or "wss";
+        var dedupKey = $"remote:{url}";
 
         if (!TryActivateExisting(dedupKey, out var document))
         {
-            var options = new HttpTailOptions
-            {
-                Mode = Enum.TryParse<HttpTailMode>(mode, ignoreCase: true, out var m) ? m : HttpTailMode.Auto,
-                Headers = ParseHeaderLines(headers),
-            };
-            var source = new HttpTailSource(new Uri(url), options);
-            document = AddDocument(source, dedupKey, $"[HTTP] {new Uri(url).Host}");
+            var headerMap = ParseHeaderLines(headers);
+            ITailSource source = isWebSocket
+                ? new WebSocketTailSource(uri, new WebSocketTailOptions { Headers = headerMap })
+                : new HttpTailSource(uri, new HttpTailOptions
+                {
+                    Mode = Enum.TryParse<HttpTailMode>(mode, ignoreCase: true, out var m) ? m : HttpTailMode.Auto,
+                    Headers = headerMap,
+                });
+            document = AddDocument(source, dedupKey, $"[{(isWebSocket ? "WS" : "HTTP")}] {uri.Host}");
         }
 
         RecordRecent(new TailSourceSettings
         {
-            Kind = TailSourceKind.RemoteHttp,
+            Kind = isWebSocket ? TailSourceKind.RemoteWebSocket : TailSourceKind.RemoteHttp,
             Path = url,
             HttpMode = mode,
             HttpHeaders = headers.ToList(),
@@ -659,8 +665,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     OpenEventLog(entry.EventLogChannelName, entry.EventLogFilters),
                 TailSourceKind.MergedFiles when entry.MergedPaths.Count >= 2 && entry.MergedPaths.All(File.Exists) =>
                     OpenMergedFiles(entry.MergedPaths),
-                TailSourceKind.RemoteHttp when !string.IsNullOrWhiteSpace(entry.Path) =>
-                    OpenHttpTail(entry.Path, entry.HttpMode ?? "Auto", entry.HttpHeaders),
+                TailSourceKind.RemoteHttp or TailSourceKind.RemoteWebSocket when !string.IsNullOrWhiteSpace(entry.Path) =>
+                    OpenRemoteEndpoint(entry.Path, entry.HttpMode ?? "Auto", entry.HttpHeaders),
                 _ => null,
             };
 
@@ -723,7 +729,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         TailSourceKind.File => Path.GetFullPath(path),
         TailSourceKind.DirectoryWatch => $"dirwatch:{Path.GetFullPath(path)}|{pattern}",
         TailSourceKind.EventLog => $"eventlog:{eventLogChannel}",
-        TailSourceKind.RemoteHttp => $"http:{path}",
+        TailSourceKind.RemoteHttp or TailSourceKind.RemoteWebSocket => $"remote:{path}",
         _ => path,
     };
 }

@@ -38,5 +38,5 @@ public sealed partial class OpenHttpTailViewModel : ObservableObject
         Headers.Split('\n').Select(l => l.Trim()).Where(l => l.Length > 0 && l.Contains(':')).ToList();
 
     public bool IsValid => Uri.TryCreate(Url, UriKind.Absolute, out var uri)
-        && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
+        && uri.Scheme is "http" or "https" or "ws" or "wss";
 }

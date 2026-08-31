@@ -88,18 +88,20 @@
   from Recent Files and aren't auto-structured (the label prefix would break JSON parsing). Verified via
   17 new Core + 2 new App unit tests (254 total across the three test projects) + full build.
 
-- **Phase 6d — remote HTTP tailing done.** `HttpTailSource : ITailSource` (Core) tails a log endpoint
-  over HTTP(S): `HttpTailMode.Stream` holds one `ResponseHeadersRead` response open and reads it line by
-  line (SSE `data:` frames unwrapped, control frames skipped) or chunked plain text; `HttpTailMode.Poll`
-  re-requests on an interval and emits the lines new since last time, raising `SourceReset` when the body
-  shrinks (rotation); `Auto` picks between them from the first response's content-type / transfer
-  encoding. Linear-backoff reconnect after a drop, injectable `HttpMessageHandler` for tests, optional
-  verbatim request headers. App: `TailSourceKind.RemoteHttp` + `TailSourceSettings.HttpMode`/`HttpHeaders`
-  (schema-compatible), an `OpenHttpTailView` dialog (URL / mode / `Name: Value` headers),
-  `MainViewModel.OpenHttpTail` + File ▸ "Open HTTP Log Endpoint…", session restore, `Kind` mapping.
-  Verified via 4 new Core + 1 new App unit tests (259 total) + full build. **Still open:** WebSocket and
-  SSH remote tail (SSH needs an SSH.NET dependency + credential handling), journald, ETW. No Phase 6 UI
-  path has had an interactive WPF pass.
+- **Phase 6d — remote HTTP + WebSocket tailing done.** `HttpTailSource : ITailSource` (Core) tails a log
+  endpoint over HTTP(S): `HttpTailMode.Stream` holds one `ResponseHeadersRead` response open and reads it
+  line by line (SSE `data:` frames unwrapped, control frames skipped) or chunked plain text;
+  `HttpTailMode.Poll` re-requests on an interval and emits the lines new since last time, raising
+  `SourceReset` when the body shrinks (rotation); `Auto` picks between them from the first response.
+  `WebSocketTailSource : ITailSource` connects a `ClientWebSocket` and treats each complete text message
+  as one or more whole lines (`WebSocketFrames.SplitMessage`). Both reconnect with a linear backoff and
+  take verbatim handshake/request headers. App: `TailSourceKind.RemoteHttp` / `RemoteWebSocket` +
+  `TailSourceSettings.HttpMode`/`HttpHeaders` (schema-compatible), an `OpenHttpTailView` dialog
+  ("Open Remote Log Endpoint" — URL / mode / `Name: Value` headers), `MainViewModel.OpenRemoteEndpoint`
+  (routes by URL scheme) + File ▸ "Open Remote Log Endpoint…", session restore, `Kind` mapping.
+  Verified via 12 new Core + 3 new App unit tests (264 total) + full build. **Still open:** SSH remote
+  tail (needs an SSH.NET dependency + credential handling), journald, ETW. No Phase 6 UI path has had an
+  interactive WPF pass.
 
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
