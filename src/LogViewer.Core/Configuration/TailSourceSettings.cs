@@ -46,7 +46,14 @@ public sealed class TailSourceSettings
 
     public bool MdiIsMaximized { get; set; }
 
-    /// <summary>Whether this document renders as structured Serilog JSON. Null means "auto-detect on open";
+    /// <summary>Whether this document renders as structured JSON. Null means "auto-detect on open";
     /// an explicit true/false is the user's manual toggle override, persisted across restarts.</summary>
     public bool? IsStructuredView { get; set; }
+
+    /// <summary>The structured parser format id (<c>serilog</c>, <c>ndjson</c>, <c>logfmt</c>, <c>syslog</c>,
+    /// <c>w3c</c>) the user manually picked. Null means "use the format auto-detected on open".</summary>
+    public string? StructuredFormatId { get; set; }
+
+    /// <summary>The file paths of a <see cref="TailSourceKind.MergedFiles"/> source, in the order chosen.</summary>
+    public List<string> MergedPaths { get; set; } = [];
 }

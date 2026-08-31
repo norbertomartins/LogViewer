@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <InternalsVisibleTo Include="LogViewer.Benchmarks" />
+    <InternalsVisibleTo Include="LogViewer.Core.Tests" />
   </ItemGroup>
 
 </Project>
