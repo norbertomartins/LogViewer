@@ -62,4 +62,31 @@ public sealed class TailSourceSettings
 
     /// <summary>Extra request headers for a <see cref="TailSourceKind.RemoteHttp"/> source, as <c>Name: Value</c> lines.</summary>
     public List<string> HttpHeaders { get; set; } = [];
+
+    // --- Process ------------------------------------------------------------------------------------
+    public string? ProcessFileName { get; set; }
+
+    public string? ProcessArguments { get; set; }
+
+    public bool ProcessRestartOnExit { get; set; } = true;
+
+    // --- SSH (secrets are never persisted — password/passphrase are entered per session) -----------
+    public string? SshHost { get; set; }
+
+    public int SshPort { get; set; } = 22;
+
+    public string? SshUsername { get; set; }
+
+    public string? SshPrivateKeyPath { get; set; }
+
+    public string? SshHostKeyFingerprintSha256 { get; set; }
+
+    public bool SshAcceptAnyHostKey { get; set; }
+
+    public string? SshCommand { get; set; }
+
+    // --- ETW ---------------------------------------------------------------------------------------
+    public string? EtwProvider { get; set; }
+
+    public int EtwLevel { get; set; } = 4;
 }
