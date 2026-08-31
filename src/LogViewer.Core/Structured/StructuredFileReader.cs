@@ -14,8 +14,17 @@ public static class StructuredFileReader
 {
     private const int ReadBufferSize = 64 * 1024;
 
+    /// <summary>Streams a file, auto-detecting its structured format (Serilog/CLEF, NDJSON, logfmt, syslog,
+    /// W3C) from the first lines and falling back to Serilog when detection is inconclusive.</summary>
+    public static IAsyncEnumerable<(long LineNumber, StructuredLogEvent Event)> ReadAsync(
+        string path, CancellationToken cancellationToken)
+    {
+        var parser = LogLineParsers.Create(LogLineParsers.DetectFile(path)) ?? new SerilogLogLineParser();
+        return ReadAsync(path, parser, cancellationToken);
+    }
+
     public static async IAsyncEnumerable<(long LineNumber, StructuredLogEvent Event)> ReadAsync(
-        string path, [EnumeratorCancellation] CancellationToken cancellationToken)
+        string path, ILogLineParser parser, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         await using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
         var (encoding, preambleLength) = EncodingDetector.Detect(stream);
@@ -34,7 +43,7 @@ public static class StructuredFileReader
                 lineNumber++;
                 cancellationToken.ThrowIfCancellationRequested();
 
-                if (SerilogEventParser.TryParse(text, out var evt) && evt is not null)
+                if (parser.TryParse(text, out var evt) && evt is not null)
                 {
                     yield return (lineNumber, evt);
                 }
