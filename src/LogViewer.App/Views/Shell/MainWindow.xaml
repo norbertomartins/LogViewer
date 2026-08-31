@@ -44,6 +44,8 @@
                 <MenuItem Header="Open _Merged Files (by time)..." Command="{Binding OpenMergedFilesCommand}"
                           ToolTip="Pick 2+ files to tail together, interleaved by timestamp" />
                 <MenuItem Header="Open _Windows Event Log..." Command="{Binding OpenEventLogCommand}" />
+                <MenuItem Header="Open _HTTP Log Endpoint..." Command="{Binding OpenHttpTailCommand}"
+                          ToolTip="Tail a log stream or polled URL over HTTP(S)" />
                 <MenuItem Header="Recent Files" ItemsSource="{Binding RecentFiles}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">

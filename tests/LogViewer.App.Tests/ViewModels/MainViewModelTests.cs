@@ -77,6 +77,22 @@ public sealed class MainViewModelTests : IDisposable
     }
 
     [Fact]
+    public void OpenHttpTail_AddsRemoteHttpDocument_NotInRecentFiles_DedupsByUrl()
+    {
+        var (viewModel, _) = MainViewModelFactory.Create();
+
+        var first = viewModel.OpenHttpTail("https://logs.invalid/tail", "Poll", []);
+        var second = viewModel.OpenHttpTail("https://logs.invalid/tail", "Poll", []);
+
+        Assert.Same(first, second);
+        Assert.Single(viewModel.Documents);
+        Assert.Equal(TailSourceKind.RemoteHttp, first.Kind);
+        Assert.Empty(viewModel.RecentFiles);
+
+        viewModel.Dispose();
+    }
+
+    [Fact]
     public void OpenMergedFiles_SamePathsDifferentOrder_ActivatesExistingDocument()
     {
         var a = _tempDir.CreateFile("a.log", "x\n");

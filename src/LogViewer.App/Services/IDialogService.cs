@@ -13,6 +13,8 @@ public sealed record DirectoryWatchSelection(string DirectoryPath, string Patter
 
 public sealed record EventLogSelection(string ChannelName, IReadOnlyList<EventLogFilterRule> Filters);
 
+public sealed record HttpTailSelection(string Url, string Mode, IReadOnlyList<string> Headers);
+
 public interface IDialogService
 {
     IReadOnlyList<string>? ShowOpenFileDialog();
@@ -34,6 +36,8 @@ public interface IDialogService
     DirectoryWatchSelection? ShowOpenDirectoryWatchDialog(string? initialDirectoryPath = null);
 
     EventLogSelection? ShowOpenEventLogDialog();
+
+    HttpTailSelection? ShowOpenHttpTailDialog();
 
     void ShowServicesDialog();
 
