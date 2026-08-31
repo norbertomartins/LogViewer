@@ -12,4 +12,7 @@ public enum TailSourceKind
 
     /// <summary>A log endpoint tailed over HTTP(S) — streaming or polled (<see cref="TailSourceSettings.Path"/> holds the URL).</summary>
     RemoteHttp,
+
+    /// <summary>A log stream tailed over a WebSocket (<c>ws://</c> / <c>wss://</c>; <see cref="TailSourceSettings.Path"/> holds the URL).</summary>
+    RemoteWebSocket,
 }
