@@ -46,6 +46,12 @@
                 <MenuItem Header="Open _Windows Event Log..." Command="{Binding OpenEventLogCommand}" />
                 <MenuItem Header="Open _Remote Log Endpoint..." Command="{Binding OpenRemoteEndpointCommand}"
                           ToolTip="Tail a log stream over HTTP(S) (SSE/chunked/polled) or a WebSocket" />
+                <MenuItem Header="Open _Command Output..." Command="{Binding OpenProcessTailCommand}"
+                          ToolTip="Tail the stdout/stderr of a command (journalctl -f, docker logs -f, …)" />
+                <MenuItem Header="Open S_SH Log Tail..." Command="{Binding OpenSshTailCommand}"
+                          ToolTip="Run a command over SSH on a remote host and tail its output" />
+                <MenuItem Header="Open _ETW Provider..." Command="{Binding OpenEtwTailCommand}"
+                          ToolTip="Tail a real-time Event Tracing for Windows provider (Administrator)" />
                 <MenuItem Header="Recent Files" ItemsSource="{Binding RecentFiles}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">

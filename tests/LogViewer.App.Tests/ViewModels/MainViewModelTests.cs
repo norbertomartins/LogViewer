@@ -105,6 +105,33 @@ public sealed class MainViewModelTests : IDisposable
     }
 
     [Fact]
+    public void OpenProcessTail_AddsProcessDocument_DedupsByCommand_NotInRecentFiles()
+    {
+        var (viewModel, _) = MainViewModelFactory.Create();
+
+        var first = viewModel.OpenProcessTail("cmd.exe", "/c ver", restartOnExit: false);
+        var second = viewModel.OpenProcessTail("cmd.exe", "/c ver", restartOnExit: false);
+
+        Assert.Same(first, second);
+        Assert.Equal(TailSourceKind.Process, first.Kind);
+        Assert.Empty(viewModel.RecentFiles);
+
+        viewModel.Dispose();
+    }
+
+    [Fact]
+    public void OpenEtwTail_AddsEtwDocument()
+    {
+        var (viewModel, _) = MainViewModelFactory.Create();
+
+        var doc = viewModel.OpenEtwTail("Microsoft-Windows-DotNETRuntime", 4);
+
+        Assert.Equal(TailSourceKind.Etw, doc.Kind);
+
+        viewModel.Dispose();
+    }
+
+    [Fact]
     public void OpenMergedFiles_SamePathsDifferentOrder_ActivatesExistingDocument()
     {
         var a = _tempDir.CreateFile("a.log", "x\n");

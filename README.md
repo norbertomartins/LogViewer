@@ -16,6 +16,11 @@ architecture decisions.
 - Remote log tailing over HTTP(S) (`HttpTailSource` — streaming SSE/chunked, or polled) and over
   WebSockets (`WebSocketTailSource`), with optional request headers and linear-backoff reconnect.
   One "Open Remote Log Endpoint" dialog routes by URL scheme.
+- Command-output tailing (`ProcessTailSource`) — `journalctl -f`, `docker logs -f`, `kubectl logs -f`,
+  `adb logcat`, etc. — with auto-relaunch of follow-style commands.
+- SSH tailing (`SshTailSource`) — run a command on a remote host and tail its output, with key or
+  password auth and host-key fingerprint verification; credentials are never persisted.
+- Real-time ETW provider tailing (`EtwTailSource`) by provider name or GUID (requires elevation).
 - Windows Event Log tailing (`Application`, `System`, custom channels) with independent, combinable regex
   filters (OR semantics across the enabled ones).
 - Three window modes — Tabbed, Floating (AvalonDock), and classic MDI (child windows with
@@ -161,7 +166,8 @@ C:\Dev\LogViewer\
 `CommunityToolkit.Mvvm`, `AvalonDock` (Tabbed/Floating docking), `Hardcodet.NotifyIcon.Wpf` (tray icon),
 `Microsoft.Extensions.DependencyInjection` (composition root), `System.Diagnostics.EventLog`,
 `System.ServiceProcess.ServiceController`, `System.Text.Encoding.CodePages`,
-`ModelContextProtocol`/`ModelContextProtocol.AspNetCore` (MCP server), `xunit`, `FlaUI` (UI tests),
+`ModelContextProtocol`/`ModelContextProtocol.AspNetCore` (MCP server), `SSH.NET` (SSH tailing),
+`Microsoft.Diagnostics.Tracing.TraceEvent` (ETW tailing), `xunit`, `FlaUI` (UI tests),
 `BenchmarkDotNet` (benchmarks).
 
 ## Running

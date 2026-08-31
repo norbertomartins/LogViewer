@@ -406,6 +406,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         MergedTailSource => TailSourceKind.MergedFiles,
         HttpTailSource => TailSourceKind.RemoteHttp,
         WebSocketTailSource => TailSourceKind.RemoteWebSocket,
+        ProcessTailSource => TailSourceKind.Process,
+        SshTailSource => TailSourceKind.Ssh,
+        EtwTailSource => TailSourceKind.Etw,
         _ => TailSourceKind.EventLog,
     };
 

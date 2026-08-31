@@ -156,6 +156,40 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
             : null;
     }
 
+    public ProcessTailSelection? ShowOpenProcessTailDialog()
+    {
+        var vm = new OpenProcessTailViewModel();
+        var window = new OpenProcessTailView { DataContext = vm, Owner = Application.Current?.MainWindow };
+        return window.ShowDialog() == true
+            ? new ProcessTailSelection(vm.FileName.Trim(), vm.Arguments.Trim(), vm.RestartOnExit)
+            : null;
+    }
+
+    public SshTailSelection? ShowOpenSshTailDialog()
+    {
+        var vm = new OpenSshTailViewModel();
+        var window = new OpenSshTailView { DataContext = vm, Owner = Application.Current?.MainWindow };
+        return window.ShowDialog() == true
+            ? new SshTailSelection(
+                vm.Host.Trim(), vm.Port, vm.Username.Trim(),
+                string.IsNullOrEmpty(vm.Password) ? null : vm.Password,
+                string.IsNullOrWhiteSpace(vm.PrivateKeyPath) ? null : vm.PrivateKeyPath.Trim(),
+                string.IsNullOrEmpty(vm.PrivateKeyPassphrase) ? null : vm.PrivateKeyPassphrase,
+                vm.Command.Trim(),
+                string.IsNullOrWhiteSpace(vm.HostKeyFingerprintSha256) ? null : vm.HostKeyFingerprintSha256.Trim(),
+                vm.AcceptAnyHostKey)
+            : null;
+    }
+
+    public EtwTailSelection? ShowOpenEtwTailDialog()
+    {
+        var vm = new OpenEtwTailViewModel();
+        var window = new OpenEtwTailView { DataContext = vm, Owner = Application.Current?.MainWindow };
+        return window.ShowDialog() == true
+            ? new EtwTailSelection(vm.Provider.Trim(), vm.LevelValue)
+            : null;
+    }
+
     public void ShowServicesDialog()
     {
         var window = new ServicesView
