@@ -41,6 +41,8 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_Open File..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
                 <MenuItem Header="Open _Directory (Watch)..." Command="{Binding OpenDirectoryWatchCommand}" />
+                <MenuItem Header="Open _Merged Files (by time)..." Command="{Binding OpenMergedFilesCommand}"
+                          ToolTip="Pick 2+ files to tail together, interleaved by timestamp" />
                 <MenuItem Header="Open _Windows Event Log..." Command="{Binding OpenEventLogCommand}" />
                 <MenuItem Header="Recent Files" ItemsSource="{Binding RecentFiles}">
                     <MenuItem.ItemContainerStyle>

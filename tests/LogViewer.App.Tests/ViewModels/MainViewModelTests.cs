@@ -60,6 +60,39 @@ public sealed class MainViewModelTests : IDisposable
     }
 
     [Fact]
+    public void OpenMergedFiles_AddsOneDocument_RecordedAsMergedKind_NotInRecentFiles()
+    {
+        var a = _tempDir.CreateFile("a.log", "2026-01-02 10:00:01 one\n");
+        var b = _tempDir.CreateFile("b.log", "2026-01-02 10:00:02 two\n");
+        var (viewModel, _) = MainViewModelFactory.Create();
+
+        var document = viewModel.OpenMergedFiles([a, b]);
+
+        Assert.Single(viewModel.Documents);
+        Assert.Same(document, viewModel.ActiveDocument);
+        Assert.Equal(TailSourceKind.MergedFiles, document.Kind);
+        Assert.Empty(viewModel.RecentFiles); // merged sources are not "recent files"
+
+        viewModel.Dispose();
+    }
+
+    [Fact]
+    public void OpenMergedFiles_SamePathsDifferentOrder_ActivatesExistingDocument()
+    {
+        var a = _tempDir.CreateFile("a.log", "x\n");
+        var b = _tempDir.CreateFile("b.log", "y\n");
+        var (viewModel, _) = MainViewModelFactory.Create();
+
+        var first = viewModel.OpenMergedFiles([a, b]);
+        var second = viewModel.OpenMergedFiles([b, a]);
+
+        Assert.Same(first, second);
+        Assert.Single(viewModel.Documents);
+
+        viewModel.Dispose();
+    }
+
+    [Fact]
     public void OpenDirectoryWatch_CalledTwiceForSameDirectoryAndPattern_ActivatesExistingDocument()
     {
         var (viewModel, _) = MainViewModelFactory.Create();

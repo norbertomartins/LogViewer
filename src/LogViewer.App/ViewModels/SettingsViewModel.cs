@@ -30,6 +30,9 @@ public sealed partial class SettingsViewModel : ObservableObject
     private bool _colorizeStructuredValues;
 
     [ObservableProperty]
+    private bool _highlightMatchSpans;
+
+    [ObservableProperty]
     private double _logFontSize;
 
     [ObservableProperty]
@@ -55,6 +58,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _restorePreviousSessionOnStartup = settings.RestorePreviousSessionOnStartup;
         _autoTuneForRemoteDesktop = settings.AutoTuneForRemoteDesktop;
         _colorizeStructuredValues = settings.ColorizeStructuredValues;
+        _highlightMatchSpans = settings.HighlightMatchSpans;
         _logFontSize = settings.LogFontSize;
         _mcpEnabled = settings.Mcp.Enabled;
         _mcpPort = settings.Mcp.Port;
@@ -87,6 +91,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         settings.RestorePreviousSessionOnStartup = RestorePreviousSessionOnStartup;
         settings.AutoTuneForRemoteDesktop = AutoTuneForRemoteDesktop;
         settings.ColorizeStructuredValues = ColorizeStructuredValues;
+        settings.HighlightMatchSpans = HighlightMatchSpans;
         settings.LogFontSize = LogFontSize;
         settings.ActiveThemeId = SelectedTheme.Id;
         settings.Mcp.Enabled = McpEnabled;

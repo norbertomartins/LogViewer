@@ -18,7 +18,16 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" Margin="0,0,4,0" />
                 <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" Margin="0,0,8,0" />
-                <TextBlock Grid.Column="2" Text="{Binding Text}" />
+                <TextBlock Grid.Column="2" Text="{Binding Text}">
+                    <controls:InlinesHelper.Source>
+                        <MultiBinding Converter="{StaticResource HighlightSpanInlinesConverter}">
+                            <Binding Path="Text" />
+                            <Binding Path="HighlightSpans" />
+                            <Binding Path="DataContext.ShowHighlightMatchSpans"
+                                     RelativeSource="{RelativeSource AncestorType=UserControl}" />
+                        </MultiBinding>
+                    </controls:InlinesHelper.Source>
+                </TextBlock>
             </Grid>
         </DataTemplate>
 
@@ -77,6 +86,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="*" MinHeight="80" />
             <RowDefinition Height="Auto" />
             <RowDefinition x:Name="DetailPanelRow" MinHeight="0">
@@ -92,7 +102,11 @@
 
         <ToolBar Grid.Row="0" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
             <ToggleButton Content="Follow Tail" IsChecked="{Binding IsFollowingTail}" />
-            <ToggleButton Content="Structured View" IsChecked="{Binding IsStructuredView}" ToolTip="Parse this document as Serilog JSON (Time/Level/Message columns + property details)" />
+            <ToggleButton Content="Structured View" IsChecked="{Binding IsStructuredView}"
+                          ToolTip="{Binding StructuredFormatName, StringFormat='Parse this document as structured logs ({0}) — Time/Level/Message columns + property details'}" />
+            <ComboBox ItemsSource="{Binding AvailableStructuredFormats}" SelectedItem="{Binding StructuredFormatId}" Width="90"
+                      ToolTip="{Binding StructuredFormatName, StringFormat='Structured format: {0}. Auto-detected on open; change to override.'}"
+                      Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
             <!-- Colorize toggle: only meaningful while in structured view -->
             <ToggleButton Content="⬤ Colorize Values" IsChecked="{Binding IsColorizeStructuredValues}"
                           ToolTip="Highlight variable values in the message with distinct colors"
@@ -106,6 +120,16 @@
             <Button Content="Toggle Bookmark" Command="{Binding ToggleBookmarkCommand}" ToolTip="Ctrl+F2" />
             <Button Content="◀ Bookmark" Command="{Binding PreviousBookmarkCommand}" ToolTip="Shift+F2" />
             <Button Content="Bookmark ▶" Command="{Binding NextBookmarkCommand}" ToolTip="F2" />
+            <Separator />
+            <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,4,0" />
+            <TextBox Width="150" VerticalAlignment="Center"
+                     Text="{Binding TextFilterPattern, UpdateSourceTrigger=PropertyChanged, Delay=200}"
+                     ToolTip="Show only lines matching this text/regex (live). Applies to the raw line in both plain and structured view." />
+            <ToggleButton Content=".*" IsChecked="{Binding TextFilterIsRegex}" ToolTip="Treat the filter as a regular expression" />
+            <ToggleButton Content="Aa" IsChecked="{Binding TextFilterCaseSensitive}" ToolTip="Case-sensitive filter" />
+            <ToggleButton Content="Exclude" IsChecked="{Binding TextFilterExclude}" ToolTip="Hide matching lines instead of showing only them" />
+            <Button Content="✕" Command="{Binding ClearTextFilterCommand}" ToolTip="Clear the text filter"
+                    Visibility="{Binding IsTextFilterActive, Converter={StaticResource BoolToVisibilityConverter}}" />
             <Separator />
             <Button Content="◀ Highlight" Command="{Binding PreviousHighlightCommand}" ToolTip="Shift+F3" />
             <Button Content="Highlight ▶" Command="{Binding NextHighlightCommand}" ToolTip="F3" />
@@ -122,13 +146,78 @@
                 </MenuItem>
             </Menu>
             <Button Content="Search..." Command="{Binding SearchCommand}" ToolTip="Ctrl+Shift+F" />
+            <Button Content="Export..." Command="{Binding ExportVisibleCommand}" ToolTip="Save the currently visible (filtered) lines to a file" />
+            <ToggleButton Content="📊 Timeline" IsChecked="{Binding ShowTimeline}"
+                          ToolTip="Show a volume-over-time histogram of the visible timestamped lines" />
             <Button Content="Customize..." Command="{Binding CustomizeCommand}" />
             <Separator />
             <Button Content="New lines below — resume follow" Command="{Binding ResumeFollowCommand}"
                     Visibility="{Binding HasUnseenChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
         </ToolBar>
 
-        <ListView Grid.Row="1" x:Name="LineListView"
+        <!-- Volume timeline: one bar per time bucket (error red / warning amber / info accent), click to
+             jump to the first line in that bucket. Only timestamped lines contribute. -->
+        <Border Grid.Row="1" Background="{DynamicResource Theme.LogBackground}"
+                BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,0,0,1" Padding="4,2"
+                Visibility="{Binding ShowTimeline, Converter={StaticResource BoolToVisibilityConverter}}">
+            <Grid Height="52">
+                <TextBlock Text="No timestamped lines to chart" Opacity="0.6" HorizontalAlignment="Center" VerticalAlignment="Center"
+                           Visibility="{Binding TimelineHasData, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
+                <ItemsControl ItemsSource="{Binding VolumeBins}"
+                              Visibility="{Binding TimelineHasData, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <UniformGrid Rows="1" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Command="{Binding DataContext.SelectBinCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,1,0"
+                                    VerticalContentAlignment="Bottom" Cursor="Hand">
+                                <Button.ToolTip>
+                                    <TextBlock>
+                                        <Run Text="{Binding Start, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}', Mode=OneWay}" /><LineBreak />
+                                        <Run Text="{Binding Total, StringFormat='{}{0} lines', Mode=OneWay}" />
+                                        <Run Text="{Binding Warnings, StringFormat=' · {0} warn', Mode=OneWay}" />
+                                        <Run Text="{Binding Errors, StringFormat=' · {0} err', Mode=OneWay}" />
+                                    </TextBlock>
+                                </Button.ToolTip>
+                                <StackPanel VerticalAlignment="Bottom">
+                                    <Rectangle Fill="#E53935" HorizontalAlignment="Stretch">
+                                        <Rectangle.Height>
+                                            <MultiBinding Converter="{StaticResource VolumeBinBarHeightConverter}" ConverterParameter="44">
+                                                <Binding Path="Errors" />
+                                                <Binding Path="DataContext.MaxBinTotal" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                            </MultiBinding>
+                                        </Rectangle.Height>
+                                    </Rectangle>
+                                    <Rectangle Fill="#FFB300" HorizontalAlignment="Stretch">
+                                        <Rectangle.Height>
+                                            <MultiBinding Converter="{StaticResource VolumeBinBarHeightConverter}" ConverterParameter="44">
+                                                <Binding Path="Warnings" />
+                                                <Binding Path="DataContext.MaxBinTotal" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                            </MultiBinding>
+                                        </Rectangle.Height>
+                                    </Rectangle>
+                                    <Rectangle Fill="{DynamicResource Theme.LogForeground}" Opacity="0.55" HorizontalAlignment="Stretch">
+                                        <Rectangle.Height>
+                                            <MultiBinding Converter="{StaticResource VolumeBinBarHeightConverter}" ConverterParameter="44">
+                                                <Binding Path="Info" />
+                                                <Binding Path="DataContext.MaxBinTotal" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                            </MultiBinding>
+                                        </Rectangle.Height>
+                                    </Rectangle>
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </Border>
+
+        <ListView Grid.Row="2" x:Name="LineListView"
                   ItemsSource="{Binding Lines}"
                   SelectedItem="{Binding SelectedLine, Mode=TwoWay}"
                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
@@ -190,14 +279,14 @@
         <!-- Drag to resize the detail panel below; hidden together with it (via the shared style) when the
              selected line has no structured detail. DragCompleted (code-behind) persists the resulting
              height onto the view-model, which the DetailPanelRow height MultiBinding feeds right back. -->
-        <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="5"
+        <GridSplitter Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="5"
                       Background="{DynamicResource Theme.BorderColor}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
                       Cursor="SizeNS" Style="{StaticResource CollapseWhenNoStructuredDetailStyle}"
                       DragCompleted="OnDetailPanelSplitterDragCompleted" />
 
         <!-- Structured-log detail: timestamp/template/properties/exception for the selected line, when it
              parsed as Serilog JSON. Collapses entirely for plain-text lines/documents. -->
-        <Border Grid.Row="3" Background="{DynamicResource Theme.LogBackground}" TextElement.Foreground="{DynamicResource Theme.LogForeground}"
+        <Border Grid.Row="4" Background="{DynamicResource Theme.LogBackground}" TextElement.Foreground="{DynamicResource Theme.LogForeground}"
                 BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,1,0,0" Padding="8"
                 Style="{StaticResource CollapseWhenNoStructuredDetailStyle}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -238,7 +327,7 @@
             </ScrollViewer>
         </Border>
 
-        <StatusBar Grid.Row="4" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
+        <StatusBar Grid.Row="5" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
             <StatusBar.Template>
                 <ControlTemplate TargetType="StatusBar">
                     <Border Background="{TemplateBinding Background}">

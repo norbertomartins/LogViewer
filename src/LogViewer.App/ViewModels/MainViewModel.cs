@@ -124,11 +124,30 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var fullPath = Path.GetFullPath(path);
         if (!TryActivateExisting(fullPath, out var document))
         {
+            // A .gz archive can't be tailed incrementally — decompress it once and open the plain copy,
+            // keeping the original path for the recent-list and the tab title.
+            string openPath;
+            try
+            {
+                openPath = CompressedLogFile.Materialize(fullPath);
+            }
+            catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
+            {
+                openPath = fullPath;
+            }
+
+            var isCompressed = !string.Equals(openPath, fullPath, StringComparison.OrdinalIgnoreCase);
             var options = new TailSourceOptions { PollInterval = TimeSpan.FromMilliseconds(250) };
-            var source = new FileTailSource(fullPath, options);
+            var source = new FileTailSource(openPath, options);
+            var detectedFormatId = LogLineParsers.DetectFile(openPath);
+            var formatOverride = FindExistingFormatOverride(TailSourceKind.File, fullPath, pattern: null, eventLogChannel: null);
             var isStructuredView = FindExistingOverride(TailSourceKind.File, fullPath, pattern: null, eventLogChannel: null)
-                ?? SerilogFormatDetector.SniffFile(fullPath);
-            document = AddDocument(source, fullPath, isStructuredView: isStructuredView);
+                ?? detectedFormatId is not null;
+            document = AddDocument(source, openPath,
+                title: isCompressed ? Path.GetFileName(fullPath) : null,
+                isStructuredView: isStructuredView,
+                structuredFormatId: formatOverride ?? detectedFormatId,
+                structuredFormatManuallyChosen: formatOverride is not null);
         }
 
         RecordRecent(new TailSourceSettings { Kind = TailSourceKind.File, Path = fullPath });
@@ -144,6 +163,16 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return _settings.RecentSources
             .FirstOrDefault(r => string.Equals(ComputeDedupKey(r), dedupKey, StringComparison.OrdinalIgnoreCase))
             ?.IsStructuredView;
+    }
+
+    /// <summary>The persisted manual structured-format override (<c>serilog</c>/<c>ndjson</c>/…) for this
+    /// source's dedup key, or null when the user has never pinned a format for it.</summary>
+    private string? FindExistingFormatOverride(TailSourceKind kind, string path, string? pattern, string? eventLogChannel)
+    {
+        var dedupKey = ComputeDedupKey(kind, path, pattern, eventLogChannel);
+        return _settings.RecentSources
+            .FirstOrDefault(r => string.Equals(ComputeDedupKey(r), dedupKey, StringComparison.OrdinalIgnoreCase))
+            ?.StructuredFormatId;
     }
 
     [RelayCommand]
@@ -174,13 +203,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var options = new TailSourceOptions { PollInterval = TimeSpan.FromMilliseconds(250) };
             var source = new DirectoryWatchTailSource(fullDirectory, pattern, autoSwitchToLatestFile, options);
             var title = $"{pattern} ({Path.GetFileName(fullDirectory.TrimEnd(Path.DirectorySeparatorChar))})";
-            document = AddDocument(source, dedupKey, title);
 
-            // Start() (inside AddDocument -> the TailDocumentViewModel ctor) resolves the initial active file,
-            // so ActiveFilePath is only known after construction — sniff it now, before any lines are flushed.
+            // ActiveFilePath is only known after the ctor's Start(), but StructuredFormatId is fixed at
+            // construction — so detect the format from the most-recently-modified match up front.
+            var candidateFile = SafeLatestMatch(fullDirectory, pattern);
+            var detectedFormatId = candidateFile is not null ? LogLineParsers.DetectFile(candidateFile) : null;
             var overrideValue = FindExistingOverride(TailSourceKind.DirectoryWatch, fullDirectory, pattern, eventLogChannel: null);
-            document.IsStructuredView = overrideValue
-                ?? (source.ActiveFilePath is { } activeFile && SerilogFormatDetector.SniffFile(activeFile));
+            var formatOverride = FindExistingFormatOverride(TailSourceKind.DirectoryWatch, fullDirectory, pattern, eventLogChannel: null);
+
+            document = AddDocument(source, dedupKey, title,
+                structuredFormatId: formatOverride ?? detectedFormatId,
+                structuredFormatManuallyChosen: formatOverride is not null);
+            document.IsStructuredView = overrideValue ?? detectedFormatId is not null;
         }
 
         RecordRecent(new TailSourceSettings
@@ -225,6 +259,43 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private void OpenMergedFiles()
+    {
+        var paths = _dialogService.ShowOpenFileDialog();
+        if (paths is not { Count: >= 2 })
+        {
+            if (paths is { Count: 1 })
+            {
+                OpenPath(paths[0]);
+            }
+
+            return;
+        }
+
+        OpenMergedFiles(paths.Select(Path.GetFullPath).ToList());
+    }
+
+    public TailDocumentViewModel OpenMergedFiles(IReadOnlyList<string> paths)
+    {
+        var ordered = paths.Select(Path.GetFullPath).ToList();
+        var dedupKey = MergedDedupKey(ordered);
+
+        if (!TryActivateExisting(dedupKey, out var document))
+        {
+            var options = new TailSourceOptions { PollInterval = TimeSpan.FromMilliseconds(250) };
+            var source = new MergedTailSource(ordered, options);
+            document = AddDocument(source, dedupKey, source.DisplayName);
+        }
+
+        RecordRecent(new TailSourceSettings { Kind = TailSourceKind.MergedFiles, Path = dedupKey, MergedPaths = ordered });
+        return document!;
+    }
+
+    /// <summary>Order-independent dedup key for a merged-files source.</summary>
+    private static string MergedDedupKey(IEnumerable<string> paths) =>
+        "merged:" + string.Join('|', paths.Select(p => p.ToLowerInvariant()).OrderBy(p => p, StringComparer.Ordinal));
+
+    [RelayCommand]
     private void OpenServices() => _dialogService.ShowServicesDialog();
 
     private bool TryActivateExisting(string dedupKey, out TailDocumentViewModel? existing)
@@ -239,13 +310,35 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return true;
     }
 
+    /// <summary>Most-recently-modified file in <paramref name="directory"/> matching <paramref name="pattern"/>,
+    /// used only to sniff the structured format when opening a directory watch. Never throws.</summary>
+    private static string? SafeLatestMatch(string directory, string pattern)
+    {
+        try
+        {
+            return Directory.Exists(directory)
+                ? Directory.EnumerateFiles(directory, pattern).MaxBy(File.GetLastWriteTimeUtc)
+                : null;
+        }
+        catch (IOException)
+        {
+            return null;
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
     private TailDocumentViewModel AddDocument(
         ITailSource source,
         string dedupKey,
         string? title = null,
         string? eventLogChannelName = null,
         IReadOnlyList<EventLogFilterRule>? eventLogFilters = null,
-        bool isStructuredView = false)
+        bool isStructuredView = false,
+        string? structuredFormatId = null,
+        bool structuredFormatManuallyChosen = false)
     {
         var document = new TailDocumentViewModel(
             source,
@@ -257,10 +350,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             title,
             eventLogChannelName,
             eventLogFilters,
-            isStructuredView);
+            isStructuredView,
+            structuredFormatId,
+            structuredFormatManuallyChosen);
         document.SetInitialMdiBounds(Documents.Count);
         document.ApplyThemeMode(_currentThemeMode);
         document.ApplyColorizeStructuredValues(_settings.ColorizeStructuredValues);
+        document.ApplyShowHighlightMatchSpans(_settings.HighlightMatchSpans);
         document.ApplyLogFontSize(_settings.LogFontSize);
         document.ApplyDetailPanelHeight(_settings.Layout.DetailPanelHeight);
         document.DetailPanelHeightChanged += height => OnDetailPanelHeightChanged(document, height);
@@ -437,6 +533,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         foreach (var document in Documents)
         {
             document.ApplyColorizeStructuredValues(_settings.ColorizeStructuredValues);
+            document.ApplyShowHighlightMatchSpans(_settings.HighlightMatchSpans);
             document.ApplyLogFontSize(_settings.LogFontSize);
         }
     }
@@ -478,6 +575,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             entry.MdiHeight = document.MdiHeight;
             entry.MdiIsMaximized = document.IsMdiMaximized;
             entry.IsStructuredView = document.IsStructuredView;
+            entry.StructuredFormatId = document.IsStructuredFormatManuallyChosen ? document.StructuredFormatId : null;
         }
 
         _settingsStore.Save(_settings);
@@ -509,6 +607,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     OpenDirectoryWatch(entry.Path, entry.WildcardPattern ?? "*.log", entry.AutoSwitchToLatestFile),
                 TailSourceKind.EventLog when entry.EventLogChannelName is not null =>
                     OpenEventLog(entry.EventLogChannelName, entry.EventLogFilters),
+                TailSourceKind.MergedFiles when entry.MergedPaths.Count >= 2 && entry.MergedPaths.All(File.Exists) =>
+                    OpenMergedFiles(entry.MergedPaths),
                 _ => null,
             };
 
