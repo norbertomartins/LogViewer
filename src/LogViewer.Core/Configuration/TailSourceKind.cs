@@ -9,4 +9,7 @@ public enum TailSourceKind
 
     /// <summary>Several files tailed together and interleaved by timestamp (<see cref="TailSourceSettings.MergedPaths"/>).</summary>
     MergedFiles,
+
+    /// <summary>A log endpoint tailed over HTTP(S) — streaming or polled (<see cref="TailSourceSettings.Path"/> holds the URL).</summary>
+    RemoteHttp,
 }

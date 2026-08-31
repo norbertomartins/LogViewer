@@ -56,4 +56,10 @@ public sealed class TailSourceSettings
 
     /// <summary>The file paths of a <see cref="TailSourceKind.MergedFiles"/> source, in the order chosen.</summary>
     public List<string> MergedPaths { get; set; } = [];
+
+    /// <summary>Consumption mode for a <see cref="TailSourceKind.RemoteHttp"/> source: <c>Auto</c>, <c>Stream</c>, or <c>Poll</c>.</summary>
+    public string? HttpMode { get; set; }
+
+    /// <summary>Extra request headers for a <see cref="TailSourceKind.RemoteHttp"/> source, as <c>Name: Value</c> lines.</summary>
+    public List<string> HttpHeaders { get; set; } = [];
 }
