@@ -25,6 +25,10 @@ public sealed partial class LogLineViewModel : ObservableObject
     [ObservableProperty]
     private bool _isBookmarked;
 
+    /// <summary>Character ranges of <see cref="Text"/> the winning highlight rule matched, for sub-string
+    /// emphasis. Empty when there's no match or the rule targeted a structured property.</summary>
+    public IReadOnlyList<HighlightSpan> HighlightSpans { get; private set; } = [];
+
     public LogLineViewModel(long lineNumber, string text, StructuredLogEvent? structured, HighlightMatch? match, bool isBookmarked)
     {
         LineNumber = lineNumber;
@@ -60,6 +64,8 @@ public sealed partial class LogLineViewModel : ObservableObject
     {
         Foreground = match is null ? DefaultForeground : ResolveBrush(match.ForegroundHex, DefaultForeground);
         Background = match is null ? DefaultBackground : ResolveBrush(match.BackgroundHex, DefaultBackground);
+        HighlightSpans = match?.Spans ?? [];
+        OnPropertyChanged(nameof(HighlightSpans));
     }
 
     private static Brush ResolveBrush(string hex, Brush fallback)

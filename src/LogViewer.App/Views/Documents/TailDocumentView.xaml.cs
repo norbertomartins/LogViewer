@@ -28,6 +28,7 @@ public partial class TailDocumentView : UserControl
             _viewModel.ScrollToEndRequested -= OnScrollToEndRequested;
             _viewModel.ScrollToLineRequested -= OnScrollToLineRequested;
             _viewModel.FilterChanged -= OnFilterChanged;
+            _viewModel.ExportRequested -= OnExportRequested;
         }
 
         _viewModel = e.NewValue as TailDocumentViewModel;
@@ -37,6 +38,7 @@ public partial class TailDocumentView : UserControl
             _viewModel.ScrollToEndRequested += OnScrollToEndRequested;
             _viewModel.ScrollToLineRequested += OnScrollToLineRequested;
             _viewModel.FilterChanged += OnFilterChanged;
+            _viewModel.ExportRequested += OnExportRequested;
         }
 
         OnFilterChanged();
@@ -57,8 +59,9 @@ public partial class TailDocumentView : UserControl
         var field = _viewModel?.ActiveFilterField;
         var value = _viewModel?.ActiveFilterValue;
         var minLevelRank = _viewModel?.MinLevelRank;
+        var hasTextFilter = _viewModel?.IsTextFilterActive ?? false;
 
-        if (value is null && minLevelRank is null)
+        if (value is null && minLevelRank is null && !hasTextFilter)
         {
             view.Filter = null;
             return;
@@ -66,7 +69,42 @@ public partial class TailDocumentView : UserControl
 
         view.Filter = item => item is LogLineViewModel line
             && (value is null || string.Equals(StructuredFieldResolver.Resolve(line.Structured, field!), value, StringComparison.Ordinal))
-            && (minLevelRank is null || (LogLevelSeverity.Rank(line.Structured?.Level) is { } rank && rank >= minLevelRank));
+            && (minLevelRank is null || (LogLevelSeverity.Rank(line.Structured?.Level) is { } rank && rank >= minLevelRank))
+            && (!hasTextFilter || _viewModel!.PassesTextFilter(line.Text));
+    }
+
+    /// <summary>Writes the currently visible (post-filter) lines to a user-chosen text file. The filtered
+    /// set lives in this view's <see cref="ICollectionView"/>, so export is a view concern.</summary>
+    private void OnExportRequested()
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        var suggested = $"{_viewModel.Title}-{DateTime.Now:yyyyMMdd-HHmmss}.log";
+        var dialog = new Microsoft.Win32.SaveFileDialog
+        {
+            FileName = System.Text.RegularExpressions.Regex.Replace(suggested, "[\\\\/:*?\"<>|]", "_"),
+            Filter = "Log files (*.log)|*.log|Text files (*.txt)|*.txt|All files (*.*)|*.*",
+            DefaultExt = ".log",
+        };
+
+        if (dialog.ShowDialog() != true)
+        {
+            return;
+        }
+
+        try
+        {
+            var lines = LineListView.Items.OfType<LogLineViewModel>().Select(l => l.Text);
+            System.IO.File.WriteAllLines(dialog.FileName, lines);
+            _viewModel.StatusMessage = $"Exported {LineListView.Items.Count} line(s) to {System.IO.Path.GetFileName(dialog.FileName)}";
+        }
+        catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
+        {
+            _viewModel.StatusMessage = $"Export failed: {ex.Message}";
+        }
     }
 
     private void OnScrollToEndRequested()

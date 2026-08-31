@@ -5,6 +5,7 @@ using CommunityToolkit.Mvvm.Input;
 using LogViewer.App.Controls;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
+using LogViewer.Core.Analysis;
 using LogViewer.Core.Bookmarks;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
@@ -26,6 +27,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 {
     private readonly ITailSource _source;
     private readonly RingLineBuffer _buffer;
+    private ILogLineParser _lineParser;
     private readonly HighlightEngine _highlightEngine = new();
     private readonly BookmarkManager _bookmarks = new();
     private readonly SortedSet<long> _highlightedLineNumbers = new();
@@ -54,6 +56,14 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     [ObservableProperty]
     private bool _isColorizeStructuredValues = true;
+
+    /// <summary>When true, the matched sub-string(s) of a highlight rule are emphasized within the line
+    /// (bold + underline). Synced from the global setting via <see cref="ApplyShowHighlightMatchSpans"/>.</summary>
+    [ObservableProperty]
+    private bool _showHighlightMatchSpans = true;
+
+    /// <summary>Syncs the global highlight-match-span setting to this document.</summary>
+    public void ApplyShowHighlightMatchSpans(bool show) => ShowHighlightMatchSpans = show;
 
     private const double MinLogFontSize = 8;
     private const double MaxLogFontSize = 32;
@@ -121,7 +131,99 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// at or above this pass the filter (e.g. selecting "Warning" keeps Warning, Error and Fatal).</summary>
     public int? MinLevelRank => IsLevelFilterActive ? LogLevelSeverity.Rank(MinLevel) : null;
 
-    public bool IsFilterActive => ActiveFilterValue is not null || IsLevelFilterActive;
+    public bool IsFilterActive => ActiveFilterValue is not null || IsLevelFilterActive || IsTextFilterActive;
+
+    // --- Live display filter over the raw line text (works in plain and structured view) -----------
+
+    [ObservableProperty]
+    private string? _textFilterPattern;
+
+    /// <summary>When true, matching lines are <b>hidden</b> instead of being the only ones shown.</summary>
+    [ObservableProperty]
+    private bool _textFilterExclude;
+
+    [ObservableProperty]
+    private bool _textFilterIsRegex = true;
+
+    [ObservableProperty]
+    private bool _textFilterCaseSensitive;
+
+    private System.Text.RegularExpressions.Regex? _compiledTextFilter;
+
+    public bool IsTextFilterActive => !string.IsNullOrEmpty(TextFilterPattern);
+
+    partial void OnTextFilterPatternChanged(string? value) => RebuildTextFilter();
+
+    partial void OnTextFilterExcludeChanged(bool value) => RaiseFilterChanged();
+
+    partial void OnTextFilterIsRegexChanged(bool value) => RebuildTextFilter();
+
+    partial void OnTextFilterCaseSensitiveChanged(bool value) => RebuildTextFilter();
+
+    private void RebuildTextFilter()
+    {
+        _compiledTextFilter = null;
+        if (TextFilterIsRegex && !string.IsNullOrEmpty(TextFilterPattern))
+        {
+            try
+            {
+                var options = System.Text.RegularExpressions.RegexOptions.Compiled
+                    | (TextFilterCaseSensitive ? System.Text.RegularExpressions.RegexOptions.None : System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+                _compiledTextFilter = new System.Text.RegularExpressions.Regex(TextFilterPattern, options, TimeSpan.FromMilliseconds(250));
+                StatusMessage = null;
+            }
+            catch (ArgumentException ex)
+            {
+                StatusMessage = $"Invalid filter regex: {ex.Message}";
+            }
+        }
+
+        RaiseFilterChanged();
+    }
+
+    /// <summary>Whether a line's raw text passes the live text filter — true when no filter is set.</summary>
+    public bool PassesTextFilter(string lineText)
+    {
+        if (string.IsNullOrEmpty(TextFilterPattern))
+        {
+            return true;
+        }
+
+        bool matched;
+        if (TextFilterIsRegex)
+        {
+            if (_compiledTextFilter is null)
+            {
+                return true; // invalid pattern — don't hide everything
+            }
+
+            try
+            {
+                matched = _compiledTextFilter.IsMatch(lineText);
+            }
+            catch (System.Text.RegularExpressions.RegexMatchTimeoutException)
+            {
+                return true;
+            }
+        }
+        else
+        {
+            var comparison = TextFilterCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            matched = lineText.Contains(TextFilterPattern, comparison);
+        }
+
+        return TextFilterExclude ? !matched : matched;
+    }
+
+    [RelayCommand]
+    private void ClearTextFilter() => TextFilterPattern = null;
+
+    /// <summary>Raised by <see cref="ExportVisibleCommand"/> — the view handles it because the effective
+    /// (filtered) line set lives in its <c>ICollectionView</c>, not in the view-model.</summary>
+    public event Action? ExportRequested;
+
+    [RelayCommand]
+    private void ExportVisible() => ExportRequested?.Invoke();
 
     public string? FilterStatusText
     {
@@ -136,6 +238,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             if (IsLevelFilterActive)
             {
                 parts.Add($"Level ≥ {MinLevel}");
+            }
+
+            if (IsTextFilterActive)
+            {
+                parts.Add($"text {(TextFilterExclude ? "≠" : "~")} \"{TextFilterPattern}\"");
             }
 
             return parts.Count > 0 ? "Filtered by " + string.Join(" AND ", parts) : null;
@@ -159,6 +266,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         OnPropertyChanged(nameof(FilterStatusText));
         OnPropertyChanged(nameof(IsLevelFilterActive));
         OnPropertyChanged(nameof(MinLevelRank));
+        OnPropertyChanged(nameof(IsTextFilterActive));
         FilterChanged?.Invoke();
     }
 
@@ -194,13 +302,22 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         string? title = null,
         string? eventLogChannelName = null,
         IReadOnlyList<EventLogFilterRule>? eventLogFilters = null,
-        bool isStructuredView = false)
+        bool isStructuredView = false,
+        string? structuredFormatId = null,
+        bool structuredFormatManuallyChosen = false)
     {
         _source = source;
         SourcePath = sourcePath;
+        _lineParser = LogLineParsers.Create(structuredFormatId) ?? new SerilogLogLineParser();
+        _structuredFormatId = _lineParser.FormatId;
+        IsStructuredFormatManuallyChosen = structuredFormatManuallyChosen;
         _buffer = new RingLineBuffer(ringBufferCapacity);
         Lines = new DisplayLineCollection(ringBufferCapacity);
-        Lines.CollectionChanged += (_, _) => _structuredLinesCache = null;
+        Lines.CollectionChanged += (_, _) =>
+        {
+            _structuredLinesCache = null;
+            ScheduleTimelineRecompute();
+        };
         _highlightEngine.SetRules(HighlightPreset.FlattenForMatching(highlightPresets));
         _externalTools = externalTools;
         _title = title ?? (Path.GetFileName(sourcePath) is { Length: > 0 } fileName ? fileName : source.DisplayName);
@@ -225,6 +342,48 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public string SourcePath { get; }
 
+    private string _structuredFormatId;
+
+    /// <summary>The <see cref="ILogLineParser.FormatId"/> used when <see cref="IsStructuredView"/> is on —
+    /// auto-detected on open, or overridden by the user via the format picker. Setting it rebuilds the
+    /// parser and reprocesses the buffer.</summary>
+    public string StructuredFormatId
+    {
+        get => _structuredFormatId;
+        set
+        {
+            if (string.Equals(_structuredFormatId, value, StringComparison.Ordinal) || LogLineParsers.Create(value) is not { } parser)
+            {
+                return;
+            }
+
+            _structuredFormatId = parser.FormatId;
+            _lineParser = parser;
+            IsStructuredFormatManuallyChosen = true;
+            OnPropertyChanged();
+            OnPropertyChanged(nameof(StructuredFormatName));
+            StructuredFormatChanged?.Invoke(_structuredFormatId);
+            if (IsStructuredView)
+            {
+                _ = ReprocessAllLinesSafeAsync();
+            }
+        }
+    }
+
+    /// <summary>Raised when the user picks a different structured format, so <c>MainViewModel</c> can persist it.</summary>
+    public event Action<string>? StructuredFormatChanged;
+
+    /// <summary>True once the format was set explicitly (picker or restored override) rather than auto-detected —
+    /// only then is <see cref="StructuredFormatId"/> persisted as a per-document override.</summary>
+    public bool IsStructuredFormatManuallyChosen { get; private set; }
+
+
+    /// <summary>Format ids offered in the picker, in detection-priority order.</summary>
+    public IReadOnlyList<string> AvailableStructuredFormats { get; } = LogLineParsers.FormatIds;
+
+    /// <summary>Human-readable name of the active structured parser, shown next to the "Structured View" toggle.</summary>
+    public string StructuredFormatName => _lineParser.DisplayName;
+
     public DisplayLineCollection Lines { get; }
 
     public IReadOnlyList<ExternalToolDefinition> ExternalTools => _externalTools;
@@ -244,6 +403,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     {
         FileTailSource => TailSourceKind.File,
         DirectoryWatchTailSource => TailSourceKind.DirectoryWatch,
+        MergedTailSource => TailSourceKind.MergedFiles,
         _ => TailSourceKind.EventLog,
     };
 
@@ -418,7 +578,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             for (var i = 0; i < snapshot.Count; i++)
             {
                 var existing = snapshot[i];
-                var structured = isStructuredView && SerilogEventParser.TryParse(existing.Text, out var parsed) ? parsed : null;
+                var structured = isStructuredView && _lineParser.TryParse(existing.Text, out var parsed) ? parsed : null;
                 var match = _highlightEngine.Evaluate(existing.Text, structured);
                 if (match is not null)
                 {
@@ -517,7 +677,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var displayItems = new List<LogLineViewModel>(lines.Count);
         foreach (var line in lines)
         {
-            var structured = IsStructuredView && SerilogEventParser.TryParse(line.Text, out var parsed) ? parsed : null;
+            var structured = IsStructuredView && _lineParser.TryParse(line.Text, out var parsed) ? parsed : null;
             var match = _highlightEngine.Evaluate(line.Text, structured);
             if (match is not null)
             {
@@ -642,6 +802,109 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     public IReadOnlyList<(long LineNumber, StructuredLogEvent Event)> StructuredLines =>
         _structuredLinesCache ??= Lines.Where(l => l.Structured is not null).Select(l => (l.LineNumber, l.Structured!)).ToList();
 
+    // --- Volume timeline -------------------------------------------------------------------------
+
+    /// <summary>Fixed-width time buckets of the currently displayed lines' volume, for the timeline strip.
+    /// Only lines that carry a parsed timestamp (structured view) contribute.</summary>
+    public System.Collections.ObjectModel.ObservableCollection<VolumeBin> VolumeBins { get; } = [];
+
+    [ObservableProperty]
+    private bool _showTimeline;
+
+    /// <summary>Largest <see cref="VolumeBin.Total"/> in <see cref="VolumeBins"/>, for bar-height normalization in the view.</summary>
+    [ObservableProperty]
+    private int _maxBinTotal = 1;
+
+    /// <summary>True once at least two timestamped lines exist, so the timeline has something to show.</summary>
+    [ObservableProperty]
+    private bool _timelineHasData;
+
+    private DispatcherTimer? _timelineRecomputeTimer;
+
+    partial void OnShowTimelineChanged(bool value)
+    {
+        if (value)
+        {
+            RecomputeTimeline();
+        }
+        else
+        {
+            VolumeBins.Clear();
+        }
+    }
+
+    private void ScheduleTimelineRecompute()
+    {
+        if (!ShowTimeline)
+        {
+            return;
+        }
+
+        _timelineRecomputeTimer ??= CreateTimelineTimer();
+        _timelineRecomputeTimer.Stop();
+        _timelineRecomputeTimer.Start();
+    }
+
+    private DispatcherTimer CreateTimelineTimer()
+    {
+        var timer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(400) };
+        timer.Tick += (_, _) =>
+        {
+            timer.Stop();
+            RecomputeTimeline();
+        };
+        return timer;
+    }
+
+    private void RecomputeTimeline()
+    {
+        var samples = new List<VolumeSample>(Lines.Count);
+        foreach (var line in Lines)
+        {
+            if (line.Structured?.Timestamp is { } ts)
+            {
+                var severity = LogLevelSeverity.Rank(line.Structured.Level) ?? 2;
+                samples.Add(new VolumeSample(ts, severity, line.LineNumber));
+            }
+        }
+
+        TimelineHasData = samples.Count >= 2;
+        var bins = LogVolumeBinner.Bin(samples);
+
+        VolumeBins.Clear();
+        var max = 1;
+        foreach (var bin in bins)
+        {
+            VolumeBins.Add(bin);
+            if (bin.Total > max)
+            {
+                max = bin.Total;
+            }
+        }
+
+        MaxBinTotal = max;
+    }
+
+    [RelayCommand]
+    private void ToggleTimeline() => ShowTimeline = !ShowTimeline;
+
+    [RelayCommand]
+    private void SelectBin(VolumeBin? bin)
+    {
+        if (bin is null || bin.FirstLineNumber < 0)
+        {
+            return;
+        }
+
+        var target = Lines.FindByLineNumber(bin.FirstLineNumber);
+        if (target is not null)
+        {
+            SelectedLine = target;
+            IsFollowingTail = false;
+            ScrollToLineRequested?.Invoke(target);
+        }
+    }
+
     [RelayCommand]
     private void FilterByProperty(object? parameter)
     {
@@ -734,6 +997,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     public void Dispose()
     {
         _reprocessCts?.Cancel();
+        _timelineRecomputeTimer?.Stop();
         _sink.LinesFlushed -= OnLinesFlushed;
         _sink.ResetFlushed -= OnResetFlushed;
         _sink.Dispose();

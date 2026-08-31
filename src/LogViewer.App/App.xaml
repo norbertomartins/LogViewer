@@ -19,6 +19,8 @@
         <converters:TimestampToLocalTimeConverter x:Key="TimestampToLocalTimeConverter" />
         <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
         <converters:StructuredInlinesConverter x:Key="StructuredInlinesConverter" />
+        <converters:HighlightSpanInlinesConverter x:Key="HighlightSpanInlinesConverter" />
+        <converters:VolumeBinBarHeightConverter x:Key="VolumeBinBarHeightConverter" />
         <converters:DiffEntryBrushConverter x:Key="DiffEntryBrushConverter" />
 
         <!-- Global template: every window-mode host (Tabbed/Floating via AvalonDock, MDI via MdiHostView)
