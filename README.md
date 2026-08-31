@@ -13,9 +13,9 @@ architecture decisions.
   recently modified.
 - Merged tailing of several files at once (`MergedTailSource`), interleaved by each line's timestamp via
   a bounded reorder buffer, each line prefixed with a short per-file label.
-- Remote HTTP(S) tailing (`HttpTailSource`) — holds a streaming response open (SSE / chunked text) or
-  polls a URL and emits the lines that are new since the last request, with optional request headers
-  and linear-backoff reconnect.
+- Remote log tailing over HTTP(S) (`HttpTailSource` — streaming SSE/chunked, or polled) and over
+  WebSockets (`WebSocketTailSource`), with optional request headers and linear-backoff reconnect.
+  One "Open Remote Log Endpoint" dialog routes by URL scheme.
 - Windows Event Log tailing (`Application`, `System`, custom channels) with independent, combinable regex
   filters (OR semantics across the enabled ones).
 - Three window modes — Tabbed, Floating (AvalonDock), and classic MDI (child windows with

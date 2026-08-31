@@ -14,7 +14,7 @@ public partial class OpenHttpTailView : Window
     {
         if (DataContext is OpenHttpTailViewModel { IsValid: false })
         {
-            MessageBox.Show(this, "Please enter a valid http:// or https:// URL.", "Open HTTP Log Endpoint", MessageBoxButton.OK, MessageBoxImage.Warning);
+            MessageBox.Show(this, "Please enter a valid http://, https://, ws:// or wss:// URL.", "Open Remote Log Endpoint", MessageBoxButton.OK, MessageBoxImage.Warning);
             return;
         }
 
