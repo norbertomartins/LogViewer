@@ -11,25 +11,41 @@ architecture decisions.
   and truncation/rotation/deletion handling ("circular logs") with no need to reopen.
 - Directory + wildcard watching (`DirectoryWatch`), auto-switching to whichever matching file was most
   recently modified.
+- Merged tailing of several files at once (`MergedTailSource`), interleaved by each line's timestamp via
+  a bounded reorder buffer, each line prefixed with a short per-file label.
 - Windows Event Log tailing (`Application`, `System`, custom channels) with independent, combinable regex
   filters (OR semantics across the enabled ones).
 - Three window modes — Tabbed, Floating (AvalonDock), and classic MDI (child windows with
   drag/resize/cascade/tile) — sharing the same document view-model, so switching modes never loses scroll
   position, highlights, or bookmarks.
 
-**Structured logs (Serilog/CLEF)**
-- Automatic detection of Serilog/CLEF JSON log lines, parsing timestamp, level, rendered message,
-  exception, and properties.
+**Structured logs (Serilog/CLEF, logfmt, NDJSON, syslog, W3C/IIS)**
+- Pluggable `ILogLineParser` framework with automatic format detection on open. Built-in parsers:
+  Serilog/CLEF JSON, logfmt (`key=value`), generic JSON-lines/NDJSON (MEL JSON console, pino, Bunyan,
+  Winston, zap), syslog (RFC 5424 + legacy BSD/RFC 3164), and W3C Extended / IIS logs — each yielding a
+  common timestamp / level / message / exception / properties shape. The detected format is shown in a
+  toolbar picker and can be overridden per document (persisted across restarts).
+- Gzip (`.gz`) log archives open transparently — decompressed once to a temp copy and then viewed,
+  searched, and parsed like any other file.
 - Colorization by structured property (applied only to the message, not the whole line).
 - Quick filter by `TraceId`/`SpanId` from a given line (click to filter on that value), a minimum log
   level filter, and a button to clear all active filters.
 
 **Highlighting, bookmarks, and navigation**
-- Highlight rules (regex, priority, color) evaluated live over incoming lines.
+- Highlight rules (regex, priority, color) evaluated live over incoming lines, with optional
+  bold+underline emphasis of the exact matched sub-string within the line (toggle in Settings).
 - Built-in highlight presets (e.g. "Errors & Exceptions", "Serilog Levels") plus an editor to
   create/export custom presets.
 - Bookmarks and next/previous navigation (highlight or bookmark) via keyboard shortcuts
   (`F3`/`Shift+F3`, `F2`/`Shift+F2`, `Ctrl+F2`).
+
+**Live display filter**
+- Show-only / hide (exclude) filter over the raw line text, regex or plain substring, case-insensitive by
+  default, applied live over the tail in both plain and structured view and combinable with the
+  trace/span/level filters.
+- Export the currently visible (filtered) lines to a file.
+- Volume timeline: a collapsible histogram of line volume over time (error/warning/info stacked per time
+  bucket), click a bar to jump to the first line in that bucket.
 
 **Search**
 - Full-text search over a file, independent of the in-memory ring buffer (finds matches already evicted
