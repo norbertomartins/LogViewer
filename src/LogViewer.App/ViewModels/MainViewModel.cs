@@ -352,6 +352,122 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         "merged:" + string.Join('|', paths.Select(p => p.ToLowerInvariant()).OrderBy(p => p, StringComparer.Ordinal));
 
     [RelayCommand]
+    private void OpenProcessTail()
+    {
+        var s = _dialogService.ShowOpenProcessTailDialog();
+        if (s is not null)
+        {
+            OpenProcessTail(s.FileName, s.Arguments, s.RestartOnExit);
+        }
+    }
+
+    public TailDocumentViewModel OpenProcessTail(string fileName, string arguments, bool restartOnExit)
+    {
+        var dedupKey = $"proc:{fileName} {arguments}".TrimEnd();
+
+        if (!TryActivateExisting(dedupKey, out var document))
+        {
+            var source = new ProcessTailSource(new ProcessTailOptions
+            {
+                FileName = fileName,
+                Arguments = arguments,
+                RestartOnExit = restartOnExit,
+            });
+            document = AddDocument(source, dedupKey, source.DisplayName);
+        }
+
+        RecordRecent(new TailSourceSettings
+        {
+            Kind = TailSourceKind.Process,
+            Path = dedupKey,
+            ProcessFileName = fileName,
+            ProcessArguments = arguments,
+            ProcessRestartOnExit = restartOnExit,
+        });
+        return document!;
+    }
+
+    [RelayCommand]
+    private void OpenSshTail()
+    {
+        var s = _dialogService.ShowOpenSshTailDialog();
+        if (s is null)
+        {
+            return;
+        }
+
+        var options = new SshTailOptions
+        {
+            Host = s.Host,
+            Port = s.Port,
+            Username = s.Username,
+            Password = s.Password,
+            PrivateKeyPath = s.PrivateKeyPath,
+            PrivateKeyPassphrase = s.PrivateKeyPassphrase,
+            Command = s.Command,
+            ExpectedHostKeyFingerprintSha256 = s.HostKeyFingerprintSha256,
+            AcceptAnyHostKey = s.AcceptAnyHostKey,
+        };
+        OpenSshTail(options);
+
+        RecordRecent(new TailSourceSettings
+        {
+            Kind = TailSourceKind.Ssh,
+            Path = SshDedupKey(options),
+            SshHost = s.Host,
+            SshPort = s.Port,
+            SshUsername = s.Username,
+            SshPrivateKeyPath = s.PrivateKeyPath,
+            SshHostKeyFingerprintSha256 = s.HostKeyFingerprintSha256,
+            SshAcceptAnyHostKey = s.AcceptAnyHostKey,
+            SshCommand = s.Command,
+        });
+    }
+
+    public TailDocumentViewModel OpenSshTail(SshTailOptions options)
+    {
+        var dedupKey = SshDedupKey(options);
+        if (!TryActivateExisting(dedupKey, out var document))
+        {
+            var source = new SshTailSource(options);
+            document = AddDocument(source, dedupKey, source.DisplayName);
+        }
+
+        return document!;
+    }
+
+    private static string SshDedupKey(SshTailOptions o) => $"ssh:{o.Username}@{o.Host}:{o.Port}/{o.Command}";
+
+    [RelayCommand]
+    private void OpenEtwTail()
+    {
+        var s = _dialogService.ShowOpenEtwTailDialog();
+        if (s is not null)
+        {
+            OpenEtwTail(s.Provider, s.Level);
+        }
+    }
+
+    public TailDocumentViewModel OpenEtwTail(string provider, int level)
+    {
+        var dedupKey = $"etw:{provider}";
+        if (!TryActivateExisting(dedupKey, out var document))
+        {
+            var source = new EtwTailSource(new EtwTailOptions { Provider = provider, Level = level });
+            document = AddDocument(source, dedupKey, source.DisplayName);
+        }
+
+        RecordRecent(new TailSourceSettings
+        {
+            Kind = TailSourceKind.Etw,
+            Path = dedupKey,
+            EtwProvider = provider,
+            EtwLevel = level,
+        });
+        return document!;
+    }
+
+    [RelayCommand]
     private void OpenServices() => _dialogService.ShowServicesDialog();
 
     private bool TryActivateExisting(string dedupKey, out TailDocumentViewModel? existing)
@@ -667,6 +783,24 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     OpenMergedFiles(entry.MergedPaths),
                 TailSourceKind.RemoteHttp or TailSourceKind.RemoteWebSocket when !string.IsNullOrWhiteSpace(entry.Path) =>
                     OpenRemoteEndpoint(entry.Path, entry.HttpMode ?? "Auto", entry.HttpHeaders),
+                TailSourceKind.Process when !string.IsNullOrWhiteSpace(entry.ProcessFileName) =>
+                    OpenProcessTail(entry.ProcessFileName, entry.ProcessArguments ?? string.Empty, entry.ProcessRestartOnExit),
+                TailSourceKind.Ssh when !string.IsNullOrWhiteSpace(entry.SshHost)
+                    && !string.IsNullOrWhiteSpace(entry.SshUsername)
+                    && !string.IsNullOrWhiteSpace(entry.SshCommand)
+                    && !string.IsNullOrWhiteSpace(entry.SshPrivateKeyPath) =>
+                    OpenSshTail(new SshTailOptions
+                    {
+                        Host = entry.SshHost,
+                        Port = entry.SshPort,
+                        Username = entry.SshUsername,
+                        PrivateKeyPath = entry.SshPrivateKeyPath,
+                        Command = entry.SshCommand,
+                        ExpectedHostKeyFingerprintSha256 = entry.SshHostKeyFingerprintSha256,
+                        AcceptAnyHostKey = entry.SshAcceptAnyHostKey,
+                    }),
+                TailSourceKind.Etw when !string.IsNullOrWhiteSpace(entry.EtwProvider) =>
+                    OpenEtwTail(entry.EtwProvider, entry.EtwLevel),
                 _ => null,
             };
 
@@ -730,6 +864,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         TailSourceKind.DirectoryWatch => $"dirwatch:{Path.GetFullPath(path)}|{pattern}",
         TailSourceKind.EventLog => $"eventlog:{eventLogChannel}",
         TailSourceKind.RemoteHttp or TailSourceKind.RemoteWebSocket => $"remote:{path}",
+        // Process / Ssh / Etw store their already-composed dedup key in Path.
         _ => path,
     };
 }

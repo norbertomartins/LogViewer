@@ -99,9 +99,22 @@
   `TailSourceSettings.HttpMode`/`HttpHeaders` (schema-compatible), an `OpenHttpTailView` dialog
   ("Open Remote Log Endpoint" — URL / mode / `Name: Value` headers), `MainViewModel.OpenRemoteEndpoint`
   (routes by URL scheme) + File ▸ "Open Remote Log Endpoint…", session restore, `Kind` mapping.
-  Verified via 12 new Core + 3 new App unit tests (264 total) + full build. **Still open:** SSH remote
-  tail (needs an SSH.NET dependency + credential handling), journald, ETW. No Phase 6 UI path has had an
-  interactive WPF pass.
+  Verified via 12 new Core + 3 new App unit tests (264 total) + full build.
+
+- **Phase 6e — process / SSH / ETW sources done.** Three more `ITailSource` implementations (Core):
+  `ProcessTailSource` spawns a command and tails its stdout/stderr line by line, relaunching a
+  follow-style command on exit with linear backoff (covers `journalctl -f`, `docker logs -f`,
+  `kubectl logs -f`, `adb logcat`, …). `SshTailSource` (SSH.NET dependency) runs a command over SSH and
+  streams its output, with key-file or password auth, host-key fingerprint verification (or explicit
+  opt-out), and reconnect — secrets are held only in memory, never persisted. `EtwTailSource`
+  (`Microsoft.Diagnostics.Tracing.TraceEvent`) consumes a real-time ETW provider by name or GUID,
+  raising a clear "run as Administrator" error when not elevated. App: `TailSourceKind.Process`/`Ssh`/`Etw`
+  + `TailSourceSettings` fields (SSH secrets excluded), three dialogs (`OpenProcessTailView` /
+  `OpenSshTailView` / `OpenEtwTailView`) with `PasswordBox`-backed secret entry, `MainViewModel.Open*`
+  methods + File-menu items, session restore (SSH only for key-based auth), `Kind` mapping. Verified via
+  7 new Core + 2 new App unit tests (273 total) + full build. **Still open:** journald has no dedicated
+  source — it is covered by `ProcessTailSource` running `journalctl -f` (locally or `wsl journalctl`).
+  No Phase 6 UI path has had an interactive WPF pass.
 
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and

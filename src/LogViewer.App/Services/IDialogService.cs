@@ -15,6 +15,15 @@ public sealed record EventLogSelection(string ChannelName, IReadOnlyList<EventLo
 
 public sealed record HttpTailSelection(string Url, string Mode, IReadOnlyList<string> Headers);
 
+public sealed record ProcessTailSelection(string FileName, string Arguments, bool RestartOnExit);
+
+public sealed record SshTailSelection(
+    string Host, int Port, string Username, string? Password,
+    string? PrivateKeyPath, string? PrivateKeyPassphrase, string Command,
+    string? HostKeyFingerprintSha256, bool AcceptAnyHostKey);
+
+public sealed record EtwTailSelection(string Provider, int Level);
+
 public interface IDialogService
 {
     IReadOnlyList<string>? ShowOpenFileDialog();
@@ -38,6 +47,12 @@ public interface IDialogService
     EventLogSelection? ShowOpenEventLogDialog();
 
     HttpTailSelection? ShowOpenHttpTailDialog();
+
+    ProcessTailSelection? ShowOpenProcessTailDialog();
+
+    SshTailSelection? ShowOpenSshTailDialog();
+
+    EtwTailSelection? ShowOpenEtwTailDialog();
 
     void ShowServicesDialog();
 
