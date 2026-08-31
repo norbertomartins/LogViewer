@@ -44,6 +44,11 @@ public sealed class AppSettings
     /// </summary>
     public bool ColorizeStructuredValues { get; set; } = true;
 
+    /// <summary>When true, the exact sub-string(s) a highlight rule's pattern matched are emphasized
+    /// (bold + underline) within the line, on top of the rule's whole-line coloring. When false, only
+    /// the whole-line color is applied (cheaper; matches the pre-6c behavior, better over Remote Desktop).</summary>
+    public bool HighlightMatchSpans { get; set; } = true;
+
     /// <summary>Font size (in points) for the log line list, adjustable via Ctrl+MouseWheel over the log view.</summary>
     public double LogFontSize { get; set; } = 12;
 

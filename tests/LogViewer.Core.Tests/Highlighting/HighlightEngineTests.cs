@@ -122,4 +122,44 @@ public sealed class HighlightEngineTests
 
         Assert.Null(engine.Evaluate("plain text line with Error in it", structured: null));
     }
+
+    [Fact]
+    public void Evaluate_Keyword_ReportsEveryMatchSpan()
+    {
+        var engine = new HighlightEngine();
+        engine.SetRules([HighlightRule.CreateDefault("err", "err")]);
+
+        var match = engine.Evaluate("err then ERR then err");
+
+        Assert.NotNull(match);
+        Assert.Equal([new HighlightSpan(0, 3), new HighlightSpan(9, 3), new HighlightSpan(18, 3)], match!.Spans);
+    }
+
+    [Fact]
+    public void Evaluate_Regex_ReportsMatchSpans()
+    {
+        var engine = new HighlightEngine();
+        engine.SetRules([HighlightRule.CreateDefault("num", @"\d+", isRegex: true)]);
+
+        var match = engine.Evaluate("code 42 and 7");
+
+        Assert.NotNull(match);
+        Assert.Equal([new HighlightSpan(5, 2), new HighlightSpan(12, 1)], match!.Spans);
+    }
+
+    [Fact]
+    public void Evaluate_TargetPropertyRule_HasNoLineSpans()
+    {
+        var engine = new HighlightEngine();
+        var rule = HighlightRule.CreateDefault("lvl", "Error") with { TargetProperty = StructuredFieldResolver.LevelField };
+        engine.SetRules([rule]);
+
+        var line = @"{""@t"":""2026-01-01T00:00:00Z"",""@mt"":""boom"",""@l"":""Error""}";
+        SerilogEventParser.TryParse(line, out var structured);
+
+        var match = engine.Evaluate(line, structured);
+
+        Assert.NotNull(match);
+        Assert.Empty(match!.Spans);
+    }
 }
