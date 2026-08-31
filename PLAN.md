@@ -14,6 +14,82 @@
   block-diff/similarity engine. Verified via 21 new `LogViewer.Mcp.Tests` unit tests (150 total across both
   test projects) + build + a live JSON-RPC handshake against a running instance; see caveat below.
 
+- **Phase 6a — done.** Structured parsing generalized beyond Serilog/CLEF: a new `ILogLineParser`
+  abstraction (`src/LogViewer.Core/Structured/`) with implementations for **logfmt** (`key=value`),
+  **generic NDJSON / JSON-lines** (MEL JSON console, pino/Bunyan/Winston/zap — field-name-alias driven),
+  **syslog** (RFC 5424 + legacy RFC 3164/BSD, PRI→severity→level, structured-data elements → properties),
+  and **W3C Extended / IIS** (stateful `#Fields:`-driven column split, `sc-status` → level). Serilog is
+  wrapped as `SerilogLogLineParser`. `LogLineParsers` is the registry + priority-ordered sample-based
+  auto-detection (`Detect` / `DetectFile`), replacing the Serilog-only `SerilogFormatDetector.SniffFile`
+  call sites in `MainViewModel` (file open + directory watch + session restore). `TailDocumentViewModel`
+  now holds a per-document `ILogLineParser` (chosen at construction from the detected `StructuredFormatId`)
+  instead of calling the static Serilog parser, and surfaces `StructuredFormatName` next to the
+  "Structured View" toggle. Verified via 31 new Core unit tests (222 total across the three test projects)
+  + full solution build.
+
+- **Phase 6b — done.** `TailSourceSettings.StructuredFormatId` (schema-compatible nullable add, no
+  migration) persists a manually-pinned format; `TailDocumentViewModel.StructuredFormatId` is now a
+  settable property (rebuilds the parser + reprocesses) with `AvailableStructuredFormats` for a toolbar
+  picker combo in `TailDocumentView`, and `IsStructuredFormatManuallyChosen` gates persistence the same
+  way `IsStructuredView`'s null-means-auto does. `MainViewModel` gained `FindExistingFormatOverride` and
+  threads the override through file open / directory watch / session restore. `StructuredFileReader` got
+  an `ILogLineParser` overload and its legacy `ReadAsync(path, ct)` now auto-detects the format (falling
+  back to Serilog), so every MCP tool built on it (`FilePatternFrequencyAnalyzer`, `FileBlockScanService`)
+  handles all five formats with no further change. `.gz` archives: `CompressedLogFile` (Core) sniffs the
+  gzip magic bytes and decompresses once into a stamped temp file that the normal file pipeline opens;
+  `MainViewModel.OpenPath` materializes on open, keeping the original path for the recent list and the
+  tab title. Verified via 12 new Core unit tests (227 total across the three test projects) + full build.
+  Not yet done at that point: the "competing with mature tools" items.
+
+- **Phase 6c (partial) — done.** **Live display filter over raw line text:** `TailDocumentViewModel`
+  gained `TextFilterPattern` / `TextFilterExclude` / `TextFilterIsRegex` / `TextFilterCaseSensitive`,
+  a compiled-regex cache with a 250 ms match timeout, invalid-pattern handling (never hides everything;
+  surfaces `StatusMessage`), `IsTextFilterActive`, an extended `FilterStatusText`, and a
+  `PassesTextFilter(string)` predicate the view's `ICollectionView.Filter` now ANDs in alongside the
+  existing trace/span/level filters — works in both plain and structured view. Toolbar gained a filter
+  box + `.*` / `Aa` / `Exclude` / clear buttons. **Export:** `ExportVisibleCommand` raises
+  `ExportRequested`; the view writes `LineListView.Items` (post-filter) to a `SaveFileDialog` target,
+  reporting count/errors via `StatusMessage`. Verified via 3 new App unit tests (230 total across the
+  three test projects) + full build.
+
+- **Phase 6c cont. — sub-string highlight spans done.** `HighlightSpan(int Start, int Length)` (Core);
+  `HighlightMatch` carries `IReadOnlyList<HighlightSpan> Spans` (a 3-arg ctor overload keeps existing
+  call sites source-compatible). `HighlightEngine.Evaluate` now also returns every matched range —
+  `regex.Matches` for regex rules, an all-occurrences scan for keyword rules — but only for rules that
+  target the raw line (property-target rules stay whole-line, `Spans` empty). App:
+  `LogLineViewModel.HighlightSpans`, a `HighlightSpanInlinesConverter` rendering the matched
+  sub-string(s) **bold + underline** on the plain-line template via the existing `InlinesHelper`, gated
+  by `AppSettings.HighlightMatchSpans` (default true, schema-compatible) propagated as
+  `TailDocumentViewModel.ShowHighlightMatchSpans` with a Settings checkbox. Structured rows keep
+  whole-line coloring (span indices are against the raw line, not the rendered message). Verified via
+  3 new Core unit tests (233 total across the three test projects) + full build.
+
+- **Phase 6c cont. — volume timeline done.** `LogVolumeBinner` (Core/Analysis): pure bucketing of
+  `VolumeSample(Timestamp, Severity, LineNumber)` into consecutive fixed-width `VolumeBin`s
+  (Total/Warnings/Errors + first/last line number), auto-choosing a "nice" bucket width for a target
+  bin count, filling empty gap buckets, and capping the bin count. App: `TailDocumentViewModel` builds
+  samples from the displayed lines' `Structured.Timestamp`/`Level`, exposes `VolumeBins` /
+  `ShowTimeline` / `MaxBinTotal` / `TimelineHasData`, recomputes on a 400 ms throttle after
+  `Lines` changes (and immediately on toggle-on), and `SelectBinCommand` scrolls to a bucket's first
+  line. `TailDocumentView` gained a collapsible timeline strip (row 1) — stacked error/warn/info bars
+  per bucket, click to jump — behind a "📊 Timeline" toolbar toggle, plus `VolumeBinBarHeightConverter`.
+  Only timestamped lines contribute (all five structured formats qualify). Verified via 5 new Core unit
+  tests (238 total) + full build.
+
+- **Phase 6c cont. — multi-file merge-by-timestamp done.** `MergedTailSource : ITailSource` (Core)
+  composes N `FileTailSource`, extracts a leading timestamp per line via `MergedTimestampExtractor`
+  (ISO-8601 / `yyyy-MM-dd HH:mm:ss,fff` / time-only), carries forward the last timestamp for
+  continuation lines, and passes everything through a bounded **reorder buffer** (default 2s window,
+  timer-driven flush, deterministic `FlushDueAt(now)` seam) that sorts the due lines by timestamp before
+  emitting them with sequential line numbers and a `label│ ` prefix (base filename, `#n`-disambiguated).
+  `TailSourceKind.MergedFiles` + `TailSourceSettings.MergedPaths` (schema-compatible) persist and restore
+  the set; `MainViewModel.OpenMergedFiles` (File ▸ "Open Merged Files (by time)…", multi-select) with an
+  order-independent dedup key; `TailDocumentViewModel.Kind` maps the source; merged docs are excluded
+  from Recent Files and aren't auto-structured (the label prefix would break JSON parsing). Verified via
+  17 new Core + 2 new App unit tests (254 total across the three test projects) + full build. **Still
+  open:** the Phase 2 "sources" backlog (SSH/HTTP/WS remote tail, journald, ETW). No Phase 6 UI path has
+  had an interactive WPF pass.
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was
