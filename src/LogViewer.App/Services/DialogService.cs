@@ -142,6 +142,20 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         return new EventLogSelection(viewModel.ChannelName, filters);
     }
 
+    public HttpTailSelection? ShowOpenHttpTailDialog()
+    {
+        var viewModel = new OpenHttpTailViewModel();
+        var window = new OpenHttpTailView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        return window.ShowDialog() == true
+            ? new HttpTailSelection(viewModel.Url.Trim(), viewModel.Mode, viewModel.HeaderLines)
+            : null;
+    }
+
     public void ShowServicesDialog()
     {
         var window = new ServicesView

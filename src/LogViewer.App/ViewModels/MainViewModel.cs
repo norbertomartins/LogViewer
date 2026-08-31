@@ -259,6 +259,56 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     [RelayCommand]
+    private void OpenHttpTail()
+    {
+        var selection = _dialogService.ShowOpenHttpTailDialog();
+        if (selection is not null)
+        {
+            OpenHttpTail(selection.Url, selection.Mode, selection.Headers);
+        }
+    }
+
+    public TailDocumentViewModel OpenHttpTail(string url, string mode, IReadOnlyList<string> headers)
+    {
+        var dedupKey = $"http:{url}";
+
+        if (!TryActivateExisting(dedupKey, out var document))
+        {
+            var options = new HttpTailOptions
+            {
+                Mode = Enum.TryParse<HttpTailMode>(mode, ignoreCase: true, out var m) ? m : HttpTailMode.Auto,
+                Headers = ParseHeaderLines(headers),
+            };
+            var source = new HttpTailSource(new Uri(url), options);
+            document = AddDocument(source, dedupKey, $"[HTTP] {new Uri(url).Host}");
+        }
+
+        RecordRecent(new TailSourceSettings
+        {
+            Kind = TailSourceKind.RemoteHttp,
+            Path = url,
+            HttpMode = mode,
+            HttpHeaders = headers.ToList(),
+        });
+        return document!;
+    }
+
+    private static Dictionary<string, string> ParseHeaderLines(IEnumerable<string> lines)
+    {
+        var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var line in lines)
+        {
+            var idx = line.IndexOf(':');
+            if (idx > 0)
+            {
+                result[line[..idx].Trim()] = line[(idx + 1)..].Trim();
+            }
+        }
+
+        return result;
+    }
+
+    [RelayCommand]
     private void OpenMergedFiles()
     {
         var paths = _dialogService.ShowOpenFileDialog();
@@ -609,6 +659,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                     OpenEventLog(entry.EventLogChannelName, entry.EventLogFilters),
                 TailSourceKind.MergedFiles when entry.MergedPaths.Count >= 2 && entry.MergedPaths.All(File.Exists) =>
                     OpenMergedFiles(entry.MergedPaths),
+                TailSourceKind.RemoteHttp when !string.IsNullOrWhiteSpace(entry.Path) =>
+                    OpenHttpTail(entry.Path, entry.HttpMode ?? "Auto", entry.HttpHeaders),
                 _ => null,
             };
 
@@ -671,6 +723,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         TailSourceKind.File => Path.GetFullPath(path),
         TailSourceKind.DirectoryWatch => $"dirwatch:{Path.GetFullPath(path)}|{pattern}",
         TailSourceKind.EventLog => $"eventlog:{eventLogChannel}",
+        TailSourceKind.RemoteHttp => $"http:{path}",
         _ => path,
     };
 }

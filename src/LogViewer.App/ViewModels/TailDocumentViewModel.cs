@@ -404,6 +404,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         FileTailSource => TailSourceKind.File,
         DirectoryWatchTailSource => TailSourceKind.DirectoryWatch,
         MergedTailSource => TailSourceKind.MergedFiles,
+        HttpTailSource => TailSourceKind.RemoteHttp,
         _ => TailSourceKind.EventLog,
     };
 
