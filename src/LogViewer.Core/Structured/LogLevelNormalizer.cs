@@ -24,6 +24,26 @@ public static class LogLevelNormalizer
         };
     }
 
+    private static readonly System.Text.RegularExpressions.Regex LevelWordPattern = new(
+        @"\b(TRACE|VERBOSE|VRB|DEBUG|DBG|INFO(?:RMATION)?|INF|NOTICE|WARN(?:ING)?|WRN|ERROR|ERR|FATAL|FTL|CRIT(?:ICAL)?|PANIC)\b",
+        System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Compiled);
+
+    /// <summary>Best-effort severity rank (see <see cref="LogLevelSeverity.Rank"/>) for a raw, unstructured
+    /// log line — scans for a level word and returns the highest severity found, or null if none.</summary>
+    public static int? GuessSeverityFromLine(string line)
+    {
+        int? best = null;
+        foreach (System.Text.RegularExpressions.Match m in LevelWordPattern.Matches(line))
+        {
+            if (LogLevelSeverity.Rank(Normalize(m.Value)) is { } rank && (best is null || rank > best))
+            {
+                best = rank;
+            }
+        }
+
+        return best;
+    }
+
     /// <summary>Maps an RFC 5424 numeric severity (0 = Emergency … 7 = Debug) onto a canonical level name.</summary>
     public static string FromSyslogSeverity(int severity) => severity switch
     {
