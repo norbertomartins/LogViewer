@@ -219,7 +219,7 @@
             <Button Content="🖌" Style="{StaticResource IconButton}" Command="{Binding CustomizeCommand}"
                     AutomationProperties.Name="Customize" ToolTip="Customize this document's tab color and icon" />
             <Separator />
-            <Button Content="⤓ New lines — resume follow" Command="{Binding ResumeFollowCommand}"
+            <Button Content="{Binding ResumeFollowBanner}" Command="{Binding ResumeFollowCommand}"
                     AutomationProperties.Name="Resume follow"
                     Visibility="{Binding HasUnseenChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
         </ToolBar>
@@ -298,7 +298,8 @@
                   VirtualizingPanel.ScrollUnit="Pixel"
                   Style="{StaticResource LogListViewStyle}"
                   FontFamily="Consolas" FontSize="{Binding LogFontSize}"
-                  PreviewMouseWheel="OnLineListPreviewMouseWheel">
+                  PreviewMouseWheel="OnLineListPreviewMouseWheel"
+                  ScrollViewer.ScrollChanged="OnLineListScrollChanged">
             <ListView.ItemContainerStyle>
                 <!-- Tag carries the document view-model down to the row's ContextMenu: a ContextMenu opens in
                      its own popup tree, so an ElementName binding back to LineListView is not reliable across

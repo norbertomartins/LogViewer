@@ -52,6 +52,50 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [ObservableProperty]
     private bool _isFollowingTail = true;
 
+    /// <summary>Lines that have arrived since follow was paused (by scrolling up or the toggle). Drives
+    /// the "N new lines — resume follow" banner; reset when follow resumes.</summary>
+    [ObservableProperty]
+    private int _unseenLineCount;
+
+    /// <summary>True while the view is applying a programmatic scroll (ScrollIntoView) — the view's
+    /// scroll-changed handler checks this so its own auto-scroll doesn't get mistaken for the user
+    /// scrolling away and pause the follow it just performed.</summary>
+    public bool IsProgrammaticScroll { get; set; }
+
+    public string ResumeFollowBanner => UnseenLineCount > 0
+        ? $"⤓ {UnseenLineCount:N0} new line{(UnseenLineCount == 1 ? string.Empty : "s")} — resume follow"
+        : "⤓ New lines — resume follow";
+
+    partial void OnUnseenLineCountChanged(int value) => OnPropertyChanged(nameof(ResumeFollowBanner));
+
+    partial void OnIsFollowingTailChanged(bool value)
+    {
+        if (value)
+        {
+            UnseenLineCount = 0;
+            HasUnseenChanges = false;
+        }
+    }
+
+    /// <summary>Called by the view when the user scrolls up away from the tail — pauses follow so new
+    /// lines don't yank the viewport back down.</summary>
+    public void NotifyUserScrolledAwayFromEnd()
+    {
+        if (IsFollowingTail)
+        {
+            IsFollowingTail = false;
+        }
+    }
+
+    /// <summary>Called by the view when the user scrolls back to the bottom — silently re-arms follow.</summary>
+    public void NotifyUserScrolledToEnd()
+    {
+        if (!IsFollowingTail)
+        {
+            IsFollowingTail = true;
+        }
+    }
+
     [ObservableProperty]
     private bool _isStructuredView;
 
@@ -769,6 +813,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         else
         {
             HasUnseenChanges = true;
+            UnseenLineCount += displayItems.Count;
         }
     }
 

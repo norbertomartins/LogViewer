@@ -113,6 +113,7 @@ public partial class TailDocumentView : UserControl
         {
             if (LineListView.Items.Count > 0)
             {
+                BeginProgrammaticScroll();
                 LineListView.ScrollIntoView(LineListView.Items[^1]);
             }
 
@@ -124,9 +125,44 @@ public partial class TailDocumentView : UserControl
     {
         Dispatcher.BeginInvoke(() =>
         {
+            BeginProgrammaticScroll();
             LineListView.ScrollIntoView(line);
             ResetHorizontalScrollAfterLayout();
         });
+    }
+
+    /// <summary>Marks the next scroll as ours so <see cref="OnLineListScrollChanged"/> doesn't read it as
+    /// the user scrolling away and pause the follow we just performed. Cleared once layout settles.</summary>
+    private void BeginProgrammaticScroll()
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        _viewModel.IsProgrammaticScroll = true;
+        Dispatcher.BeginInvoke(() => _viewModel.IsProgrammaticScroll = false, DispatcherPriority.ContextIdle);
+    }
+
+    /// <summary>Smart follow lock: scrolling up off the tail pauses follow; scrolling back to the bottom
+    /// re-arms it. Content-growth scrolls (ExtentHeightChange != 0) and our own programmatic scrolls are
+    /// ignored so only a real user gesture flips the state.</summary>
+    private void OnLineListScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (_viewModel is null || _viewModel.IsProgrammaticScroll || e.ExtentHeightChange != 0 || e.VerticalChange == 0)
+        {
+            return;
+        }
+
+        var distanceFromBottom = e.ExtentHeight - e.ViewportHeight - e.VerticalOffset;
+        if (distanceFromBottom <= 2.0)
+        {
+            _viewModel.NotifyUserScrolledToEnd();
+        }
+        else
+        {
+            _viewModel.NotifyUserScrolledAwayFromEnd();
+        }
     }
 
     /// <summary>ScrollIntoView on a long (unwrapped) line can drag the horizontal scroll offset away from
