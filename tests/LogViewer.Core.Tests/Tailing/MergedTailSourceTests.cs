@@ -114,6 +114,14 @@ public sealed class MergedTailSourceTests : IDisposable
         Assert.Throws<ArgumentException>(() => new MergedTailSource([Write("only.log", "x")]));
     }
 
+    [Theory]
+    [InlineData("svc-a│ 2026-01-02 INFO hello", "2026-01-02 INFO hello")]
+    [InlineData("payments│ {\"@t\":\"x\"}", "{\"@t\":\"x\"}")]
+    [InlineData("no separator here", "no separator here")]
+    [InlineData("a│", "")]
+    public void StripLabel_RemovesThePrefix(string line, string expected) =>
+        Assert.Equal(expected, MergedTailSource.StripLabel(line));
+
     [Fact]
     public void AssignLabels_DisambiguatesCollidingBaseNames()
     {

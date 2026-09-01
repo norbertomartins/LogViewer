@@ -77,6 +77,22 @@ public sealed class MainViewModelTests : IDisposable
     }
 
     [Fact]
+    public void OpenMergedFiles_WithStructuredFiles_EnablesStructuredViewWithDetectedFormat()
+    {
+        var clef = "{\"@t\":\"2026-01-02T10:00:01Z\",\"@mt\":\"a {X}\",\"X\":1}\n{\"@t\":\"2026-01-02T10:00:03Z\",\"@mt\":\"b {X}\",\"X\":2}\n";
+        var a = _tempDir.CreateFile("a.clef", clef);
+        var b = _tempDir.CreateFile("b.clef", clef);
+        var (viewModel, _) = MainViewModelFactory.Create();
+
+        var document = viewModel.OpenMergedFiles([a, b]);
+
+        Assert.True(document.IsStructuredView);
+        Assert.Equal("serilog", document.StructuredFormatId);
+
+        viewModel.Dispose();
+    }
+
+    [Fact]
     public void OpenRemoteEndpoint_Http_AddsRemoteHttpDocument_NotInRecentFiles_DedupsByUrl()
     {
         var (viewModel, _) = MainViewModelFactory.Create();

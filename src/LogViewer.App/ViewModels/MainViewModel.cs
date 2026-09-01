@@ -340,7 +340,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var options = new TailSourceOptions { PollInterval = TimeSpan.FromMilliseconds(250) };
             var source = new MergedTailSource(ordered, options);
-            document = AddDocument(source, dedupKey, source.DisplayName);
+
+            // Detect a structured format from the underlying files (read raw, before the merge prefix).
+            var detectedFormatId = ordered
+                .Select(p => File.Exists(p) ? LogLineParsers.DetectFile(p) : null)
+                .FirstOrDefault(f => f is not null);
+
+            document = AddDocument(source, dedupKey, source.DisplayName,
+                isStructuredView: detectedFormatId is not null,
+                structuredFormatId: detectedFormatId);
         }
 
         RecordRecent(new TailSourceSettings { Kind = TailSourceKind.MergedFiles, Path = dedupKey, MergedPaths = ordered });

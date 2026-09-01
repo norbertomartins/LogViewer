@@ -26,6 +26,7 @@ namespace LogViewer.App.ViewModels;
 public sealed partial class TailDocumentViewModel : ObservableObject, IDisposable
 {
     private readonly ITailSource _source;
+    private readonly bool _isMergedSource;
     private readonly RingLineBuffer _buffer;
     private ILogLineParser _lineParser;
     private readonly HighlightEngine _highlightEngine = new();
@@ -307,6 +308,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         bool structuredFormatManuallyChosen = false)
     {
         _source = source;
+        _isMergedSource = source is MergedTailSource;
         SourcePath = sourcePath;
         _lineParser = LogLineParsers.Create(structuredFormatId) ?? new SerilogLogLineParser();
         _structuredFormatId = _lineParser.FormatId;
@@ -529,6 +531,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
     }
 
+    /// <summary>The text a structured parser should see for a displayed line — with the <c>label│ </c>
+    /// prefix removed for a merged-files document so its lines still parse as JSON/logfmt/etc.</summary>
+    private string TextForParsing(string displayText) =>
+        _isMergedSource ? MergedTailSource.StripLabel(displayText) : displayText;
+
     partial void OnIsStructuredViewChanged(bool value) => _ = ReprocessAllLinesSafeAsync();
 
     /// <summary>Fire-and-forget wrapper around <see cref="ReprocessAllLinesAsync"/> — the property changed
@@ -583,7 +590,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             for (var i = 0; i < snapshot.Count; i++)
             {
                 var existing = snapshot[i];
-                var structured = isStructuredView && _lineParser.TryParse(existing.Text, out var parsed) ? parsed : null;
+                var structured = isStructuredView && _lineParser.TryParse(TextForParsing(existing.Text), out var parsed) ? parsed : null;
                 var match = _highlightEngine.Evaluate(existing.Text, structured);
                 if (match is not null)
                 {
@@ -682,7 +689,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var displayItems = new List<LogLineViewModel>(lines.Count);
         foreach (var line in lines)
         {
-            var structured = IsStructuredView && _lineParser.TryParse(line.Text, out var parsed) ? parsed : null;
+            var structured = IsStructuredView && _lineParser.TryParse(TextForParsing(line.Text), out var parsed) ? parsed : null;
             var match = _highlightEngine.Evaluate(line.Text, structured);
             if (match is not null)
             {
@@ -866,9 +873,24 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var samples = new List<VolumeSample>(Lines.Count);
         foreach (var line in Lines)
         {
-            if (line.Structured?.Timestamp is { } ts)
+            DateTimeOffset? timestamp;
+            int severity;
+
+            if (line.Structured?.Timestamp is { } structuredTs)
             {
-                var severity = LogLevelSeverity.Rank(line.Structured.Level) ?? 2;
+                timestamp = structuredTs;
+                severity = LogLevelSeverity.Rank(line.Structured.Level) ?? 2;
+            }
+            else
+            {
+                // Plain-text line: pull a leading timestamp and a level word out of the raw text.
+                var raw = TextForParsing(line.Text);
+                timestamp = MergedTimestampExtractor.TryExtract(raw);
+                severity = LogLevelNormalizer.GuessSeverityFromLine(raw) ?? 2;
+            }
+
+            if (timestamp is { } ts)
+            {
                 samples.Add(new VolumeSample(ts, severity, line.LineNumber));
             }
         }

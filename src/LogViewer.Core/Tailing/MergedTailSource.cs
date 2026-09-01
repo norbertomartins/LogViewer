@@ -13,6 +13,28 @@ public sealed class MergedTailSource : ITailSource
 {
     private sealed record Pending(DateTimeOffset SortKey, DateTimeOffset EnqueuedUtc, long Seq, string Label, string Text);
 
+    /// <summary>Character that separates the per-file label from the original line text in emitted lines.</summary>
+    public const char LabelSeparator = '│';
+
+    /// <summary>Removes the <c>label│ </c> prefix a merged line carries, so the original text can be parsed
+    /// (structured formats) or diffed. Returns <paramref name="line"/> unchanged if it has no prefix.</summary>
+    public static string StripLabel(string line)
+    {
+        var i = line.IndexOf(LabelSeparator);
+        if (i < 0)
+        {
+            return line;
+        }
+
+        var start = i + 1;
+        if (start < line.Length && line[start] == ' ')
+        {
+            start++;
+        }
+
+        return line[start..];
+    }
+
     private readonly List<(string Label, FileTailSource Source)> _members = [];
     private readonly Func<string, DateTimeOffset?> _timestampExtractor;
     private readonly TimeSpan _reorderWindow;
@@ -201,7 +223,7 @@ public sealed class MergedTailSource : ITailSource
         var batch = new List<TailLine>(due.Count);
         foreach (var p in due)
         {
-            batch.Add(new TailLine(Interlocked.Increment(ref _emittedLineNumber), 0, $"{p.Label}│ {p.Text}", stamp));
+            batch.Add(new TailLine(Interlocked.Increment(ref _emittedLineNumber), 0, $"{p.Label}{LabelSeparator} {p.Text}", stamp));
         }
 
         LinesRead?.Invoke(this, new TailLinesReadEventArgs(batch));
