@@ -10,7 +10,19 @@ public sealed partial class OpenEtwTailViewModel : ObservableObject
     [ObservableProperty]
     private string _level = "Informational";
 
-    public IReadOnlyList<string> LevelOptions { get; } = ["Critical", "Error", "Warning", "Informational", "Verbose"];
+    // ETW trace levels are a byte where higher = more detail. 1..5 are the standard names; "Debug"
+    // is an alias for "capture everything" (Verbose plus any provider-defined level above 5).
+    private static readonly (string Name, int Value)[] Levels =
+    [
+        ("Critical", 1),
+        ("Error", 2),
+        ("Warning", 3),
+        ("Informational", 4),
+        ("Verbose", 5),
+        ("Debug", 0xFF),
+    ];
+
+    public IReadOnlyList<string> LevelOptions { get; } = Levels.Select(l => l.Name).ToArray();
 
     public IReadOnlyList<string> Presets { get; } =
     [
@@ -21,7 +33,21 @@ public sealed partial class OpenEtwTailViewModel : ObservableObject
         "Microsoft-Windows-WinINet",
     ];
 
-    public int LevelValue => Array.IndexOf(new[] { "Critical", "Error", "Warning", "Informational", "Verbose" }, Level) is var i and >= 0 ? i + 1 : 4;
+    public int LevelValue
+    {
+        get
+        {
+            foreach (var (name, value) in Levels)
+            {
+                if (name == Level)
+                {
+                    return value;
+                }
+            }
+
+            return 4;
+        }
+    }
 
     public bool IsValid => !string.IsNullOrWhiteSpace(Provider);
 }

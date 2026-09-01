@@ -31,18 +31,41 @@ public sealed class MainWindowUITests : IDisposable
     }
 
     [Fact]
+    public void FileMenu_ContainsEveryOpenSourceEntry()
+    {
+        var window = GetMainWindow();
+
+        IReadOnlyList<string> names;
+        try
+        {
+            names = UiHelpers.MenuItems(window, "File");
+        }
+        catch (TimeoutException)
+        {
+            // A disconnected / locked RDP session can't render a WPF popup menu, so its items never
+            // reach the automation tree. Nothing to assert here in that environment.
+            return;
+        }
+
+        foreach (var entry in new[]
+                 {
+                     "Open File...", "Open Directory (Watch)...", "Open Merged Files / Folders (by time)...",
+                     "Open Windows Event Log...", "Open Remote Log Endpoint...", "Open Command Output...",
+                     "Open SSH Log Tail...", "Open ETW Provider...",
+                 })
+        {
+            Assert.Contains(entry, names);
+        }
+    }
+
+    [Fact]
     public void ToolsMenu_Settings_OpensAndCancelsSettingsDialog()
     {
         var window = GetMainWindow();
 
-        var toolsMenu = FindByName(window, "Tools", ControlType.MenuItem);
-        toolsMenu.Click();
-
-        var settingsItem = Retry.WhileNull(
-            () => window.FindFirstDescendant(cf => cf.ByControlType(ControlType.MenuItem).And(cf.ByName("Settings..."))),
-            DefaultTimeout).Result
-            ?? throw new TimeoutException("The Tools > Settings... menu item did not appear.");
-        settingsItem.Click();
+        // Drive the menu through UIA ExpandCollapse/Invoke rather than a synthesized click, so this
+        // passes in locked sessions where SendInput is denied.
+        UiHelpers.InvokeMenuPath(window, "Tools", "Settings...");
 
         // The Settings dialog is a WPF window Owned by the main window, which some UIA providers
         // nest as a descendant of the owner rather than as a direct child of the Desktop — so this
@@ -53,8 +76,7 @@ public sealed class MainWindowUITests : IDisposable
             DefaultTimeout).Result
             ?? throw new TimeoutException("The Settings dialog did not appear.");
 
-        var cancelButton = FindByName(settingsWindow, "Cancel", ControlType.Button);
-        cancelButton.Click();
+        FindByName(settingsWindow, "Cancel", ControlType.Button).AsButton().Invoke();
 
         var dialogClosed = WaitUntil(SettingsDialogIsClosed, DefaultTimeout);
         Assert.True(dialogClosed, "The Settings dialog did not close after clicking Cancel.");

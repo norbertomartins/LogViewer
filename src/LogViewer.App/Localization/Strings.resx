@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ==== Common ==== -->
+  <data name="Common_OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancel</value></data>
+  <data name="Common_Close" xml:space="preserve"><value>Close</value></data>
+  <data name="Common_Browse" xml:space="preserve"><value>Browse...</value></data>
+  <data name="Common_BrowseEllipsis" xml:space="preserve"><value>Browse…</value></data>
+  <data name="Common_Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Common_Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="Common_New" xml:space="preserve"><value>New</value></data>
+  <data name="Common_Duplicate" xml:space="preserve"><value>Duplicate</value></data>
+  <data name="Common_Delete" xml:space="preserve"><value>Delete</value></data>
+  <data name="Common_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Common_Enabled" xml:space="preserve"><value>Enabled</value></data>
+  <data name="Common_Refresh" xml:space="preserve"><value>Refresh</value></data>
+  <data name="Common_Start" xml:space="preserve"><value>Start</value></data>
+  <data name="Common_Stop" xml:space="preserve"><value>Stop</value></data>
+  <data name="Common_Search" xml:space="preserve"><value>Search</value></data>
+  <data name="Common_Regex" xml:space="preserve"><value>Regex</value></data>
+  <data name="Common_CaseSensitive" xml:space="preserve"><value>Case sensitive</value></data>
+  <data name="Common_Find" xml:space="preserve"><value>Find</value></data>
+  <data name="Common_RegularExpression" xml:space="preserve"><value>Regular expression</value></data>
+  <data name="Common_PreviewSampleLogLine" xml:space="preserve"><value>Preview: sample log line</value></data>
+  <data name="Common_ForegroundHex" xml:space="preserve"><value>Foreground (#RRGGBB)</value></data>
+  <data name="Common_BackgroundHex" xml:space="preserve"><value>Background (#RRGGBB)</value></data>
+  <data name="Common_InvalidRegex" xml:space="preserve"><value>Invalid regular expression</value></data>
+
+  <!-- ==== Tray icon ==== -->
+  <data name="Tray_ToolTip" xml:space="preserve"><value>LogViewer</value></data>
+  <data name="Tray_Show" xml:space="preserve"><value>Show LogViewer</value></data>
+  <data name="Tray_Exit" xml:space="preserve"><value>Exit</value></data>
+
+  <!-- ==== Main menu ==== -->
+  <data name="Menu_File" xml:space="preserve"><value>_File</value></data>
+  <data name="Menu_File_OpenFile" xml:space="preserve"><value>_Open File...</value></data>
+  <data name="Menu_File_OpenDirectory" xml:space="preserve"><value>Open _Directory (Watch)...</value></data>
+  <data name="Menu_File_OpenMerged" xml:space="preserve"><value>Open _Merged Files / Folders (by time)...</value></data>
+  <data name="Menu_File_OpenMerged_ToolTip" xml:space="preserve"><value>Merge 2+ files and/or whole folders (from any directories) into one timestamp-ordered view</value></data>
+  <data name="Menu_File_OpenEventLog" xml:space="preserve"><value>Open _Windows Event Log...</value></data>
+  <data name="Menu_File_OpenRemote" xml:space="preserve"><value>Open _Remote Log Endpoint...</value></data>
+  <data name="Menu_File_OpenRemote_ToolTip" xml:space="preserve"><value>Tail a log stream over HTTP(S) (SSE/chunked/polled) or a WebSocket</value></data>
+  <data name="Menu_File_OpenCommand" xml:space="preserve"><value>Open _Command Output...</value></data>
+  <data name="Menu_File_OpenCommand_ToolTip" xml:space="preserve"><value>Tail the stdout/stderr of a command (journalctl -f, docker logs -f, …)</value></data>
+  <data name="Menu_File_OpenSsh" xml:space="preserve"><value>Open S_SH Log Tail...</value></data>
+  <data name="Menu_File_OpenSsh_ToolTip" xml:space="preserve"><value>Run a command over SSH on a remote host and tail its output</value></data>
+  <data name="Menu_File_OpenEtw" xml:space="preserve"><value>Open _ETW Provider...</value></data>
+  <data name="Menu_File_OpenEtw_ToolTip" xml:space="preserve"><value>Tail a real-time Event Tracing for Windows provider (Administrator)</value></data>
+  <data name="Menu_File_RecentFiles" xml:space="preserve"><value>Recent Files</value></data>
+  <data name="Menu_File_MinimizeToTray" xml:space="preserve"><value>Mi_nimize to Tray</value></data>
+  <data name="Menu_File_Exit" xml:space="preserve"><value>E_xit</value></data>
+  <data name="Menu_WindowMode" xml:space="preserve"><value>_Window Mode</value></data>
+  <data name="Menu_WindowMode_Tabbed" xml:space="preserve"><value>_Tabbed</value></data>
+  <data name="Menu_WindowMode_Floating" xml:space="preserve"><value>_Floating</value></data>
+  <data name="Menu_WindowMode_Mdi" xml:space="preserve"><value>_MDI</value></data>
+  <data name="Menu_Session" xml:space="preserve"><value>_Session</value></data>
+  <data name="Menu_Session_SaveAs" xml:space="preserve"><value>_Save Current Session as Profile...</value></data>
+  <data name="Menu_Session_Load" xml:space="preserve"><value>_Load Profile</value></data>
+  <data name="Menu_Session_Delete" xml:space="preserve"><value>_Delete Profile</value></data>
+  <data name="Menu_Tools" xml:space="preserve"><value>_Tools</value></data>
+  <data name="Menu_Tools_HighlightPresets" xml:space="preserve"><value>_Highlight Presets...</value></data>
+  <data name="Menu_Tools_ToggleHighlightPresets" xml:space="preserve"><value>_Toggle Highlight Presets</value></data>
+  <data name="Menu_Tools_ExternalTools" xml:space="preserve"><value>External _Tools...</value></data>
+  <data name="Menu_Tools_Services" xml:space="preserve"><value>_Windows Services...</value></data>
+  <data name="Menu_Tools_Settings" xml:space="preserve"><value>_Settings...</value></data>
+  <data name="Menu_Tools_CommandPalette" xml:space="preserve"><value>Command _Palette...</value></data>
+
+  <!-- ==== Main status bar ==== -->
+  <data name="Status_Performance_ToolTip" xml:space="preserve"><value>Throughput • ring-buffer fill / memory • UI dispatch latency • process RAM</value></data>
+
+  <!-- ==== TailDocumentView toolbar ==== -->
+  <data name="Doc_FollowTail_Name" xml:space="preserve"><value>Follow Tail</value></data>
+  <data name="Doc_FollowTail_ToolTip" xml:space="preserve"><value>Follow the tail (auto-scroll to newest line)</value></data>
+  <data name="Doc_StructuredView_Name" xml:space="preserve"><value>Structured View</value></data>
+  <data name="Doc_StructuredView_ToolTip" xml:space="preserve"><value>Structured view ({0}) — Time/Level/Message columns + property details</value></data>
+  <data name="Doc_StructuredFormat_Name" xml:space="preserve"><value>Structured format</value></data>
+  <data name="Doc_StructuredFormat_ToolTip" xml:space="preserve"><value>Structured format: {0}. Auto-detected on open; change to override.</value></data>
+  <data name="Doc_ColorizeValues_Name" xml:space="preserve"><value>Colorize values</value></data>
+  <data name="Doc_ColorizeValues_ToolTip" xml:space="preserve"><value>Highlight variable values in the message with distinct colors</value></data>
+  <data name="Doc_MinLevel_Name" xml:space="preserve"><value>Minimum level</value></data>
+  <data name="Doc_MinLevel_ToolTip" xml:space="preserve"><value>Only show lines at or above this severity</value></data>
+  <data name="Doc_ToggleBookmark_Name" xml:space="preserve"><value>Toggle bookmark</value></data>
+  <data name="Doc_ToggleBookmark_ToolTip" xml:space="preserve"><value>Toggle bookmark on the selected line (Ctrl+F2)</value></data>
+  <data name="Doc_PrevBookmark_Name" xml:space="preserve"><value>Previous bookmark</value></data>
+  <data name="Doc_PrevBookmark_ToolTip" xml:space="preserve"><value>Previous bookmark (Shift+F2)</value></data>
+  <data name="Doc_NextBookmark_Name" xml:space="preserve"><value>Next bookmark</value></data>
+  <data name="Doc_NextBookmark_ToolTip" xml:space="preserve"><value>Next bookmark (F2)</value></data>
+  <data name="Doc_TextFilter_Name" xml:space="preserve"><value>Text filter</value></data>
+  <data name="Doc_TextFilter_ToolTip" xml:space="preserve"><value>Show only lines matching this text/regex (live). Applies to the raw line in both plain and structured view.</value></data>
+  <data name="Doc_RegexFilter_Name" xml:space="preserve"><value>Regex filter</value></data>
+  <data name="Doc_RegexFilter_ToolTip" xml:space="preserve"><value>Treat the filter as a regular expression</value></data>
+  <data name="Doc_CaseFilter_Name" xml:space="preserve"><value>Case-sensitive filter</value></data>
+  <data name="Doc_CaseFilter_ToolTip" xml:space="preserve"><value>Case-sensitive filter</value></data>
+  <data name="Doc_ExcludeFilter_Name" xml:space="preserve"><value>Exclude filter</value></data>
+  <data name="Doc_ExcludeFilter_ToolTip" xml:space="preserve"><value>Hide matching lines instead of showing only them</value></data>
+  <data name="Doc_ClearFilter_Name" xml:space="preserve"><value>Clear filter</value></data>
+  <data name="Doc_ClearFilter_ToolTip" xml:space="preserve"><value>Clear the text filter</value></data>
+  <data name="Doc_FilterTester_Name" xml:space="preserve"><value>Filter pattern tester</value></data>
+  <data name="Doc_FilterTester_ToolTip" xml:space="preserve"><value>Test the filter pattern against pasted sample lines</value></data>
+  <data name="Doc_FilterTester_Header" xml:space="preserve"><value>Filter pattern tester</value></data>
+  <data name="Doc_FilterTester_Hint" xml:space="preserve"><value>Paste sample lines — matched text is marked using the current filter settings.</value></data>
+  <data name="Doc_FilterTester_SampleName" xml:space="preserve"><value>Filter tester sample text</value></data>
+  <data name="Doc_PrevHighlight_Name" xml:space="preserve"><value>Previous highlight</value></data>
+  <data name="Doc_PrevHighlight_ToolTip" xml:space="preserve"><value>Previous highlighted line (Shift+F3)</value></data>
+  <data name="Doc_NextHighlight_Name" xml:space="preserve"><value>Next highlight</value></data>
+  <data name="Doc_NextHighlight_ToolTip" xml:space="preserve"><value>Next highlighted line (F3)</value></data>
+  <data name="Doc_RunTool_Name" xml:space="preserve"><value>Run tool</value></data>
+  <data name="Doc_RunTool_ToolTip" xml:space="preserve"><value>Run an external tool on the selected line</value></data>
+  <data name="Doc_Search_Name" xml:space="preserve"><value>Search</value></data>
+  <data name="Doc_Search_ToolTip" xml:space="preserve"><value>Search the whole file / channel (Ctrl+Shift+F)</value></data>
+  <data name="Doc_Export_Name" xml:space="preserve"><value>Export</value></data>
+  <data name="Doc_Export_ToolTip" xml:space="preserve"><value>Save the currently visible (filtered) lines to a file</value></data>
+  <data name="Doc_Timeline_Name" xml:space="preserve"><value>Timeline</value></data>
+  <data name="Doc_Timeline_ToolTip" xml:space="preserve"><value>Show a volume-over-time histogram of the visible timestamped lines</value></data>
+  <data name="Doc_Customize_Name" xml:space="preserve"><value>Customize</value></data>
+  <data name="Doc_Customize_ToolTip" xml:space="preserve"><value>Customize this document's tab color and icon</value></data>
+  <data name="Doc_ResumeFollow_Name" xml:space="preserve"><value>Resume follow</value></data>
+  <data name="Doc_Timeline_NoData" xml:space="preserve"><value>No timestamped lines to chart</value></data>
+  <data name="Doc_Timeline_Name2" xml:space="preserve"><value>Volume timeline</value></data>
+  <data name="Doc_Timeline_Tip_Lines" xml:space="preserve"><value>{0} lines</value></data>
+  <data name="Doc_Timeline_Tip_Warn" xml:space="preserve"><value> · {0} warn</value></data>
+  <data name="Doc_Timeline_Tip_Err" xml:space="preserve"><value> · {0} err</value></data>
+  <data name="Doc_Ctx_FilterByTraceId" xml:space="preserve"><value>Filter by TraceId</value></data>
+  <data name="Doc_Ctx_FilterBySpanId" xml:space="preserve"><value>Filter by SpanId</value></data>
+  <data name="Doc_Ctx_FilterByThreadId" xml:space="preserve"><value>Filter by ThreadId</value></data>
+  <data name="Doc_Ctx_FindSimilarBlock" xml:space="preserve"><value>Find Similar Block In...</value></data>
+  <data name="Doc_Ctx_ClearFilter" xml:space="preserve"><value>Clear Filter</value></data>
+  <data name="Doc_Ctx_FilterByThisValue" xml:space="preserve"><value>Filter by this value</value></data>
+  <data name="Doc_Detail_TimestampFormat" xml:space="preserve"><value>Timestamp: {0:yyyy-MM-dd HH:mm:ss.fff zzz}</value></data>
+  <data name="Doc_Detail_TemplateFormat" xml:space="preserve"><value>Template: {0}</value></data>
+  <data name="Doc_Detail_Properties" xml:space="preserve"><value>Properties</value></data>
+  <data name="Doc_Detail_Exception" xml:space="preserve"><value>Exception</value></data>
+  <data name="Doc_ClearFilterButton" xml:space="preserve"><value>✕ Clear filter</value></data>
+
+  <!-- ==== MDI host ==== -->
+  <data name="Mdi_Cascade" xml:space="preserve"><value>Cascade</value></data>
+  <data name="Mdi_TileHorizontal" xml:space="preserve"><value>Tile Horizontal</value></data>
+  <data name="Mdi_TileVertical" xml:space="preserve"><value>Tile Vertical</value></data>
+  <data name="Mdi_MaximizeRestore" xml:space="preserve"><value>Maximize / Restore</value></data>
+  <data name="Mdi_Close" xml:space="preserve"><value>Close</value></data>
+
+  <!-- ==== ColorPickerButton ==== -->
+  <data name="ColorPicker_ToolTip" xml:space="preserve"><value>Pick a color</value></data>
+
+  <!-- ==== Settings dialog ==== -->
+  <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
+  <data name="Settings_DefaultWindowMode" xml:space="preserve"><value>Default window mode</value></data>
+  <data name="Settings_RingBufferCapacity" xml:space="preserve"><value>Ring buffer capacity (lines kept in memory per document)</value></data>
+  <data name="Settings_UiRefreshInterval" xml:space="preserve"><value>UI refresh interval (ms)</value></data>
+  <data name="Settings_RestoreSession" xml:space="preserve"><value>Restore previous session on startup</value></data>
+  <data name="Settings_ReduceRedrawRdp" xml:space="preserve"><value>Reduce UI redraw rate when running over Remote Desktop</value></data>
+  <data name="Settings_ColorizeStructured" xml:space="preserve"><value>Colorize variable values in structured log messages</value></data>
+  <data name="Settings_EmphasizeMatches" xml:space="preserve"><value>Emphasize the exact matched text within highlighted lines (bold + underline)</value></data>
+  <data name="Settings_LogFontSize" xml:space="preserve"><value>Log font size (also adjustable via Ctrl+Mouse wheel over the log)</value></data>
+  <data name="Settings_Theme" xml:space="preserve"><value>Theme</value></data>
+  <data name="Settings_ManageThemes" xml:space="preserve"><value>Manage Themes...</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Language (restart required to apply)</value></data>
+  <data name="Settings_McpEnable" xml:space="preserve"><value>Enable MCP server (lets an AI agent analyze open logs)</value></data>
+  <data name="Settings_McpPort" xml:space="preserve"><value>MCP server port (localhost only; restart required to apply)</value></data>
+
+  <!-- ==== Windows Services dialog ==== -->
+  <data name="Services_Title" xml:space="preserve"><value>Windows Services</value></data>
+  <data name="Services_Col_Name" xml:space="preserve"><value>Name</value></data>
+  <data name="Services_Col_Status" xml:space="preserve"><value>Status</value></data>
+  <data name="Services_Col_StartType" xml:space="preserve"><value>Start Type</value></data>
+
+  <!-- ==== Theme manager dialog ==== -->
+  <data name="Themes_Title" xml:space="preserve"><value>Manage Themes</value></data>
+  <data name="Themes_UseThis" xml:space="preserve"><value>Use This Theme</value></data>
+  <data name="Themes_ActiveSuffix" xml:space="preserve"><value>{0} (active)</value></data>
+  <data name="Themes_BuiltInNote" xml:space="preserve"><value>Built-in themes can't be renamed or recolored — duplicate one to customize it.</value></data>
+  <data name="Themes_NativeControls" xml:space="preserve"><value>Native controls (menus, dialogs, scrollbars, combo boxes)</value></data>
+  <data name="Themes_Light" xml:space="preserve"><value>Light</value></data>
+  <data name="Themes_Dark" xml:space="preserve"><value>Dark</value></data>
+  <data name="Themes_Borders" xml:space="preserve"><value>Borders</value></data>
+  <data name="Themes_MdiWorkspaceBg" xml:space="preserve"><value>MDI workspace background</value></data>
+  <data name="Themes_LogAreaBg" xml:space="preserve"><value>Log area background</value></data>
+  <data name="Themes_LogAreaText" xml:space="preserve"><value>Log area text</value></data>
+
+  <!-- ==== External tools dialog ==== -->
+  <data name="Tools_Title" xml:space="preserve"><value>External Tools</value></data>
+  <data name="Tools_ExecutablePath" xml:space="preserve"><value>Executable path</value></data>
+  <data name="Tools_ArgumentTemplate" xml:space="preserve"><value>Argument template — {FilePath}, {LineNumber}, {LineText}</value></data>
+  <data name="Tools_Shortcut" xml:space="preserve"><value>Shortcut gesture (e.g. Ctrl+Alt+1) — optional</value></data>
+  <data name="Tools_AutoTrigger" xml:space="preserve"><value>Auto-trigger when a line matches a highlight rule</value></data>
+
+  <!-- ==== Open Directory Watch dialog ==== -->
+  <data name="DirWatch_Title" xml:space="preserve"><value>Open Directory (Watch)</value></data>
+  <data name="DirWatch_Directory" xml:space="preserve"><value>Directory</value></data>
+  <data name="DirWatch_Pattern" xml:space="preserve"><value>Wildcard pattern (e.g. *.log, app-*.txt)</value></data>
+  <data name="DirWatch_AutoSwitch" xml:space="preserve"><value>Auto-switch to the most recently modified matching file</value></data>
+
+  <!-- ==== Open Event Log dialog ==== -->
+  <data name="EventLog_Title" xml:space="preserve"><value>Open Windows Event Log</value></data>
+  <data name="EventLog_Channel" xml:space="preserve"><value>Channel name</value></data>
+  <data name="EventLog_ChannelNote" xml:space="preserve"><value>Standard channels (Application, System) work without administrator rights. The Security channel and some custom channels require elevation.</value></data>
+  <data name="EventLog_FiltersOptional" xml:space="preserve"><value>Filters (optional)</value></data>
+  <data name="EventLog_ProviderName" xml:space="preserve"><value>Provider name (optional — leave blank to match any provider)</value></data>
+  <data name="EventLog_RegexPattern" xml:space="preserve"><value>Regex pattern</value></data>
+  <data name="EventLog_MatchAgainst" xml:space="preserve"><value>Match against</value></data>
+
+  <!-- ==== Search dialog ==== -->
+  <data name="Search_Title" xml:space="preserve"><value>Search</value></data>
+  <data name="Search_PropertyLabel" xml:space="preserve"><value>Property (blank = whole line):</value></data>
+  <data name="Search_Col_Line" xml:space="preserve"><value>Line</value></data>
+  <data name="Search_Col_Text" xml:space="preserve"><value>Text</value></data>
+
+  <!-- ==== Similar block dialog ==== -->
+  <data name="Similar_Title" xml:space="preserve"><value>Find Similar Block</value></data>
+  <data name="Similar_CorrelationField" xml:space="preserve"><value>Correlation field:</value></data>
+  <data name="Similar_CorrelationField_ToolTip" xml:space="preserve"><value>Groups this operation's log lines by this property (auto-suggested — clear it to fall back to line/time proximity instead)</value></data>
+  <data name="Similar_CompareWith" xml:space="preserve"><value>Compare with:</value></data>
+  <data name="Similar_FilePrefix" xml:space="preserve"><value>File: {0}</value></data>
+  <data name="Similar_ScoreMatch" xml:space="preserve"><value>{0:P0} match</value></data>
+  <data name="Similar_LinesCount" xml:space="preserve"><value>{0} lines</value></data>
+  <data name="Similar_Col_Line" xml:space="preserve"><value>Line</value></data>
+  <data name="Similar_Col_Source" xml:space="preserve"><value>Source</value></data>
+  <data name="Similar_Col_Target" xml:space="preserve"><value>Target</value></data>
+  <data name="Similar_Legend" xml:space="preserve"><value>  |  Red = only in source · Green = only in target · Yellow = same shape, different values</value></data>
+  <data name="Similar_JumpToSource" xml:space="preserve"><value>Jump to Source Line</value></data>
+  <data name="Similar_JumpToTarget" xml:space="preserve"><value>Jump to Target Line</value></data>
+
+  <!-- ==== Customize document dialog ==== -->
+  <data name="Customize_Title" xml:space="preserve"><value>Customize Document</value></data>
+  <data name="Customize_TabColor" xml:space="preserve"><value>Tab / title-bar color</value></data>
+  <data name="Customize_IconGlyph" xml:space="preserve"><value>Icon glyph</value></data>
+
+  <!-- ==== Highlight preset editor dialog ==== -->
+  <data name="Highlight_Title" xml:space="preserve"><value>Manage Highlight Presets</value></data>
+  <data name="Highlight_Presets" xml:space="preserve"><value>Presets</value></data>
+  <data name="Highlight_MoveUp" xml:space="preserve"><value>Move up</value></data>
+  <data name="Highlight_MoveDown" xml:space="preserve"><value>Move down</value></data>
+  <data name="Highlight_Export" xml:space="preserve"><value>📤 Export...</value></data>
+  <data name="Highlight_ExportAll" xml:space="preserve"><value>📤 Export All...</value></data>
+  <data name="Highlight_Import" xml:space="preserve"><value>📥 Import...</value></data>
+  <data name="Highlight_PresetName" xml:space="preserve"><value>Preset name</value></data>
+  <data name="Highlight_PatternKeywordOrRegex" xml:space="preserve"><value>Pattern (keyword or regex)</value></data>
+  <data name="Highlight_TargetProperty" xml:space="preserve"><value>Target property (structured Serilog logs; blank = whole line)</value></data>
+  <data name="Highlight_LightColors" xml:space="preserve"><value>Light theme colors</value></data>
+  <data name="Highlight_DarkColors" xml:space="preserve"><value>Dark theme colors (blank = same as light)</value></data>
+  <data name="Highlight_PatternTester" xml:space="preserve"><value>Pattern tester</value></data>
+  <data name="Highlight_PatternTester_Hint" xml:space="preserve"><value>Paste sample lines — matched text is marked live as you edit the pattern above.</value></data>
+  <data name="Highlight_PatternTester_SampleName" xml:space="preserve"><value>Pattern tester sample text</value></data>
+  <data name="Highlight_OK" xml:space="preserve"><value>✔ OK</value></data>
+  <data name="Highlight_Cancel" xml:space="preserve"><value>✖ Cancel</value></data>
+
+  <!-- ==== Open ETW dialog ==== -->
+  <data name="Etw_Title" xml:space="preserve"><value>Open ETW Provider</value></data>
+  <data name="Etw_AdminNote" xml:space="preserve"><value>Requires running LogViewer as Administrator.</value></data>
+  <data name="Etw_ProviderNameOrGuid" xml:space="preserve"><value>Provider name or GUID</value></data>
+  <data name="Etw_Level" xml:space="preserve"><value>Level</value></data>
+  <data name="Etw_LevelNote" xml:space="preserve"><value>Debug captures the most detail (verbose + any provider-defined levels above it).</value></data>
+
+  <!-- ==== Open Remote (HTTP/WS) dialog ==== -->
+  <data name="Http_Title" xml:space="preserve"><value>Open Remote Log Endpoint</value></data>
+  <data name="Http_Url" xml:space="preserve"><value>URL — http/https (streaming SSE/chunked, or polled) or ws/wss (WebSocket)</value></data>
+  <data name="Http_Mode" xml:space="preserve"><value>Mode (HTTP only)</value></data>
+  <data name="Http_Headers" xml:space="preserve"><value>Headers (one "Name: Value" per line, optional)</value></data>
+
+  <!-- ==== Open Command Output dialog ==== -->
+  <data name="Process_Title" xml:space="preserve"><value>Open Command Output</value></data>
+  <data name="Process_Preset" xml:space="preserve"><value>Preset</value></data>
+  <data name="Process_Executable" xml:space="preserve"><value>Executable</value></data>
+  <data name="Process_Arguments" xml:space="preserve"><value>Arguments</value></data>
+  <data name="Process_RestartOnExit" xml:space="preserve"><value>Relaunch the command when it exits (for -f / follow commands)</value></data>
+
+  <!-- ==== Open SSH dialog ==== -->
+  <data name="Ssh_Title" xml:space="preserve"><value>Open SSH Log Tail</value></data>
+  <data name="Ssh_Host" xml:space="preserve"><value>Host</value></data>
+  <data name="Ssh_Port" xml:space="preserve"><value>Port</value></data>
+  <data name="Ssh_Username" xml:space="preserve"><value>Username</value></data>
+  <data name="Ssh_Password" xml:space="preserve"><value>Password (used this session only — not saved)</value></data>
+  <data name="Ssh_PrivateKey" xml:space="preserve"><value>…or private key file</value></data>
+  <data name="Ssh_Passphrase" xml:space="preserve"><value>Key passphrase (this session only — not saved)</value></data>
+  <data name="Ssh_RemoteCommand" xml:space="preserve"><value>Remote command</value></data>
+  <data name="Ssh_Fingerprint" xml:space="preserve"><value>Expected host-key SHA-256 fingerprint (recommended)</value></data>
+  <data name="Ssh_AcceptAnyHostKey" xml:space="preserve"><value>Accept any host key (insecure — skips the fingerprint check)</value></data>
+
+  <!-- ==== Command palette ==== -->
+  <data name="Palette_QueryName" xml:space="preserve"><value>Command palette query</value></data>
+  <data name="Palette_Placeholder" xml:space="preserve"><value>Type a command…</value></data>
+  <data name="Palette_Title" xml:space="preserve"><value>Command Palette</value></data>
+  <data name="Prompt_InputName" xml:space="preserve"><value>Prompt input</value></data>
+  <data name="Prompt_SaveProfile_Title" xml:space="preserve"><value>Save Session Profile</value></data>
+  <data name="Prompt_SaveProfile_Message" xml:space="preserve"><value>Profile name:</value></data>
+
+  <!-- ==== Merged sources dialog ==== -->
+  <data name="Merged_Title" xml:space="preserve"><value>Open Merged Files / Folders (by time)</value></data>
+  <data name="Merged_Intro" xml:space="preserve"><value>Add 2 or more files (from any folders) and/or folders. Folder entries merge every matching file. All lines are interleaved by timestamp into one view.</value></data>
+  <data name="Merged_AddFiles" xml:space="preserve"><value>Add Files...</value></data>
+  <data name="Merged_AddFolder" xml:space="preserve"><value>Add Folder...</value></data>
+  <data name="Merged_FolderPattern" xml:space="preserve"><value>Folder pattern:</value></data>
+  <data name="Merged_Col_Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Merged_Col_Path" xml:space="preserve"><value>Path / Glob</value></data>
+  <data name="Merged_Kind_Folder" xml:space="preserve"><value>Folder</value></data>
+  <data name="Merged_Kind_File" xml:space="preserve"><value>File</value></data>
+  <data name="Merged_AddFilesDialogTitle" xml:space="preserve"><value>Add files to merge</value></data>
+  <data name="Merged_AddFolderDialogTitle" xml:space="preserve"><value>Add a folder to merge (all matching files)</value></data>
+
+  <!-- ==== ViewModel messages ==== -->
+  <data name="Vm_Mcp_StartFailed" xml:space="preserve"><value>MCP server failed to start: {0}</value></data>
+  <data name="Vm_Export_Done" xml:space="preserve"><value>Exported {0} line(s) to {1}</value></data>
+  <data name="Vm_Export_Failed" xml:space="preserve"><value>Export failed: {0}</value></data>
+  <data name="Vm_Profile_Saved" xml:space="preserve"><value>Saved session profile "{0}".</value></data>
+  <data name="Vm_Profile_Loaded" xml:space="preserve"><value>Loaded session profile "{0}" ({1} source(s)).</value></data>
+  <data name="Vm_Profile_Deleted" xml:space="preserve"><value>Deleted session profile "{0}".</value></data>
+  <data name="Vm_Search_EnterPattern" xml:space="preserve"><value>Enter a search pattern.</value></data>
+  <data name="Vm_Search_Searching" xml:space="preserve"><value>Searching…</value></data>
+  <data name="Vm_Search_NothingToSearch" xml:space="preserve"><value>Nothing to search — this document has no backing file or EventLog channel.</value></data>
+  <data name="Vm_Search_MatchesOne" xml:space="preserve"><value>1 match.</value></data>
+  <data name="Vm_Search_MatchesMany" xml:space="preserve"><value>{0} matches.</value></data>
+  <data name="Vm_Search_CancelledOne" xml:space="preserve"><value>Cancelled — 1 match found so far.</value></data>
+  <data name="Vm_Search_CancelledMany" xml:space="preserve"><value>Cancelled — {0} matches found so far.</value></data>
+  <data name="Vm_Search_Failed" xml:space="preserve"><value>Search failed: {0}</value></data>
+  <data name="Vm_Search_LineEvicted" xml:space="preserve"><value>That line is no longer in the live view (evicted from the buffer) — showing text above only.</value></data>
+  <data name="Vm_Services_Listed" xml:space="preserve"><value>{0} services listed.</value></data>
+  <data name="Vm_Services_Starting" xml:space="preserve"><value>Starting '{0}'...</value></data>
+  <data name="Vm_Services_Stopping" xml:space="preserve"><value>Stopping '{0}'...</value></data>
+  <data name="Vm_Services_ListFailed" xml:space="preserve"><value>Failed to list services: {0}</value></data>
+  <data name="Vm_Services_Done" xml:space="preserve"><value>Done.</value></data>
+  <data name="Vm_Services_ControlFailed" xml:space="preserve"><value>Failed: {0} (service control usually requires running LogViewer as administrator).</value></data>
+  <data name="Vm_Similar_ChooseTarget" xml:space="preserve"><value>Choose a comparison target — an open document or a file.</value></data>
+  <data name="Vm_Similar_NoBlock" xml:space="preserve"><value>Couldn't build a block around the selected line.</value></data>
+  <data name="Vm_Similar_Searching" xml:space="preserve"><value>Searching…</value></data>
+  <data name="Vm_Similar_Cancelled" xml:space="preserve"><value>Cancelled.</value></data>
+  <data name="Vm_Similar_NoMatch" xml:space="preserve"><value>No matching block found.</value></data>
+  <data name="Vm_Similar_CandidatesOne" xml:space="preserve"><value>1 candidate found.</value></data>
+  <data name="Vm_Similar_CandidatesMany" xml:space="preserve"><value>{0} candidates found.</value></data>
+  <data name="Vm_Similar_ScanFailed" xml:space="preserve"><value>Scan failed: {0}</value></data>
+  <data name="Vm_Similar_LineGone" xml:space="preserve"><value>That line is no longer in the live view.</value></data>
+  <data name="Vm_Similar_TargetNotOpen" xml:space="preserve"><value>Target isn't an open document — can't jump to it directly.</value></data>
+  <data name="Vm_Similar_NoProperty" xml:space="preserve"><value>Selected line has no {0} property.</value></data>
+  <data name="Vm_Doc_InvalidFilterRegex" xml:space="preserve"><value>Invalid filter regex: {0}</value></data>
+  <data name="Vm_Doc_SwitchStructuredFailed" xml:space="preserve"><value>Failed to switch structured view: {0}</value></data>
+  <data name="Vm_Doc_SourceResumed" xml:space="preserve"><value>Source {0} — resumed tailing.</value></data>
+  <data name="Vm_Doc_NotStructured" xml:space="preserve"><value>Selected line is not a structured log event.</value></data>
+  <data name="Vm_Doc_NoProperty" xml:space="preserve"><value>Selected line has no {0} property.</value></data>
+  <data name="Vm_Doc_FilteredByPrefix" xml:space="preserve"><value>Filtered by </value></data>
+  <data name="Vm_Doc_FilterJoiner" xml:space="preserve"><value> AND </value></data>
+  <data name="Vm_Doc_LevelAtLeast" xml:space="preserve"><value>Level ≥ {0}</value></data>
+  <data name="Vm_Doc_TextFilterPart" xml:space="preserve"><value>text {0} "{1}"</value></data>
+  <data name="Vm_Doc_Tester_Hidden" xml:space="preserve"><value>hidden</value></data>
+  <data name="Vm_Doc_Tester_Shown" xml:space="preserve"><value>shown</value></data>
+  <data name="Vm_Doc_Tester_Summary" xml:space="preserve"><value>{0} / {1} lines match ({2} {3})</value></data>
+  <data name="Vm_Rule_Tester_Summary" xml:space="preserve"><value>{0} / {1} lines match</value></data>
+
+  <!-- ==== Window title / performance readout ==== -->
+  <data name="Vm_WindowTitle" xml:space="preserve"><value>LogViewer — RAM: {0:F0} MB | CPU: {1:F1}% | {2:F0} lines/sec</value></data>
+  <data name="Vm_PerformanceStatus" xml:space="preserve"><value>{0:F0} lines/s  •  buffer {1:N0} lines / {2:F1} MB  •  dispatch {3:F1} ms  •  RAM {4:F0} MB</value></data>
+
+  <!-- ==== Command palette entries ==== -->
+  <data name="Palette_Cat_File" xml:space="preserve"><value>File</value></data>
+  <data name="Palette_Cat_Window" xml:space="preserve"><value>Window</value></data>
+  <data name="Palette_Cat_Tools" xml:space="preserve"><value>Tools</value></data>
+  <data name="Palette_Cat_Session" xml:space="preserve"><value>Session</value></data>
+  <data name="Palette_Cat_Document" xml:space="preserve"><value>Document</value></data>
+  <data name="Palette_Cat_ActiveDoc" xml:space="preserve"><value>Active document</value></data>
+  <data name="Palette_OpenFile" xml:space="preserve"><value>Open File…</value></data>
+  <data name="Palette_OpenDirectory" xml:space="preserve"><value>Open Directory (Watch)…</value></data>
+  <data name="Palette_OpenMerged" xml:space="preserve"><value>Open Merged Files / Folders…</value></data>
+  <data name="Palette_OpenEventLog" xml:space="preserve"><value>Open Windows Event Log…</value></data>
+  <data name="Palette_OpenRemote" xml:space="preserve"><value>Open Remote Log Endpoint…</value></data>
+  <data name="Palette_OpenCommand" xml:space="preserve"><value>Open Command Output…</value></data>
+  <data name="Palette_OpenSsh" xml:space="preserve"><value>Open SSH Log Tail…</value></data>
+  <data name="Palette_OpenEtw" xml:space="preserve"><value>Open ETW Provider…</value></data>
+  <data name="Palette_WindowTabbed" xml:space="preserve"><value>Window Mode: Tabbed</value></data>
+  <data name="Palette_WindowFloating" xml:space="preserve"><value>Window Mode: Floating</value></data>
+  <data name="Palette_WindowMdi" xml:space="preserve"><value>Window Mode: MDI</value></data>
+  <data name="Palette_HighlightPresets" xml:space="preserve"><value>Highlight Presets…</value></data>
+  <data name="Palette_ExternalTools" xml:space="preserve"><value>External Tools…</value></data>
+  <data name="Palette_Services" xml:space="preserve"><value>Windows Services…</value></data>
+  <data name="Palette_Settings" xml:space="preserve"><value>Settings…</value></data>
+  <data name="Palette_SaveProfile" xml:space="preserve"><value>Save Current Session as Profile…</value></data>
+  <data name="Palette_LoadProfileFmt" xml:space="preserve"><value>Load Session Profile: {0}</value></data>
+  <data name="Palette_ToggleHighlightFmt" xml:space="preserve"><value>Toggle Highlight Preset: {0}</value></data>
+  <data name="Palette_GoToFmt" xml:space="preserve"><value>Go to: {0}</value></data>
+  <data name="Palette_ToggleFollow" xml:space="preserve"><value>Toggle Follow Tail</value></data>
+  <data name="Palette_ToggleStructured" xml:space="preserve"><value>Toggle Structured View</value></data>
+  <data name="Palette_ToggleTimeline" xml:space="preserve"><value>Toggle Volume Timeline</value></data>
+  <data name="Palette_ClearFilters" xml:space="preserve"><value>Clear All Filters</value></data>
+  <data name="Palette_ExportVisible" xml:space="preserve"><value>Export Visible Lines…</value></data>
+  <data name="Palette_SearchInDoc" xml:space="preserve"><value>Search in Document…</value></data>
+  <data name="Palette_Customize" xml:space="preserve"><value>Customize Tab Color / Icon…</value></data>
+  <data name="Palette_NextHighlight" xml:space="preserve"><value>Next Highlight</value></data>
+  <data name="Palette_PrevHighlight" xml:space="preserve"><value>Previous Highlight</value></data>
+  <data name="Palette_ToggleBookmark" xml:space="preserve"><value>Toggle Bookmark</value></data>
+  <data name="Palette_CloseDoc" xml:space="preserve"><value>Close Document</value></data>
+</root>

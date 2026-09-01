@@ -1,6 +1,7 @@
 using System.IO;
 using LogViewer.App.Services;
 using LogViewer.App.Tests.TestUtilities;
+using LogViewer.App.ViewModels;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
 using NSubstitute;
@@ -60,6 +61,37 @@ public sealed class MainViewModelTests : IDisposable
     }
 
     [Fact]
+    public void ShowCommandPalette_ExecutesTheChosenCommand()
+    {
+        var dialogs = Substitute.For<IDialogService>();
+        var (viewModel, _) = MainViewModelFactory.Create(dialogService: dialogs);
+        dialogs.ShowCommandPalette(Arg.Any<IReadOnlyList<PaletteCommand>>())
+            .Returns(ci => ((IReadOnlyList<PaletteCommand>)ci[0]).First(c => c.Title == "Window Mode: MDI"));
+
+        viewModel.ShowCommandPaletteCommand.Execute(null);
+
+        Assert.Equal(LogViewer.Core.Configuration.WindowModeKind.Mdi, viewModel.Host.Mode);
+        viewModel.Dispose();
+    }
+
+    [Fact]
+    public void BuildPaletteCommands_IncludesGoToEntryPerOpenDocument()
+    {
+        var a = _tempDir.CreateFile("first.log", "x\n");
+        var b = _tempDir.CreateFile("second.log", "y\n");
+        var (viewModel, _) = MainViewModelFactory.Create();
+        viewModel.OpenPath(a);
+        viewModel.OpenPath(b);
+
+        var commands = viewModel.BuildPaletteCommands();
+
+        Assert.Contains(commands, c => c.Category == "Document" && c.Title.Contains("first.log"));
+        Assert.Contains(commands, c => c.Category == "Document" && c.Title.Contains("second.log"));
+        Assert.Contains(commands, c => c.Title == "Open File…");
+        viewModel.Dispose();
+    }
+
+    [Fact]
     public void OpenMergedFiles_AddsOneDocument_RecordedAsMergedKind_NotInRecentFiles()
     {
         var a = _tempDir.CreateFile("a.log", "2026-01-02 10:00:01 one\n");
@@ -72,6 +104,22 @@ public sealed class MainViewModelTests : IDisposable
         Assert.Same(document, viewModel.ActiveDocument);
         Assert.Equal(TailSourceKind.MergedFiles, document.Kind);
         Assert.Empty(viewModel.RecentFiles); // merged sources are not "recent files"
+
+        viewModel.Dispose();
+    }
+
+    [Fact]
+    public void OpenMergedFiles_WithStructuredFiles_EnablesStructuredViewWithDetectedFormat()
+    {
+        var clef = "{\"@t\":\"2026-01-02T10:00:01Z\",\"@mt\":\"a {X}\",\"X\":1}\n{\"@t\":\"2026-01-02T10:00:03Z\",\"@mt\":\"b {X}\",\"X\":2}\n";
+        var a = _tempDir.CreateFile("a.clef", clef);
+        var b = _tempDir.CreateFile("b.clef", clef);
+        var (viewModel, _) = MainViewModelFactory.Create();
+
+        var document = viewModel.OpenMergedFiles([a, b]);
+
+        Assert.True(document.IsStructuredView);
+        Assert.Equal("serilog", document.StructuredFormatId);
 
         viewModel.Dispose();
     }

@@ -1,7 +1,8 @@
 <Window x:Class="LogViewer.App.Views.Dialogs.OpenDirectoryWatchView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Open Directory (Watch)"
+        xmlns:loc="clr-namespace:LogViewer.App.Localization"
+        Title="{loc:Loc DirWatch_Title}"
         Width="460" Height="240"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
@@ -13,27 +14,27 @@
 
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
         <StackPanel>
-            <TextBlock Text="Directory" />
+            <TextBlock Text="{loc:Loc DirWatch_Directory}" />
             <Grid Margin="0,2,0,10">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBox Grid.Column="0" Text="{Binding DirectoryPath, UpdateSourceTrigger=PropertyChanged}" />
-                <Button Grid.Column="1" Content="Browse..." Margin="6,0,0,0" Command="{Binding BrowseCommand}" />
+                <Button Grid.Column="1" Content="{loc:Loc Common_Browse}" Margin="6,0,0,0" Command="{Binding BrowseCommand}" />
             </Grid>
 
-            <TextBlock Text="Wildcard pattern (e.g. *.log, app-*.txt)" />
+            <TextBlock Text="{loc:Loc DirWatch_Pattern}" />
             <TextBox Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
 
-            <CheckBox Content="Auto-switch to the most recently modified matching file"
+            <CheckBox Content="{loc:Loc DirWatch_AutoSwitch}"
                       IsChecked="{Binding AutoSwitchToLatestFile}" />
         </StackPanel>
         </ScrollViewer>
 
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="OK" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
-            <Button Content="Cancel" Width="80" Click="OnCancelClick" IsCancel="True" />
+            <Button Content="{loc:Loc Common_OK}" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
+            <Button Content="{loc:Loc Common_Cancel}" Width="80" Click="OnCancelClick" IsCancel="True" />
         </StackPanel>
     </Grid>
 </Window>

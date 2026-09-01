@@ -6,10 +6,17 @@ namespace LogViewer.UITests.TestUtilities;
 /// ProjectReference (these tests drive the app out-of-process via UI Automation).</summary>
 public static class AppExeLocator
 {
+    /// <summary>Absolute path to the repository root (the folder containing <c>LogViewer.slnx</c>).</summary>
+    public static string RepoRoot() => FindRepoRoot(AppContext.BaseDirectory)
+        ?? throw new InvalidOperationException($"Could not locate LogViewer.slnx above '{AppContext.BaseDirectory}'.");
+
+    /// <summary>Absolute path to a file under <c>samples/</c>.</summary>
+    public static string Sample(params string[] relativeParts) =>
+        Path.Combine(new[] { RepoRoot(), "samples" }.Concat(relativeParts).ToArray());
+
     public static string Find()
     {
-        var repoRoot = FindRepoRoot(AppContext.BaseDirectory)
-            ?? throw new InvalidOperationException($"Could not locate LogViewer.slnx above '{AppContext.BaseDirectory}'.");
+        var repoRoot = RepoRoot();
 
         foreach (var configuration in new[] { "Debug", "Release" })
         {

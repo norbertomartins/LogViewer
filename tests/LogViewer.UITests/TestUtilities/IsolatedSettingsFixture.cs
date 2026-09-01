@@ -12,9 +12,10 @@ public sealed class IsolatedSettingsFixture : IDisposable
     private readonly string _settingsPath;
     private readonly string? _backupPath;
 
-    public IsolatedSettingsFixture()
+    public IsolatedSettingsFixture(string? initialSettingsJson = null)
     {
         var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LogViewer");
+        Directory.CreateDirectory(directory);
         _settingsPath = Path.Combine(directory, "settings.json");
 
         if (File.Exists(_settingsPath))
@@ -22,7 +23,24 @@ public sealed class IsolatedSettingsFixture : IDisposable
             _backupPath = _settingsPath + ".uitest-backup-" + Guid.NewGuid().ToString("N");
             File.Move(_settingsPath, _backupPath);
         }
+
+        if (initialSettingsJson is not null)
+        {
+            File.WriteAllText(_settingsPath, initialSettingsJson);
+        }
     }
+
+    /// <summary>A settings.json that restores a single file-backed document on startup (MCP off), so a UI
+    /// test can assert against a window that already has a log open without driving the native file dialog.</summary>
+    public static string RestoringFile(string absoluteFilePath) =>
+        $$"""
+        {
+          "SchemaVersion": 7,
+          "RestorePreviousSessionOnStartup": true,
+          "Mcp": { "Enabled": false },
+          "RecentSources": [ { "Kind": 0, "Path": {{System.Text.Json.JsonSerializer.Serialize(absoluteFilePath)}} } ]
+        }
+        """;
 
     public void Dispose()
     {

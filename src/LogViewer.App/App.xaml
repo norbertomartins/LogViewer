@@ -20,6 +20,7 @@
         <converters:NullOrEmptyToVisibilityConverter x:Key="NullOrEmptyToVisibilityConverter" />
         <converters:StructuredInlinesConverter x:Key="StructuredInlinesConverter" />
         <converters:HighlightSpanInlinesConverter x:Key="HighlightSpanInlinesConverter" />
+        <converters:RegexTestInlinesConverter x:Key="RegexTestInlinesConverter" />
         <converters:VolumeBinBarHeightConverter x:Key="VolumeBinBarHeightConverter" />
         <converters:DiffEntryBrushConverter x:Key="DiffEntryBrushConverter" />
 

@@ -4,6 +4,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.ViewModels;
 using LogViewer.Core.Structured;
@@ -99,34 +100,86 @@ public partial class TailDocumentView : UserControl
         {
             var lines = LineListView.Items.OfType<LogLineViewModel>().Select(l => l.Text);
             System.IO.File.WriteAllLines(dialog.FileName, lines);
-            _viewModel.StatusMessage = $"Exported {LineListView.Items.Count} line(s) to {System.IO.Path.GetFileName(dialog.FileName)}";
+            _viewModel.StatusMessage = Loc.Format("Vm_Export_Done", LineListView.Items.Count, System.IO.Path.GetFileName(dialog.FileName));
         }
         catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
         {
-            _viewModel.StatusMessage = $"Export failed: {ex.Message}";
+            _viewModel.StatusMessage = Loc.Format("Vm_Export_Failed", ex.Message);
         }
     }
 
     private void OnScrollToEndRequested()
     {
-        Dispatcher.BeginInvoke(() =>
+        Dispatcher.BeginInvoke(() => SafeScrollIntoView(() =>
         {
             if (LineListView.Items.Count > 0)
             {
                 LineListView.ScrollIntoView(LineListView.Items[^1]);
             }
-
-            ResetHorizontalScrollAfterLayout();
-        });
+        }));
     }
 
     private void OnScrollToLineRequested(LogLineViewModel line)
     {
-        Dispatcher.BeginInvoke(() =>
+        Dispatcher.BeginInvoke(() => SafeScrollIntoView(() => LineListView.ScrollIntoView(line)));
+    }
+
+    /// <summary>Runs a <c>ScrollIntoView</c> call guarded against the transient states the ListView passes
+    /// through while AvalonDock re-parents it during a window-mode switch — with a live tail (ETW, remote,
+    /// process) new lines keep firing scroll requests right through the reparent, and ScrollIntoView on a
+    /// ListView whose virtualizing panel is momentarily detached throws from a Dispatcher callback, which
+    /// would otherwise take down the process.</summary>
+    private void SafeScrollIntoView(Action scroll)
+    {
+        if (!IsLoaded || !LineListView.IsLoaded)
         {
-            LineListView.ScrollIntoView(line);
+            return;
+        }
+
+        try
+        {
+            BeginProgrammaticScroll();
+            scroll();
             ResetHorizontalScrollAfterLayout();
-        });
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or NullReferenceException or ArgumentOutOfRangeException)
+        {
+            // Mid-reparent — the next flushed batch (or the user) will scroll again once layout settles.
+        }
+    }
+
+    /// <summary>Marks the next scroll as ours so <see cref="OnLineListScrollChanged"/> doesn't read it as
+    /// the user scrolling away and pause the follow we just performed. Cleared once layout settles.</summary>
+    private void BeginProgrammaticScroll()
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        _viewModel.IsProgrammaticScroll = true;
+        Dispatcher.BeginInvoke(() => _viewModel.IsProgrammaticScroll = false, DispatcherPriority.ContextIdle);
+    }
+
+    /// <summary>Smart follow lock: scrolling up off the tail pauses follow; scrolling back to the bottom
+    /// re-arms it. Content-growth scrolls (ExtentHeightChange != 0) and our own programmatic scrolls are
+    /// ignored so only a real user gesture flips the state.</summary>
+    private void OnLineListScrollChanged(object sender, ScrollChangedEventArgs e)
+    {
+        if (_viewModel is null || _viewModel.IsProgrammaticScroll || e.ExtentHeightChange != 0 || e.VerticalChange == 0)
+        {
+            return;
+        }
+
+        var distanceFromBottom = e.ExtentHeight - e.ViewportHeight - e.VerticalOffset;
+        if (distanceFromBottom <= 2.0)
+        {
+            _viewModel.NotifyUserScrolledToEnd();
+        }
+        else
+        {
+            _viewModel.NotifyUserScrolledAwayFromEnd();
+        }
     }
 
     /// <summary>ScrollIntoView on a long (unwrapped) line can drag the horizontal scroll offset away from

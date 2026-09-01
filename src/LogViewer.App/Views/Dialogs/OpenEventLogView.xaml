@@ -1,7 +1,8 @@
 <Window x:Class="LogViewer.App.Views.Dialogs.OpenEventLogView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Open Windows Event Log"
+        xmlns:loc="clr-namespace:LogViewer.App.Localization"
+        Title="{loc:Loc EventLog_Title}"
         Width="640" Height="480"
         WindowStartupLocation="CenterOwner">
     <Grid Margin="10">
@@ -12,11 +13,11 @@
         </Grid.RowDefinitions>
 
         <StackPanel Grid.Row="0" Margin="0,0,0,10">
-            <TextBlock Text="Channel name" />
+            <TextBlock Text="{loc:Loc EventLog_Channel}" />
             <ComboBox Text="{Binding ChannelName, UpdateSourceTrigger=PropertyChanged}"
                       ItemsSource="{Binding CommonChannels}"
                       IsEditable="True" />
-            <TextBlock Text="Standard channels (Application, System) work without administrator rights. The Security channel and some custom channels require elevation."
+            <TextBlock Text="{loc:Loc EventLog_ChannelNote}"
                        TextWrapping="Wrap" FontSize="11" Opacity="0.7" Margin="0,4,0,0" />
         </StackPanel>
 
@@ -28,10 +29,10 @@
             </Grid.ColumnDefinitions>
 
             <DockPanel Grid.Column="0">
-                <TextBlock DockPanel.Dock="Top" Text="Filters (optional)" FontWeight="Bold" Margin="0,0,0,4" />
+                <TextBlock DockPanel.Dock="Top" Text="{loc:Loc EventLog_FiltersOptional}" FontWeight="Bold" Margin="0,0,0,4" />
                 <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
-                    <Button Content="Add" Width="60" Margin="0,0,6,0" Command="{Binding AddFilterCommand}" />
-                    <Button Content="Remove" Width="60" Command="{Binding RemoveFilterCommand}" CommandParameter="{Binding SelectedFilter}" />
+                    <Button Content="{loc:Loc Common_Add}" Width="60" Margin="0,0,6,0" Command="{Binding AddFilterCommand}" />
+                    <Button Content="{loc:Loc Common_Remove}" Width="60" Command="{Binding RemoveFilterCommand}" CommandParameter="{Binding SelectedFilter}" />
                 </StackPanel>
                 <ListBox ItemsSource="{Binding Filters}"
                          SelectedItem="{Binding SelectedFilter, Mode=TwoWay}"
@@ -51,26 +52,26 @@
                     </Style>
                 </StackPanel.Style>
 
-                <TextBlock Text="Name" />
+                <TextBlock Text="{loc:Loc Common_Name}" />
                 <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
 
-                <TextBlock Text="Provider name (optional — leave blank to match any provider)" TextWrapping="Wrap" />
+                <TextBlock Text="{loc:Loc EventLog_ProviderName}" TextWrapping="Wrap" />
                 <TextBox Text="{Binding ProviderName, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
 
-                <TextBlock Text="Regex pattern" />
+                <TextBlock Text="{loc:Loc EventLog_RegexPattern}" />
                 <TextBox Text="{Binding RegexPattern, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
 
-                <TextBlock Text="Match against" />
+                <TextBlock Text="{loc:Loc EventLog_MatchAgainst}" />
                 <ComboBox ItemsSource="{Binding AvailableFields}" SelectedItem="{Binding Field}" Margin="0,0,0,8" />
 
-                <CheckBox Content="Enabled" IsChecked="{Binding IsEnabled}" />
+                <CheckBox Content="{loc:Loc Common_Enabled}" IsChecked="{Binding IsEnabled}" />
             </StackPanel>
             </ScrollViewer>
         </Grid>
 
         <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="OK" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
-            <Button Content="Cancel" Width="80" Click="OnCancelClick" IsCancel="True" />
+            <Button Content="{loc:Loc Common_OK}" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
+            <Button Content="{loc:Loc Common_Cancel}" Width="80" Click="OnCancelClick" IsCancel="True" />
         </StackPanel>
     </Grid>
 </Window>

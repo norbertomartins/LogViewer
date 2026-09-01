@@ -31,6 +31,10 @@ public sealed class RingLineBuffer : IReadOnlyList<TailLine>
     /// <summary>Total number of lines ever appended, including ones since evicted.</summary>
     public long TotalLinesAppended { get; private set; }
 
+    /// <summary>Sum of <see cref="TailLine.Text"/> lengths currently retained — a cheap proxy for the
+    /// buffer's live memory footprint, surfaced in the performance status bar.</summary>
+    public long RetainedTextLength { get; private set; }
+
     public TailLine this[int index]
     {
         get
@@ -54,10 +58,12 @@ public sealed class RingLineBuffer : IReadOnlyList<TailLine>
         }
         else
         {
+            RetainedTextLength -= _items[_start].Text?.Length ?? 0;
             _items[_start] = line;
             _start = (_start + 1) % _items.Length;
         }
 
+        RetainedTextLength += line.Text?.Length ?? 0;
         TotalLinesAppended++;
     }
 
@@ -75,6 +81,7 @@ public sealed class RingLineBuffer : IReadOnlyList<TailLine>
         _start = 0;
         _count = 0;
         TotalLinesAppended = 0;
+        RetainedTextLength = 0;
     }
 
     public IEnumerator<TailLine> GetEnumerator()

@@ -3,7 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:models="clr-namespace:LogViewer.App.Models"
              xmlns:controls="clr-namespace:LogViewer.App.Controls"
-             xmlns:converters="clr-namespace:LogViewer.App.Converters">
+             xmlns:converters="clr-namespace:LogViewer.App.Converters"
+             xmlns:loc="clr-namespace:LogViewer.App.Localization">
     <UserControl.Resources>
         <!-- Column widths are Auto + SharedSizeGroup (scoped via IsSharedSizeScope on LineListView) rather
              than fixed pixel widths, so columns grow with LogFontSize instead of the text overflowing into
@@ -101,41 +102,106 @@
         </Grid.RowDefinitions>
 
         <ToolBar Grid.Row="0" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
-            <ToggleButton Content="Follow Tail" IsChecked="{Binding IsFollowingTail}" />
-            <ToggleButton Content="Structured View" IsChecked="{Binding IsStructuredView}"
-                          ToolTip="{Binding StructuredFormatName, StringFormat='Parse this document as structured logs ({0}) — Time/Level/Message columns + property details'}" />
-            <ComboBox ItemsSource="{Binding AvailableStructuredFormats}" SelectedItem="{Binding StructuredFormatId}" Width="90"
-                      ToolTip="{Binding StructuredFormatName, StringFormat='Structured format: {0}. Auto-detected on open; change to override.'}"
+            <!-- Compact icon toolbar. Every control keeps a descriptive ToolTip and an
+                 AutomationProperties.Name so screen readers and UI-automation tests still identify it. -->
+            <ToolBar.Resources>
+                <Style x:Key="IconButton" TargetType="ButtonBase">
+                    <Setter Property="MinWidth" Value="30" />
+                    <Setter Property="FontSize" Value="13" />
+                    <Setter Property="Padding" Value="4,2" />
+                </Style>
+            </ToolBar.Resources>
+
+            <ToggleButton Content="⤓" Style="{StaticResource IconButton}" IsChecked="{Binding IsFollowingTail}"
+                          AutomationProperties.Name="{loc:Loc Doc_FollowTail_Name}" ToolTip="{loc:Loc Doc_FollowTail_ToolTip}" />
+            <ToggleButton Content="☰" Style="{StaticResource IconButton}" IsChecked="{Binding IsStructuredView}"
+                          AutomationProperties.Name="{loc:Loc Doc_StructuredView_Name}"
+                          ToolTip="{Binding StructuredFormatName, StringFormat={loc:Loc Doc_StructuredView_ToolTip}}" />
+            <ComboBox ItemsSource="{Binding AvailableStructuredFormats}" SelectedItem="{Binding StructuredFormatId}" Width="86"
+                      AutomationProperties.Name="{loc:Loc Doc_StructuredFormat_Name}"
+                      ToolTip="{Binding StructuredFormatName, StringFormat={loc:Loc Doc_StructuredFormat_ToolTip}}"
                       Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
-            <!-- Colorize toggle: only meaningful while in structured view -->
-            <ToggleButton Content="⬤ Colorize Values" IsChecked="{Binding IsColorizeStructuredValues}"
-                          ToolTip="Highlight variable values in the message with distinct colors"
+            <ToggleButton Content="🎨" Style="{StaticResource IconButton}" IsChecked="{Binding IsColorizeStructuredValues}"
+                          AutomationProperties.Name="{loc:Loc Doc_ColorizeValues_Name}" ToolTip="{loc:Loc Doc_ColorizeValues_ToolTip}"
                           Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
-            <TextBlock Text="Min Level:" VerticalAlignment="Center" Margin="8,0,4,0"
-                       Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
-            <ComboBox ItemsSource="{Binding LevelOptions}" SelectedItem="{Binding MinLevel}" Width="110"
-                      ToolTip="Only show lines at or above this severity"
+            <ComboBox ItemsSource="{Binding LevelOptions}" SelectedItem="{Binding MinLevel}" Width="96"
+                      AutomationProperties.Name="{loc:Loc Doc_MinLevel_Name}" ToolTip="{loc:Loc Doc_MinLevel_ToolTip}"
                       Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
             <Separator />
-            <Button Content="Toggle Bookmark" Command="{Binding ToggleBookmarkCommand}" ToolTip="Ctrl+F2" />
-            <Button Content="◀ Bookmark" Command="{Binding PreviousBookmarkCommand}" ToolTip="Shift+F2" />
-            <Button Content="Bookmark ▶" Command="{Binding NextBookmarkCommand}" ToolTip="F2" />
+            <Button Content="🔖" Style="{StaticResource IconButton}" Command="{Binding ToggleBookmarkCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_ToggleBookmark_Name}" ToolTip="{loc:Loc Doc_ToggleBookmark_ToolTip}" />
+            <Button Content="🔖▲" Style="{StaticResource IconButton}" Command="{Binding PreviousBookmarkCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_PrevBookmark_Name}" ToolTip="{loc:Loc Doc_PrevBookmark_ToolTip}" />
+            <Button Content="🔖▼" Style="{StaticResource IconButton}" Command="{Binding NextBookmarkCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_NextBookmark_Name}" ToolTip="{loc:Loc Doc_NextBookmark_ToolTip}" />
             <Separator />
-            <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,4,0" />
-            <TextBox Width="150" VerticalAlignment="Center"
+            <TextBlock Text="🔍" VerticalAlignment="Center" Margin="2,0,3,0" />
+            <TextBox Width="140" VerticalAlignment="Center"
+                     AutomationProperties.Name="{loc:Loc Doc_TextFilter_Name}"
                      Text="{Binding TextFilterPattern, UpdateSourceTrigger=PropertyChanged, Delay=200}"
-                     ToolTip="Show only lines matching this text/regex (live). Applies to the raw line in both plain and structured view." />
-            <ToggleButton Content=".*" IsChecked="{Binding TextFilterIsRegex}" ToolTip="Treat the filter as a regular expression" />
-            <ToggleButton Content="Aa" IsChecked="{Binding TextFilterCaseSensitive}" ToolTip="Case-sensitive filter" />
-            <ToggleButton Content="Exclude" IsChecked="{Binding TextFilterExclude}" ToolTip="Hide matching lines instead of showing only them" />
-            <Button Content="✕" Command="{Binding ClearTextFilterCommand}" ToolTip="Clear the text filter"
+                     ToolTip="{loc:Loc Doc_TextFilter_ToolTip}" />
+            <ToggleButton Content=".*" Style="{StaticResource IconButton}" IsChecked="{Binding TextFilterIsRegex}"
+                          AutomationProperties.Name="{loc:Loc Doc_RegexFilter_Name}" ToolTip="{loc:Loc Doc_RegexFilter_ToolTip}" />
+            <ToggleButton Content="Aa" Style="{StaticResource IconButton}" IsChecked="{Binding TextFilterCaseSensitive}"
+                          AutomationProperties.Name="{loc:Loc Doc_CaseFilter_Name}" ToolTip="{loc:Loc Doc_CaseFilter_ToolTip}" />
+            <ToggleButton Content="🚫" Style="{StaticResource IconButton}" IsChecked="{Binding TextFilterExclude}"
+                          AutomationProperties.Name="{loc:Loc Doc_ExcludeFilter_Name}" ToolTip="{loc:Loc Doc_ExcludeFilter_ToolTip}" />
+            <Button Content="✕" Style="{StaticResource IconButton}" Command="{Binding ClearTextFilterCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_ClearFilter_Name}" ToolTip="{loc:Loc Doc_ClearFilter_ToolTip}"
                     Visibility="{Binding IsTextFilterActive, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <ToggleButton x:Name="FilterTesterToggle" Content="🧪" Style="{StaticResource IconButton}"
+                          AutomationProperties.Name="{loc:Loc Doc_FilterTester_Name}"
+                          ToolTip="{loc:Loc Doc_FilterTester_ToolTip}" />
+            <Popup PlacementTarget="{Binding ElementName=FilterTesterToggle}" Placement="Bottom"
+                   StaysOpen="False" AllowsTransparency="True"
+                   IsOpen="{Binding IsChecked, ElementName=FilterTesterToggle}">
+                <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+                        BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1"
+                        Padding="8" Width="460">
+                    <StackPanel>
+                        <TextBlock Text="{loc:Loc Doc_FilterTester_Header}" FontWeight="Bold" Margin="0,0,0,2" />
+                        <TextBlock Text="{loc:Loc Doc_FilterTester_Hint}"
+                                   FontSize="11" Opacity="0.7" TextWrapping="Wrap" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding FilterTesterInput, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" FontFamily="Consolas" TextWrapping="NoWrap"
+                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                 MinHeight="70" MaxHeight="140" Margin="0,0,0,4"
+                                 AutomationProperties.Name="{loc:Loc Doc_FilterTester_SampleName}" />
+                        <TextBlock Text="{Binding FilterTesterSummary}" FontSize="11" Opacity="0.85" Margin="0,0,0,4" />
+                        <ItemsControl ItemsSource="{Binding FilterTesterLines}" MaxHeight="150"
+                                      AutomationProperties.AutomationId="FilterTesterResults">
+                            <ItemsControl.Template>
+                                <ControlTemplate TargetType="ItemsControl">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsPresenter /></ScrollViewer>
+                                </ControlTemplate>
+                            </ItemsControl.Template>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontFamily="Consolas" TextWrapping="NoWrap" Text="{Binding}">
+                                        <controls:InlinesHelper.Source>
+                                            <MultiBinding Converter="{StaticResource RegexTestInlinesConverter}">
+                                                <Binding />
+                                                <Binding Path="DataContext.TextFilterPattern" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                <Binding Path="DataContext.TextFilterIsRegex" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                <Binding Path="DataContext.TextFilterCaseSensitive" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                            </MultiBinding>
+                                        </controls:InlinesHelper.Source>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Popup>
             <Separator />
-            <Button Content="◀ Highlight" Command="{Binding PreviousHighlightCommand}" ToolTip="Shift+F3" />
-            <Button Content="Highlight ▶" Command="{Binding NextHighlightCommand}" ToolTip="F3" />
+            <Button Content="🖍▲" Style="{StaticResource IconButton}" Command="{Binding PreviousHighlightCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_PrevHighlight_Name}" ToolTip="{loc:Loc Doc_PrevHighlight_ToolTip}" />
+            <Button Content="🖍▼" Style="{StaticResource IconButton}" Command="{Binding NextHighlightCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_NextHighlight_Name}" ToolTip="{loc:Loc Doc_NextHighlight_ToolTip}" />
             <Separator />
             <Menu Background="Transparent">
-                <MenuItem Header="Run Tool ▶" ItemsSource="{Binding ExternalTools}">
+                <MenuItem Header="⚙" FontSize="13" AutomationProperties.Name="{loc:Loc Doc_RunTool_Name}" ToolTip="{loc:Loc Doc_RunTool_ToolTip}"
+                          ItemsSource="{Binding ExternalTools}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Header" Value="{Binding Name}" />
@@ -145,26 +211,31 @@
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
             </Menu>
-            <Button Content="Search..." Command="{Binding SearchCommand}" ToolTip="Ctrl+Shift+F" />
-            <Button Content="Export..." Command="{Binding ExportVisibleCommand}" ToolTip="Save the currently visible (filtered) lines to a file" />
-            <ToggleButton Content="📊 Timeline" IsChecked="{Binding ShowTimeline}"
-                          ToolTip="Show a volume-over-time histogram of the visible timestamped lines" />
-            <Button Content="Customize..." Command="{Binding CustomizeCommand}" />
+            <Button Content="🔎" Style="{StaticResource IconButton}" Command="{Binding SearchCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_Search_Name}" ToolTip="{loc:Loc Doc_Search_ToolTip}" />
+            <Button Content="💾" Style="{StaticResource IconButton}" Command="{Binding ExportVisibleCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_Export_Name}" ToolTip="{loc:Loc Doc_Export_ToolTip}" />
+            <ToggleButton Content="📊" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeline}"
+                          AutomationProperties.Name="{loc:Loc Doc_Timeline_Name}" ToolTip="{loc:Loc Doc_Timeline_ToolTip}" />
+            <Button Content="🖌" Style="{StaticResource IconButton}" Command="{Binding CustomizeCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_Customize_Name}" ToolTip="{loc:Loc Doc_Customize_ToolTip}" />
             <Separator />
-            <Button Content="New lines below — resume follow" Command="{Binding ResumeFollowCommand}"
+            <Button Content="{Binding ResumeFollowBanner}" Command="{Binding ResumeFollowCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_ResumeFollow_Name}"
                     Visibility="{Binding HasUnseenChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
         </ToolBar>
 
         <!-- Volume timeline: one bar per time bucket (error red / warning amber / info accent), click to
              jump to the first line in that bucket. Only timestamped lines contribute. -->
-        <Border Grid.Row="1" Background="{DynamicResource Theme.LogBackground}"
+        <Border Grid.Row="1" x:Name="TimelineStrip"
+                Background="{DynamicResource Theme.LogBackground}"
                 BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,0,0,1" Padding="4,2"
                 Visibility="{Binding ShowTimeline, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid Height="52">
-                <TextBlock Text="No timestamped lines to chart" Opacity="0.6" HorizontalAlignment="Center" VerticalAlignment="Center"
+                <TextBlock Text="{loc:Loc Doc_Timeline_NoData}" Opacity="0.6" HorizontalAlignment="Center" VerticalAlignment="Center"
                            Visibility="{Binding TimelineHasData, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                 <ItemsControl ItemsSource="{Binding VolumeBins}"
-                              Visibility="{Binding TimelineHasData, Converter={StaticResource BoolToVisibilityConverter}}">
+                              AutomationProperties.AutomationId="TimelineStrip" AutomationProperties.Name="{loc:Loc Doc_Timeline_Name2}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <UniformGrid Rows="1" />
@@ -179,9 +250,9 @@
                                 <Button.ToolTip>
                                     <TextBlock>
                                         <Run Text="{Binding Start, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}', Mode=OneWay}" /><LineBreak />
-                                        <Run Text="{Binding Total, StringFormat='{}{0} lines', Mode=OneWay}" />
-                                        <Run Text="{Binding Warnings, StringFormat=' · {0} warn', Mode=OneWay}" />
-                                        <Run Text="{Binding Errors, StringFormat=' · {0} err', Mode=OneWay}" />
+                                        <Run Text="{Binding Total, StringFormat={loc:Loc Doc_Timeline_Tip_Lines}, Mode=OneWay}" />
+                                        <Run Text="{Binding Warnings, StringFormat={loc:Loc Doc_Timeline_Tip_Warn}, Mode=OneWay}" />
+                                        <Run Text="{Binding Errors, StringFormat={loc:Loc Doc_Timeline_Tip_Err}, Mode=OneWay}" />
                                     </TextBlock>
                                 </Button.ToolTip>
                                 <StackPanel VerticalAlignment="Bottom">
@@ -228,7 +299,8 @@
                   VirtualizingPanel.ScrollUnit="Pixel"
                   Style="{StaticResource LogListViewStyle}"
                   FontFamily="Consolas" FontSize="{Binding LogFontSize}"
-                  PreviewMouseWheel="OnLineListPreviewMouseWheel">
+                  PreviewMouseWheel="OnLineListPreviewMouseWheel"
+                  ScrollViewer.ScrollChanged="OnLineListScrollChanged">
             <ListView.ItemContainerStyle>
                 <!-- Tag carries the document view-model down to the row's ContextMenu: a ContextMenu opens in
                      its own popup tree, so an ElementName binding back to LineListView is not reliable across
@@ -241,21 +313,21 @@
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
-                                <MenuItem Header="Filter by TraceId"
+                                <MenuItem Header="{loc:Loc Doc_Ctx_FilterByTraceId}"
                                           Command="{Binding PlacementTarget.Tag.FilterByTraceIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                                <MenuItem Header="Filter by SpanId"
+                                <MenuItem Header="{loc:Loc Doc_Ctx_FilterBySpanId}"
                                           Command="{Binding PlacementTarget.Tag.FilterBySpanIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
-                                <MenuItem Header="Filter by ThreadId"
+                                <MenuItem Header="{loc:Loc Doc_Ctx_FilterByThreadId}"
                                           Command="{Binding PlacementTarget.Tag.FilterByThreadIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 <Separator />
-                                <MenuItem Header="Find Similar Block In..."
+                                <MenuItem Header="{loc:Loc Doc_Ctx_FindSimilarBlock}"
                                           Command="{Binding PlacementTarget.Tag.FindSimilarBlockCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 <Separator />
-                                <MenuItem Header="Clear Filter"
+                                <MenuItem Header="{loc:Loc Doc_Ctx_ClearFilter}"
                                           Command="{Binding PlacementTarget.Tag.ClearFilterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                             </ContextMenu>
                         </Setter.Value>
@@ -291,10 +363,10 @@
                 Style="{StaticResource CollapseWhenNoStructuredDetailStyle}">
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel DataContext="{Binding SelectedLine.Structured}">
-                    <TextBlock Text="{Binding Timestamp, StringFormat='Timestamp: {0:yyyy-MM-dd HH:mm:ss.fff zzz}'}" Margin="0,0,0,2" />
-                    <TextBlock Text="{Binding MessageTemplate, StringFormat='Template: {0}'}" TextWrapping="Wrap" Margin="0,0,0,6"
+                    <TextBlock Text="{Binding Timestamp, StringFormat={loc:Loc Doc_Detail_TimestampFormat}}" Margin="0,0,0,2" />
+                    <TextBlock Text="{Binding MessageTemplate, StringFormat={loc:Loc Doc_Detail_TemplateFormat}}" TextWrapping="Wrap" Margin="0,0,0,6"
                                Visibility="{Binding MessageTemplate, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
-                    <TextBlock Text="Properties" FontWeight="Bold" Margin="0,0,0,2" />
+                    <TextBlock Text="{loc:Loc Doc_Detail_Properties}" FontWeight="Bold" Margin="0,0,0,2" />
                     <ItemsControl ItemsSource="{Binding Properties}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -306,7 +378,7 @@
                                     </Grid.ColumnDefinitions>
                                     <Grid.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Filter by this value"
+                                            <MenuItem Header="{loc:Loc Doc_Ctx_FilterByThisValue}"
                                                       Command="{Binding PlacementTarget.Tag.FilterByPropertyCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                                       CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                         </ContextMenu>
@@ -317,7 +389,7 @@
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
-                    <TextBlock Text="Exception" FontWeight="Bold" Margin="0,8,0,2"
+                    <TextBlock Text="{loc:Loc Doc_Detail_Exception}" FontWeight="Bold" Margin="0,8,0,2"
                                Visibility="{Binding Exception, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
                     <TextBox Text="{Binding Exception, Mode=OneWay}" IsReadOnly="True" TextWrapping="NoWrap"
                              FontFamily="Consolas" FontSize="11" AcceptsReturn="True" MaxHeight="120"
@@ -341,7 +413,7 @@
             <StatusBarItem Visibility="{Binding IsFilterActive, Converter={StaticResource BoolToVisibilityConverter}}">
                 <StackPanel Orientation="Horizontal">
                     <TextBlock Text="{Binding FilterStatusText}" Margin="0,0,8,0" />
-                    <Button Content="✕ Clear filter" Command="{Binding ClearFilterCommand}" />
+                    <Button Content="{loc:Loc Doc_ClearFilterButton}" Command="{Binding ClearFilterCommand}" />
                 </StackPanel>
             </StatusBarItem>
         </StatusBar>

@@ -1,0 +1,53 @@
+<Window x:Class="LogViewer.App.Views.Dialogs.OpenMergedSourcesView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:LogViewer.App.Localization"
+        Title="{loc:Loc Merged_Title}"
+        Width="620" Height="420"
+        WindowStartupLocation="CenterOwner"
+        MinWidth="480" MinHeight="320">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" TextWrapping="Wrap" Opacity="0.8" Margin="0,0,0,8"
+                   Text="{loc:Loc Merged_Intro}" />
+
+        <Grid Grid.Row="1" Margin="0,0,0,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="{loc:Loc Merged_AddFiles}" Padding="10,4" Command="{Binding AddFilesCommand}" />
+            <Button Grid.Column="1" Content="{loc:Loc Merged_AddFolder}" Padding="10,4" Margin="6,0,0,0" Command="{Binding AddFolderCommand}" />
+            <TextBlock Grid.Column="2" Text="{loc:Loc Merged_FolderPattern}" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="12,0,6,0" />
+            <TextBox Grid.Column="3" Width="120" VerticalAlignment="Center"
+                     Text="{Binding FolderPattern, UpdateSourceTrigger=PropertyChanged}" />
+            <Button Grid.Column="4" Content="{loc:Loc Common_Remove}" Padding="10,4" Margin="6,0,0,0"
+                    Command="{Binding RemoveCommand}"
+                    CommandParameter="{Binding SelectedItem, ElementName=EntryList}" />
+        </Grid>
+
+        <ListView Grid.Row="2" x:Name="EntryList" ItemsSource="{Binding Entries}"
+                  AutomationProperties.AutomationId="MergeSourceList">
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="{loc:Loc Merged_Col_Type}" Width="70" DisplayMemberBinding="{Binding Kind}" />
+                    <GridViewColumn Header="{loc:Loc Merged_Col_Path}" Width="480" DisplayMemberBinding="{Binding Display}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="{loc:Loc Common_OK}" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
+            <Button Content="{loc:Loc Common_Cancel}" Width="80" Click="OnCancelClick" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

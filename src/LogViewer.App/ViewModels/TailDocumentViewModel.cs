@@ -3,6 +3,7 @@ using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LogViewer.App.Controls;
+using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
 using LogViewer.Core.Analysis;
@@ -26,6 +27,7 @@ namespace LogViewer.App.ViewModels;
 public sealed partial class TailDocumentViewModel : ObservableObject, IDisposable
 {
     private readonly ITailSource _source;
+    private readonly bool _isMergedSource;
     private readonly RingLineBuffer _buffer;
     private ILogLineParser _lineParser;
     private readonly HighlightEngine _highlightEngine = new();
@@ -50,6 +52,50 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     [ObservableProperty]
     private bool _isFollowingTail = true;
+
+    /// <summary>Lines that have arrived since follow was paused (by scrolling up or the toggle). Drives
+    /// the "N new lines — resume follow" banner; reset when follow resumes.</summary>
+    [ObservableProperty]
+    private int _unseenLineCount;
+
+    /// <summary>True while the view is applying a programmatic scroll (ScrollIntoView) — the view's
+    /// scroll-changed handler checks this so its own auto-scroll doesn't get mistaken for the user
+    /// scrolling away and pause the follow it just performed.</summary>
+    public bool IsProgrammaticScroll { get; set; }
+
+    public string ResumeFollowBanner => UnseenLineCount > 0
+        ? $"⤓ {UnseenLineCount:N0} new line{(UnseenLineCount == 1 ? string.Empty : "s")} — resume follow"
+        : "⤓ New lines — resume follow";
+
+    partial void OnUnseenLineCountChanged(int value) => OnPropertyChanged(nameof(ResumeFollowBanner));
+
+    partial void OnIsFollowingTailChanged(bool value)
+    {
+        if (value)
+        {
+            UnseenLineCount = 0;
+            HasUnseenChanges = false;
+        }
+    }
+
+    /// <summary>Called by the view when the user scrolls up away from the tail — pauses follow so new
+    /// lines don't yank the viewport back down.</summary>
+    public void NotifyUserScrolledAwayFromEnd()
+    {
+        if (IsFollowingTail)
+        {
+            IsFollowingTail = false;
+        }
+    }
+
+    /// <summary>Called by the view when the user scrolls back to the bottom — silently re-arms follow.</summary>
+    public void NotifyUserScrolledToEnd()
+    {
+        if (!IsFollowingTail)
+        {
+            IsFollowingTail = true;
+        }
+    }
 
     [ObservableProperty]
     private bool _isStructuredView;
@@ -152,13 +198,62 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public bool IsTextFilterActive => !string.IsNullOrEmpty(TextFilterPattern);
 
-    partial void OnTextFilterPatternChanged(string? value) => RebuildTextFilter();
+    // --- Embedded pattern tester for the filter box (mirrors the one in the highlight editor) --------
 
-    partial void OnTextFilterExcludeChanged(bool value) => RaiseFilterChanged();
+    [ObservableProperty]
+    private string _filterTesterInput = string.Empty;
 
-    partial void OnTextFilterIsRegexChanged(bool value) => RebuildTextFilter();
+    public IReadOnlyList<string> FilterTesterLines =>
+        FilterTesterInput.Length == 0 ? [] : FilterTesterInput.Replace("\r\n", "\n").Split('\n');
 
-    partial void OnTextFilterCaseSensitiveChanged(bool value) => RebuildTextFilter();
+    public string FilterTesterSummary
+    {
+        get
+        {
+            var lines = FilterTesterLines;
+            if (lines.Count == 0 || string.IsNullOrEmpty(TextFilterPattern))
+            {
+                return string.Empty;
+            }
+
+            var hits = lines.Count(l => PatternMatchHelper.IsMatch(l, TextFilterPattern!, TextFilterIsRegex, TextFilterCaseSensitive));
+            var verb = Loc.Get(TextFilterExclude ? "Vm_Doc_Tester_Hidden" : "Vm_Doc_Tester_Shown");
+            var affected = TextFilterExclude ? lines.Count - hits : hits;
+            return Loc.Format("Vm_Doc_Tester_Summary", hits, lines.Count, affected, verb);
+        }
+    }
+
+    private void NotifyFilterTesterChanged()
+    {
+        OnPropertyChanged(nameof(FilterTesterLines));
+        OnPropertyChanged(nameof(FilterTesterSummary));
+    }
+
+    partial void OnFilterTesterInputChanged(string value) => NotifyFilterTesterChanged();
+
+    partial void OnTextFilterPatternChanged(string? value)
+    {
+        RebuildTextFilter();
+        NotifyFilterTesterChanged();
+    }
+
+    partial void OnTextFilterExcludeChanged(bool value)
+    {
+        RaiseFilterChanged();
+        NotifyFilterTesterChanged();
+    }
+
+    partial void OnTextFilterIsRegexChanged(bool value)
+    {
+        RebuildTextFilter();
+        NotifyFilterTesterChanged();
+    }
+
+    partial void OnTextFilterCaseSensitiveChanged(bool value)
+    {
+        RebuildTextFilter();
+        NotifyFilterTesterChanged();
+    }
 
     private void RebuildTextFilter()
     {
@@ -174,7 +269,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             }
             catch (ArgumentException ex)
             {
-                StatusMessage = $"Invalid filter regex: {ex.Message}";
+                StatusMessage = Loc.Format("Vm_Doc_InvalidFilterRegex", ex.Message);
             }
         }
 
@@ -237,15 +332,15 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
             if (IsLevelFilterActive)
             {
-                parts.Add($"Level ≥ {MinLevel}");
+                parts.Add(Loc.Format("Vm_Doc_LevelAtLeast", MinLevel));
             }
 
             if (IsTextFilterActive)
             {
-                parts.Add($"text {(TextFilterExclude ? "≠" : "~")} \"{TextFilterPattern}\"");
+                parts.Add(Loc.Format("Vm_Doc_TextFilterPart", TextFilterExclude ? "≠" : "~", TextFilterPattern));
             }
 
-            return parts.Count > 0 ? "Filtered by " + string.Join(" AND ", parts) : null;
+            return parts.Count > 0 ? Loc.Get("Vm_Doc_FilteredByPrefix") + string.Join(Loc.Get("Vm_Doc_FilterJoiner"), parts) : null;
         }
     }
 
@@ -307,6 +402,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         bool structuredFormatManuallyChosen = false)
     {
         _source = source;
+        _isMergedSource = source is MergedTailSource;
         SourcePath = sourcePath;
         _lineParser = LogLineParsers.Create(structuredFormatId) ?? new SerilogLogLineParser();
         _structuredFormatId = _lineParser.FormatId;
@@ -479,6 +575,17 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// <summary>Total lines ever appended (not bounded by the ring buffer), used for the title-bar lines/sec stat.</summary>
     public long TotalLinesAppended => _buffer.TotalLinesAppended;
 
+    // --- Performance telemetry (polled ~1 Hz by MainViewModel for the status bar) ------------------
+    public int BufferedLineCount => _buffer.Count;
+
+    public int BufferCapacity => _buffer.Capacity;
+
+    /// <summary>Approximate live text held in this document's ring buffer, in bytes (2 per char).</summary>
+    public long BufferedTextBytes => _buffer.RetainedTextLength * 2;
+
+    /// <summary>Smoothed UI-thread time per flush tick for this document's tail, in milliseconds.</summary>
+    public double DispatchLatencyMs => _sink.AverageFlushMilliseconds;
+
     /// <summary>Title prefixed with the custom glyph (if set) and a change marker while unseen changes are
     /// pending — drives the tab/MDI-title-bar text.</summary>
     public string DisplayTitle
@@ -529,6 +636,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
     }
 
+    /// <summary>The text a structured parser should see for a displayed line — with the <c>label│ </c>
+    /// prefix removed for a merged-files document so its lines still parse as JSON/logfmt/etc.</summary>
+    private string TextForParsing(string displayText) =>
+        _isMergedSource ? MergedTailSource.StripLabel(displayText) : displayText;
+
     partial void OnIsStructuredViewChanged(bool value) => _ = ReprocessAllLinesSafeAsync();
 
     /// <summary>Fire-and-forget wrapper around <see cref="ReprocessAllLinesAsync"/> — the property changed
@@ -543,7 +655,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            StatusMessage = $"Failed to switch structured view: {ex.Message}";
+            StatusMessage = Loc.Format("Vm_Doc_SwitchStructuredFailed", ex.Message);
             _isReprocessing = false;
         }
     }
@@ -583,7 +695,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             for (var i = 0; i < snapshot.Count; i++)
             {
                 var existing = snapshot[i];
-                var structured = isStructuredView && _lineParser.TryParse(existing.Text, out var parsed) ? parsed : null;
+                var structured = isStructuredView && _lineParser.TryParse(TextForParsing(existing.Text), out var parsed) ? parsed : null;
                 var match = _highlightEngine.Evaluate(existing.Text, structured);
                 if (match is not null)
                 {
@@ -682,7 +794,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var displayItems = new List<LogLineViewModel>(lines.Count);
         foreach (var line in lines)
         {
-            var structured = IsStructuredView && _lineParser.TryParse(line.Text, out var parsed) ? parsed : null;
+            var structured = IsStructuredView && _lineParser.TryParse(TextForParsing(line.Text), out var parsed) ? parsed : null;
             var match = _highlightEngine.Evaluate(line.Text, structured);
             if (match is not null)
             {
@@ -714,6 +826,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         else
         {
             HasUnseenChanges = true;
+            UnseenLineCount += displayItems.Count;
         }
     }
 
@@ -732,7 +845,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
         var marker = new LogLineViewModel(0, $"── file {reason.ToString().ToLowerInvariant()} — resuming ──", structured: null, match: null, isBookmarked: false);
         Lines.AppendRange([marker]);
-        StatusMessage = $"Source {reason.ToString().ToLowerInvariant()} — resumed tailing.";
+        StatusMessage = Loc.Format("Vm_Doc_SourceResumed", reason.ToString().ToLowerInvariant());
     }
 
     private void TrimEvictedLineNumbers()
@@ -790,7 +903,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     {
         if (line?.Structured is null)
         {
-            StatusMessage = "Selected line is not a structured log event.";
+            StatusMessage = Loc.Get("Vm_Doc_NotStructured");
             return;
         }
 
@@ -866,9 +979,31 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var samples = new List<VolumeSample>(Lines.Count);
         foreach (var line in Lines)
         {
-            if (line.Structured?.Timestamp is { } ts)
+            DateTimeOffset? timestamp;
+            int severity;
+
+            var raw = TextForParsing(line.Text);
+
+            if (line.Structured?.Timestamp is { } structuredTs)
             {
-                var severity = LogLevelSeverity.Rank(line.Structured.Level) ?? 2;
+                timestamp = structuredTs;
+                severity = LogLevelSeverity.Rank(line.Structured.Level) ?? 2;
+            }
+            else if (_lineParser.TryParse(raw, out var parsed) && parsed?.Timestamp is { } parsedTs)
+            {
+                // Structured view is off but the line still parses (ndjson/logfmt/serilog/etc.).
+                timestamp = parsedTs;
+                severity = LogLevelSeverity.Rank(parsed.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(raw) ?? 2;
+            }
+            else
+            {
+                // Plain-text line: pull a leading timestamp and a level word out of the raw text.
+                timestamp = MergedTimestampExtractor.TryExtract(raw);
+                severity = LogLevelNormalizer.GuessSeverityFromLine(raw) ?? 2;
+            }
+
+            if (timestamp is { } ts)
+            {
                 samples.Add(new VolumeSample(ts, severity, line.LineNumber));
             }
         }
@@ -933,7 +1068,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var value = StructuredFieldResolver.Resolve(line?.Structured, field);
         if (string.IsNullOrEmpty(value))
         {
-            StatusMessage = $"Selected line has no {field} property.";
+            StatusMessage = Loc.Format("Vm_Doc_NoProperty", field);
             return;
         }
 

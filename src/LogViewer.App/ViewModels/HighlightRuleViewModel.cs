@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
+using LogViewer.App.Localization;
 using LogViewer.Core.Highlighting;
 using LogViewer.Core.Structured;
 
@@ -43,6 +44,11 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
     [ObservableProperty]
     private string? _targetProperty;
 
+    /// <summary>Free-text sample the user pastes into the embedded tester; each line is matched live
+    /// against the current pattern.</summary>
+    [ObservableProperty]
+    private string _testerInput = string.Empty;
+
     public HighlightRuleViewModel()
         : this(HighlightRule.CreateDefault("New Rule", string.Empty))
     {
@@ -72,9 +78,52 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
 
     public string EffectiveDarkBackgroundHex => string.IsNullOrWhiteSpace(DarkBackgroundHex) ? BackgroundHex : DarkBackgroundHex;
 
-    partial void OnPatternChanged(string value) => Validate();
+    /// <summary>The pasted sample split into individual lines for the tester's per-line results list.</summary>
+    public IReadOnlyList<string> TesterLines =>
+        TesterInput.Length == 0 ? [] : TesterInput.Replace("\r\n", "\n").Split('\n');
 
-    partial void OnIsRegexChanged(bool value) => Validate();
+    /// <summary>"3 / 10 lines match" — or an error note when the pattern is an invalid regex.</summary>
+    public string TesterSummary
+    {
+        get
+        {
+            if (IsRegex && !IsPatternValid)
+            {
+                return Loc.Get("Common_InvalidRegex");
+            }
+
+            var lines = TesterLines;
+            if (lines.Count == 0 || Pattern.Length == 0)
+            {
+                return string.Empty;
+            }
+
+            var hits = lines.Count(l => PatternMatchHelper.IsMatch(l, Pattern, IsRegex, IsCaseSensitive));
+            return Loc.Format("Vm_Rule_Tester_Summary", hits, lines.Count);
+        }
+    }
+
+    private void NotifyTesterChanged()
+    {
+        OnPropertyChanged(nameof(TesterLines));
+        OnPropertyChanged(nameof(TesterSummary));
+    }
+
+    partial void OnTesterInputChanged(string value) => NotifyTesterChanged();
+
+    partial void OnIsCaseSensitiveChanged(bool value) => NotifyTesterChanged();
+
+    partial void OnPatternChanged(string value)
+    {
+        Validate();
+        NotifyTesterChanged();
+    }
+
+    partial void OnIsRegexChanged(bool value)
+    {
+        Validate();
+        NotifyTesterChanged();
+    }
 
     partial void OnForegroundHexChanged(string value) => OnPropertyChanged(nameof(EffectiveDarkForegroundHex));
 

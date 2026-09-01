@@ -25,6 +25,18 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         return dialog.ShowDialog() == true ? dialog.FileNames : null;
     }
 
+    public IReadOnlyList<string>? ShowOpenMergedSourcesDialog()
+    {
+        var viewModel = new OpenMergedSourcesViewModel();
+        var window = new OpenMergedSourcesView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        return window.ShowDialog() == true ? viewModel.ResolveFiles() : null;
+    }
+
     public bool ShowHighlightPresetEditor(ICollection<HighlightPreset> presets)
     {
         var viewModel = new HighlightPresetEditorViewModel(presets);
@@ -188,6 +200,23 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         return window.ShowDialog() == true
             ? new EtwTailSelection(vm.Provider.Trim(), vm.LevelValue)
             : null;
+    }
+
+    public PaletteCommand? ShowCommandPalette(IReadOnlyList<PaletteCommand> commands)
+    {
+        var window = new CommandPaletteView
+        {
+            DataContext = new CommandPaletteViewModel(commands),
+            Owner = Application.Current?.MainWindow,
+        };
+
+        return window.ShowDialog() == true ? window.ChosenCommand : null;
+    }
+
+    public string? ShowTextPrompt(string title, string prompt, string? initialValue = null)
+    {
+        var window = new TextPromptView(title, prompt, initialValue) { Owner = Application.Current?.MainWindow };
+        return window.ShowDialog() == true ? window.Value : null;
     }
 
     public void ShowServicesDialog()

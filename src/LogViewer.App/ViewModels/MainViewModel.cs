@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
 using LogViewer.Core.BlockDiff;
@@ -39,6 +40,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private string _windowTitle = "LogViewer";
+
+    /// <summary>Right-aligned performance readout in the status bar: throughput, ring-buffer fill and
+    /// memory, and UI dispatch latency — so a live regression is visible without opening a profiler.</summary>
+    [ObservableProperty]
+    private string _performanceStatus = string.Empty;
 
     public MainViewModel(
         ISettingsStore settingsStore,
@@ -90,7 +96,19 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var totalLines = Documents.Sum(d => d.TotalLinesAppended);
         var snapshot = _processStats.Sample(totalLines);
-        WindowTitle = $"LogViewer — RAM: {snapshot.WorkingSetMb:F0} MB | CPU: {snapshot.CpuPercent:F1}% | {snapshot.LinesPerSecond:F0} lines/sec";
+        WindowTitle = Loc.Format("Vm_WindowTitle", snapshot.WorkingSetMb, snapshot.CpuPercent, snapshot.LinesPerSecond);
+
+        if (Documents.Count == 0)
+        {
+            PerformanceStatus = string.Empty;
+            return;
+        }
+
+        var bufferedLines = Documents.Sum(d => (long)d.BufferedLineCount);
+        var bufferedMb = Documents.Sum(d => d.BufferedTextBytes) / (1024.0 * 1024.0);
+        var worstLatency = Documents.Max(d => d.DispatchLatencyMs);
+        PerformanceStatus = Loc.Format("Vm_PerformanceStatus",
+            snapshot.LinesPerSecond, bufferedLines, bufferedMb, worstLatency, snapshot.WorkingSetMb);
     }
 
     public DockingWindowModeHost Host { get; }
@@ -317,7 +335,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void OpenMergedFiles()
     {
-        var paths = _dialogService.ShowOpenFileDialog();
+        var paths = _dialogService.ShowOpenMergedSourcesDialog();
         if (paths is not { Count: >= 2 })
         {
             if (paths is { Count: 1 })
@@ -340,7 +358,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var options = new TailSourceOptions { PollInterval = TimeSpan.FromMilliseconds(250) };
             var source = new MergedTailSource(ordered, options);
-            document = AddDocument(source, dedupKey, source.DisplayName);
+
+            // Detect a structured format from the underlying files (read raw, before the merge prefix).
+            var detectedFormatId = ordered
+                .Select(p => File.Exists(p) ? LogLineParsers.DetectFile(p) : null)
+                .FirstOrDefault(f => f is not null);
+
+            document = AddDocument(source, dedupKey, source.DisplayName,
+                isStructuredView: detectedFormatId is not null,
+                structuredFormatId: detectedFormatId);
         }
 
         RecordRecent(new TailSourceSettings { Kind = TailSourceKind.MergedFiles, Path = dedupKey, MergedPaths = ordered });
@@ -713,6 +739,82 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void Exit() => System.Windows.Application.Current?.Shutdown();
 
+    [RelayCommand]
+    private void ShowCommandPalette()
+    {
+        var chosen = _dialogService.ShowCommandPalette(BuildPaletteCommands());
+        chosen?.Execute();
+    }
+
+    /// <summary>Flattens the app's menu actions, every open document ("Go to…"), and the active
+    /// document's own commands into one searchable list for the Ctrl+P palette.</summary>
+    public IReadOnlyList<PaletteCommand> BuildPaletteCommands()
+    {
+        var file = Loc.Get("Palette_Cat_File");
+        var window = Loc.Get("Palette_Cat_Window");
+        var tools = Loc.Get("Palette_Cat_Tools");
+        var session = Loc.Get("Palette_Cat_Session");
+        var activeCat = Loc.Get("Palette_Cat_ActiveDoc");
+
+        var list = new List<PaletteCommand>
+        {
+            new(Loc.Get("Palette_OpenFile"), file, () => OpenFileCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenDirectory"), file, () => OpenDirectoryWatchCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenMerged"), file, () => OpenMergedFilesCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenEventLog"), file, () => OpenEventLogCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenRemote"), file, () => OpenRemoteEndpointCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenCommand"), file, () => OpenProcessTailCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenSsh"), file, () => OpenSshTailCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenEtw"), file, () => OpenEtwTailCommand.Execute(null)),
+            new(Loc.Get("Palette_WindowTabbed"), window, () => SwitchWindowModeCommand.Execute("Tabbed")),
+            new(Loc.Get("Palette_WindowFloating"), window, () => SwitchWindowModeCommand.Execute("Floating")),
+            new(Loc.Get("Palette_WindowMdi"), window, () => SwitchWindowModeCommand.Execute("Mdi")),
+            new(Loc.Get("Palette_HighlightPresets"), tools, () => EditHighlightPresetsCommand.Execute(null)),
+            new(Loc.Get("Palette_ExternalTools"), tools, () => EditExternalToolsCommand.Execute(null)),
+            new(Loc.Get("Palette_Services"), tools, () => OpenServicesCommand.Execute(null)),
+            new(Loc.Get("Palette_Settings"), tools, () => OpenSettingsCommand.Execute(null)),
+            new(Loc.Get("Palette_SaveProfile"), session, () => SaveSessionProfileAsCommand.Execute(null)),
+        };
+
+        foreach (var profileName in SessionProfileNames)
+        {
+            var captured = profileName;
+            list.Add(new PaletteCommand(Loc.Format("Palette_LoadProfileFmt", captured), session, () => LoadSessionProfileCommand.Execute(captured)));
+        }
+
+        foreach (var toggle in HighlightPresetToggles)
+        {
+            var captured = toggle;
+            list.Add(new PaletteCommand(
+                Loc.Format("Palette_ToggleHighlightFmt", captured.Name),
+                tools,
+                () => captured.IsEnabled = !captured.IsEnabled));
+        }
+
+        foreach (var document in Documents)
+        {
+            var captured = document;
+            list.Add(new PaletteCommand(Loc.Format("Palette_GoToFmt", captured.DisplayTitle), Loc.Get("Palette_Cat_Document"), () => ActiveDocument = captured, captured.SourcePath));
+        }
+
+        if (ActiveDocument is { } active)
+        {
+            list.Add(new PaletteCommand(Loc.Get("Palette_ToggleFollow"), activeCat, () => active.ToggleFollowCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ToggleStructured"), activeCat, () => active.IsStructuredView = !active.IsStructuredView));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ToggleTimeline"), activeCat, () => active.ToggleTimelineCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ClearFilters"), activeCat, () => active.ClearFilterCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ExportVisible"), activeCat, () => active.ExportVisibleCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_SearchInDoc"), activeCat, () => active.SearchCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_Customize"), activeCat, () => active.CustomizeCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_NextHighlight"), activeCat, () => active.NextHighlightCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_PrevHighlight"), activeCat, () => active.PreviousHighlightCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ToggleBookmark"), activeCat, () => active.ToggleBookmarkCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_CloseDoc"), activeCat, () => CloseDocumentCommand.Execute(active)));
+        }
+
+        return list;
+    }
+
     /// <summary>Captures the main window's chrome (bounds/maximize/AvalonDock layout) before it closes,
     /// so the next launch can restore it. Called from <c>MainWindow</c>'s Closing handler.</summary>
     public void CaptureWindowLayout(double left, double top, double width, double height, bool isMaximized, string? dockingLayoutXml)
@@ -739,19 +841,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 continue;
             }
 
-            entry.CustomColorHex = document.CustomColorHex;
-            entry.CustomIconGlyph = document.CustomIconGlyph;
-            entry.MdiLeft = document.MdiLeft;
-            entry.MdiTop = document.MdiTop;
-            entry.MdiWidth = document.MdiWidth;
-            entry.MdiHeight = document.MdiHeight;
-            entry.MdiIsMaximized = document.IsMdiMaximized;
-            entry.IsStructuredView = document.IsStructuredView;
-            entry.StructuredFormatId = document.IsStructuredFormatManuallyChosen ? document.StructuredFormatId : null;
+            CaptureLiveState(document, entry);
         }
 
         _settingsStore.Save(_settings);
         Dispose();
+    }
+
+    /// <summary>Copies a live document's customization and display-filter state back onto its persisted
+    /// <see cref="TailSourceSettings"/> entry — shared by session save and session-profile capture.</summary>
+    private static void CaptureLiveState(TailDocumentViewModel document, TailSourceSettings entry)
+    {
+        entry.CustomColorHex = document.CustomColorHex;
+        entry.CustomIconGlyph = document.CustomIconGlyph;
+        entry.MdiLeft = document.MdiLeft;
+        entry.MdiTop = document.MdiTop;
+        entry.MdiWidth = document.MdiWidth;
+        entry.MdiHeight = document.MdiHeight;
+        entry.MdiIsMaximized = document.IsMdiMaximized;
+        entry.IsStructuredView = document.IsStructuredView;
+        entry.StructuredFormatId = document.IsStructuredFormatManuallyChosen ? document.StructuredFormatId : null;
+        entry.TextFilterPattern = string.IsNullOrEmpty(document.TextFilterPattern) ? null : document.TextFilterPattern;
+        entry.TextFilterIsRegex = document.TextFilterIsRegex;
+        entry.TextFilterCaseSensitive = document.TextFilterCaseSensitive;
+        entry.TextFilterExclude = document.TextFilterExclude;
+        entry.MinLevel = document.IsLevelFilterActive ? document.MinLevel : null;
     }
 
     public void Dispose()
@@ -768,9 +882,34 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // --- Session restore -------------------------------------------------------------------
 
-    private void RestoreSession()
+    private void RestoreSession() => RestoreSources(_settings.RecentSources.ToList(), _settings.Layout.ActiveSourceDedupKey);
+
+    /// <summary>Opens every source in <paramref name="entries"/> (skipping ones that no longer resolve),
+    /// applies its saved customization/filters, and activates <paramref name="activeKey"/> if present.
+    /// Backs both startup session-restore and switching to a named session profile.</summary>
+    private void RestoreSources(IReadOnlyList<TailSourceSettings> entries, string? activeKey)
     {
-        foreach (var entry in _settings.RecentSources.ToList())
+        foreach (var entry in entries)
+        {
+            var document = TryRestoreSource(entry);
+            if (document is not null)
+            {
+                ApplyRestoredState(document, entry);
+            }
+        }
+
+        if (activeKey is not null)
+        {
+            var active = Documents.FirstOrDefault(d => string.Equals(d.SourcePath, activeKey, StringComparison.OrdinalIgnoreCase));
+            if (active is not null)
+            {
+                ActiveDocument = active;
+            }
+        }
+    }
+
+    private TailDocumentViewModel? TryRestoreSource(TailSourceSettings entry)
+    {
         {
             var document = entry.Kind switch
             {
@@ -804,23 +943,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 _ => null,
             };
 
-            if (document is not null)
-            {
-                ApplyRestoredCustomization(document, entry);
-            }
-        }
-
-        if (_settings.Layout.ActiveSourceDedupKey is { } activeKey)
-        {
-            var active = Documents.FirstOrDefault(d => string.Equals(d.SourcePath, activeKey, StringComparison.OrdinalIgnoreCase));
-            if (active is not null)
-            {
-                ActiveDocument = active;
-            }
+            return document;
         }
     }
 
-    private static void ApplyRestoredCustomization(TailDocumentViewModel document, TailSourceSettings entry)
+    private static void ApplyRestoredState(TailDocumentViewModel document, TailSourceSettings entry)
     {
         if (entry.CustomColorHex is not null)
         {
@@ -839,6 +966,129 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             document.MdiWidth = width;
             document.MdiHeight = height;
             document.IsMdiMaximized = entry.MdiIsMaximized;
+        }
+
+        if (!string.IsNullOrEmpty(entry.TextFilterPattern))
+        {
+            document.TextFilterIsRegex = entry.TextFilterIsRegex;
+            document.TextFilterCaseSensitive = entry.TextFilterCaseSensitive;
+            document.TextFilterExclude = entry.TextFilterExclude;
+            document.TextFilterPattern = entry.TextFilterPattern;
+        }
+
+        if (!string.IsNullOrEmpty(entry.MinLevel))
+        {
+            document.MinLevel = entry.MinLevel;
+        }
+    }
+
+    // --- Named session profiles ------------------------------------------------------------------
+
+    public IReadOnlyList<string> SessionProfileNames =>
+        _settings.SessionProfiles.Select(p => p.Name).OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase).ToList();
+
+    /// <summary>Snapshots the currently open documents (with live customization/filter state) plus the
+    /// window mode and docking layout as a named profile, replacing any existing profile of that name.</summary>
+    public void SaveSessionProfile(string name, string? dockingLayoutXml = null)
+    {
+        name = name.Trim();
+        if (name.Length == 0)
+        {
+            return;
+        }
+
+        var sources = new List<TailSourceSettings>();
+        foreach (var document in Documents)
+        {
+            var entry = _settings.RecentSources.FirstOrDefault(r =>
+                string.Equals(ComputeDedupKey(r), document.SourcePath, StringComparison.OrdinalIgnoreCase));
+            if (entry is null)
+            {
+                continue;
+            }
+
+            var clone = entry.Clone();
+            CaptureLiveState(document, clone);
+            sources.Add(clone);
+        }
+
+        _settings.SessionProfiles.RemoveAll(p => string.Equals(p.Name, name, StringComparison.CurrentCultureIgnoreCase));
+        _settings.SessionProfiles.Add(new SessionProfile
+        {
+            Name = name,
+            Sources = sources,
+            WindowMode = Host.Mode,
+            DockingLayoutXml = dockingLayoutXml ?? _settings.Layout.DockingLayoutXml,
+            ActiveSourceDedupKey = ActiveDocument?.SourcePath,
+        });
+
+        _settingsStore.Save(_settings);
+        OnPropertyChanged(nameof(SessionProfileNames));
+        StatusMessage = Loc.Format("Vm_Profile_Saved", name);
+    }
+
+    [RelayCommand]
+    private void SaveSessionProfileAs()
+    {
+        var name = _dialogService.ShowTextPrompt(
+            Loc.Get("Prompt_SaveProfile_Title"), Loc.Get("Prompt_SaveProfile_Message"), SuggestProfileName());
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            SaveProfileRequested?.Invoke(name.Trim());
+        }
+    }
+
+    /// <summary>Raised so <c>MainWindow</c> can capture the live AvalonDock layout XML before the
+    /// profile is written (the VM has no reference to the docking control).</summary>
+    public event Action<string>? SaveProfileRequested;
+
+    private string SuggestProfileName()
+    {
+        for (var i = 1; ; i++)
+        {
+            var candidate = i == 1 ? "My Session" : $"My Session {i}";
+            if (!_settings.SessionProfiles.Any(p => string.Equals(p.Name, candidate, StringComparison.CurrentCultureIgnoreCase)))
+            {
+                return candidate;
+            }
+        }
+    }
+
+    [RelayCommand]
+    private void LoadSessionProfile(string? name)
+    {
+        var profile = _settings.SessionProfiles.FirstOrDefault(p =>
+            string.Equals(p.Name, name, StringComparison.CurrentCultureIgnoreCase));
+        if (profile is null)
+        {
+            return;
+        }
+
+        foreach (var document in Documents.ToList())
+        {
+            CloseDocument(document);
+        }
+
+        if (profile.DockingLayoutXml is not null)
+        {
+            _settings.Layout.DockingLayoutXml = profile.DockingLayoutXml;
+        }
+
+        SwitchWindowMode(profile.WindowMode.ToString());
+        RestoreSources(profile.Sources.Select(s => s.Clone()).ToList(), profile.ActiveSourceDedupKey);
+        StatusMessage = Loc.Format("Vm_Profile_Loaded", profile.Name, profile.Sources.Count);
+    }
+
+    [RelayCommand]
+    private void DeleteSessionProfile(string? name)
+    {
+        var removed = _settings.SessionProfiles.RemoveAll(p =>
+            string.Equals(p.Name, name, StringComparison.CurrentCultureIgnoreCase));
+        if (removed > 0)
+        {
+            _settingsStore.Save(_settings);
+            OnPropertyChanged(nameof(SessionProfileNames));
+            StatusMessage = Loc.Format("Vm_Profile_Deleted", name);
         }
     }
 

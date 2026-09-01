@@ -112,9 +112,84 @@
   + `TailSourceSettings` fields (SSH secrets excluded), three dialogs (`OpenProcessTailView` /
   `OpenSshTailView` / `OpenEtwTailView`) with `PasswordBox`-backed secret entry, `MainViewModel.Open*`
   methods + File-menu items, session restore (SSH only for key-based auth), `Kind` mapping. Verified via
-  7 new Core + 2 new App unit tests (273 total) + full build. **Still open:** journald has no dedicated
-  source — it is covered by `ProcessTailSource` running `journalctl -f` (locally or `wsl journalctl`).
-  No Phase 6 UI path has had an interactive WPF pass.
+  7 new Core + 2 new App unit tests (273 total) + full build. journald has no dedicated source — it is
+  covered by `ProcessTailSource` running `journalctl -f` (locally or `wsl journalctl`).
+
+- **Phase 6f — first interactive-UI pass + fixes.** Ran the app under FlaUI and fixed what the pass
+  turned up:
+  - **Merged view + structured toggle did nothing** — merged lines carry a `label│ ` prefix that broke
+    every parser. `MergedTailSource.StripLabel` now removes it; `TailDocumentViewModel` strips it before
+    parsing when the source is a `MergedTailSource`, and `MainViewModel.OpenMergedFiles` auto-detects the
+    format from the underlying files and turns structured view on.
+  - **Volume timeline only worked for structured docs** — `RecomputeTimeline` now falls back to
+    `MergedTimestampExtractor` + `LogLevelNormalizer.GuessSeverityFromLine` for plain-text lines, so a
+    plain `yyyy-MM-dd HH:mm:ss [LEVEL]` log also charts.
+  - **ETW delivered no events** — switched from `Source.Dynamic.All` (EventSource/manifest only) to
+    `Source.AllEvents`, skipping only session-bookkeeping events.
+  - **Compact toolbar** — the document toolbar's text buttons are now single-glyph icons, each keeping
+    its `ToolTip` and an `AutomationProperties.Name`.
+  - **Sample logs** — `samples/timeline/{orders-service.clef, payments-service.log}` (+ a deterministic
+    `generate.py`) covering the same 15-minute window with a volume burst and an error storm, for
+    exercising the timeline and merged view.
+  - **UI automation** — `LogViewer.UITests` now drives the app through UIA patterns (Invoke / Toggle /
+    ExpandCollapse / Value) instead of synthesized mouse input, so the suite runs in a locked session.
+    New `DocumentUITests` (restores a sample log via an isolated `settings.json`, then asserts lines
+    render, the icon toolbar is reachable by accessible name, the timeline toggles + draws bars, and a
+    text filter hides lines) plus a File-menu-completeness check.
+  Verified via new Core/App unit tests + the FlaUI suite. Still no manual pass of the SSH / ETW dialogs
+  against real remote hosts / an elevated session.
+
+- **Phase 6g — second UI-feedback pass.**
+  - **ETW dialog** — added a **Debug** level (maps to ETW byte `0xFF` = verbose + any provider-defined
+    level above it); the Level combo was being clipped by the fixed window height, now `SizeToContent`
+    with a `MinWidth` on the combo.
+  - **Merge from many folders / whole directories** — replaced the single multi-select `OpenFileDialog`
+    behind File ▸ "Open Merged Files / Folders (by time)…" with a builder dialog
+    (`OpenMergedSourcesView`/`ViewModel`, `IDialogService.ShowOpenMergedSourcesDialog`). It accumulates
+    loose files added across repeated pickers (so from different folders) and/or folder entries
+    (directory + wildcard) that expand to their matching files on OK, de-duplicated and order-preserving.
+    This also covers "open one or several directories and merge them". `MainViewModel.OpenMergedFiles`
+    still receives a flat resolved file list, so persistence/restore/dedup are unchanged.
+
+- **Phase 6h — UX / platform pass.**
+  - **Command palette (Ctrl+P)** — `CommandPaletteView`/`ViewModel` + `IDialogService.ShowCommandPalette`.
+    Fuzzy-ranked (title-prefix › substring › subsequence) over the menu actions, one "Go to…" per open
+    document, the highlight-preset toggles, and the active document's commands. `MainViewModel.
+    BuildPaletteCommands()` assembles the list; the chosen `PaletteCommand.Execute` runs after close.
+  - **Embedded pattern tester** — `PatternMatchHelper` (shared regex/substring match-range logic) +
+    `RegexTestInlinesConverter`. A "Pattern tester" section in the highlight-rule editor and a 🧪 popup
+    on the document filter box: paste sample lines, matches highlight live as the pattern/regex/case
+    settings change, with an "N / M lines match" summary.
+  - **Named session profiles** — `SessionProfile` (Core): a named snapshot of the open documents (each a
+    `TailSourceSettings`), window mode, docking layout, active document. `AppSettings.SessionProfiles`,
+    schema **v5→v6** (no-op migration; `TailSourceSettings` also gains persisted per-document text/level
+    filter fields, so ordinary restore now remembers filters too). `MainViewModel` Save/Load/Delete +
+    `SaveSessionProfileAs` (name via `IDialogService.ShowTextPrompt`); `RestoreSession` refactored into a
+    shared `RestoreSources()` used by both startup and profile switching. New "Session" menu + palette
+    entries; `MainWindow` captures the live AvalonDock XML into the profile on save.
+  - **Smart auto-scroll lock** — `TailDocumentView.OnLineListScrollChanged` pauses follow when the user
+    scrolls up off the tail and re-arms it at the bottom; programmatic `ScrollIntoView` is flagged
+    (`IsProgrammaticScroll`) so it isn't mistaken for a user gesture. `UnseenLineCount` drives an
+    "⤓ N new lines — resume follow" banner.
+  - **Performance status bar** — `MainViewModel.PerformanceStatus` (polled ~1 Hz): lines/s, ring-buffer
+    fill + approx MB, worst-case UI dispatch latency, process RAM. Backed by
+    `RingLineBuffer.RetainedTextLength` and `UiDispatcherLineSink.AverageFlushMilliseconds` (stopwatch
+    around each flush, EMA-smoothed).
+
+- **Phase 6i — localization (restart-based).** `LogViewer.App/Localization/`: `Loc` (a `ResourceManager`
+  wrapper) + `LocExtension` (`{loc:Loc Key}` XAML markup extension, resolves once at parse time) over
+  `Strings.resx` (neutral, English — values byte-identical to the former hard-coded text) and
+  `Strings.pt-PT.resx`. `AppSettings.Language` (culture name, default `en`) is applied once in
+  `App.OnStartup` via `Loc.Initialize` *before the first window is built*; a language change needs a
+  restart, so `Loc` is a plain static lookup with no change notification. When no language is selected
+  `Loc` pins lookups to `InvariantCulture` so the neutral text is returned regardless of the OS UI
+  language. Every XAML view and every user-facing string built in a ViewModel / code-behind
+  (`StatusMessage`s, window title, performance readout, command-palette entries, composed filter status)
+  now goes through the bundle. Schema **v6→v7** (no-op migration — the field initializer already gives
+  pre-v7 files `"en"`). Settings dialog gains a Language dropdown (English / Português (Portugal)).
+  `LocTests` guards neutral↔pt-PT round-trip and that every neutral key has a pt-PT translation.
+  Adding a language: drop in `Strings.<culture>.resx` and add a `LanguageOption` to
+  `SettingsViewModel.AvailableLanguages`.
 
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and

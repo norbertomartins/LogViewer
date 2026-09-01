@@ -1,3 +1,4 @@
+using System.Text.Json;
 using LogViewer.Core.EventLogging;
 
 namespace LogViewer.Core.Configuration;
@@ -89,4 +90,24 @@ public sealed class TailSourceSettings
     public string? EtwProvider { get; set; }
 
     public int EtwLevel { get; set; } = 4;
+
+    // --- Per-document display filters (restored with the session / a session profile) --------------
+
+    /// <summary>Live text-filter pattern that was active on this document, or null.</summary>
+    public string? TextFilterPattern { get; set; }
+
+    public bool TextFilterIsRegex { get; set; } = true;
+
+    public bool TextFilterCaseSensitive { get; set; }
+
+    /// <summary>When true, the text filter hid matching lines instead of showing only them.</summary>
+    public bool TextFilterExclude { get; set; }
+
+    /// <summary>Minimum log level kept by the level filter (e.g. "Warning"), or null for "any level".</summary>
+    public string? MinLevel { get; set; }
+
+    /// <summary>Deep copy via a JSON round-trip — used to snapshot open documents into a
+    /// <see cref="SessionProfile"/> without later edits to the live recent-sources list leaking in.</summary>
+    public TailSourceSettings Clone() =>
+        JsonSerializer.Deserialize<TailSourceSettings>(JsonSerializer.Serialize(this))!;
 }

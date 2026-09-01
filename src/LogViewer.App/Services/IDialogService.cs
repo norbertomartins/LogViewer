@@ -28,6 +28,10 @@ public interface IDialogService
 {
     IReadOnlyList<string>? ShowOpenFileDialog();
 
+    /// <summary>Opens the "merge files/folders by time" builder. Returns the resolved concrete file paths
+    /// (folder entries already expanded), or null if cancelled.</summary>
+    IReadOnlyList<string>? ShowOpenMergedSourcesDialog();
+
     /// <summary>Opens the highlight preset editor over <paramref name="presets"/>. Returns true if the user saved changes.</summary>
     bool ShowHighlightPresetEditor(ICollection<HighlightPreset> presets);
 
@@ -53,6 +57,14 @@ public interface IDialogService
     SshTailSelection? ShowOpenSshTailDialog();
 
     EtwTailSelection? ShowOpenEtwTailDialog();
+
+    /// <summary>Shows the Ctrl+P command palette over <paramref name="commands"/>. Returns the chosen
+    /// command (whose <c>Execute</c> the caller then runs), or null if dismissed.</summary>
+    PaletteCommand? ShowCommandPalette(IReadOnlyList<PaletteCommand> commands);
+
+    /// <summary>Single-line text prompt (e.g. "name this session profile"). Returns the entered text,
+    /// or null if cancelled.</summary>
+    string? ShowTextPrompt(string title, string prompt, string? initialValue = null);
 
     void ShowServicesDialog();
 

@@ -12,7 +12,9 @@ architecture decisions.
 - Directory + wildcard watching (`DirectoryWatch`), auto-switching to whichever matching file was most
   recently modified.
 - Merged tailing of several files at once (`MergedTailSource`), interleaved by each line's timestamp via
-  a bounded reorder buffer, each line prefixed with a short per-file label.
+  a bounded reorder buffer, each line prefixed with a short per-file label. The "Open Merged Files /
+  Folders" builder accepts loose files picked from any number of different folders and/or whole
+  directories (expanded by wildcard), so logs scattered across machines/services can be viewed as one.
 - Remote log tailing over HTTP(S) (`HttpTailSource` — streaming SSE/chunked, or polled) and over
   WebSockets (`WebSocketTailSource`), with optional request headers and linear-backoff reconnect.
   One "Open Remote Log Endpoint" dialog routes by URL scheme.
@@ -35,13 +37,24 @@ architecture decisions.
   toolbar picker and can be overridden per document (persisted across restarts).
 - Gzip (`.gz`) log archives open transparently — decompressed once to a temp copy and then viewed,
   searched, and parsed like any other file.
+- Structured view (and format auto-detection) also works on a merged multi-file document — the per-file
+  label prefix is stripped before parsing.
 - Colorization by structured property (applied only to the message, not the whole line).
 - Quick filter by `TraceId`/`SpanId` from a given line (click to filter on that value), a minimum log
   level filter, and a button to clear all active filters.
 
+**Command palette and session profiles**
+- Command palette (Ctrl+P): fuzzy-searchable list of every menu action, a "Go to…" entry per open
+  document, the highlight-preset toggles, and the active document's commands.
+- Named session profiles: save the current set of open documents + window mode + docking layout +
+  per-document filters as a named profile, and switch between profiles (Session menu or the palette),
+  independent of the single auto-restored last session.
+
 **Highlighting, bookmarks, and navigation**
 - Highlight rules (regex, priority, color) evaluated live over incoming lines, with optional
   bold+underline emphasis of the exact matched sub-string within the line (toggle in Settings).
+- Embedded pattern tester in the highlight-rule editor and (as a popup) on the document filter box —
+  paste sample lines and see matches marked live as you tune the pattern.
 - Built-in highlight presets (e.g. "Errors & Exceptions", "Serilog Levels") plus an editor to
   create/export custom presets.
 - Bookmarks and next/previous navigation (highlight or bookmark) via keyboard shortcuts
@@ -53,7 +66,11 @@ architecture decisions.
   trace/span/level filters.
 - Export the currently visible (filtered) lines to a file.
 - Volume timeline: a collapsible histogram of line volume over time (error/warning/info stacked per time
-  bucket), click a bar to jump to the first line in that bucket.
+  bucket), click a bar to jump to the first line in that bucket. Works on structured logs and on
+  plain-text logs with a leading timestamp.
+- Smart auto-scroll lock: scrolling up off the tail pauses follow so new lines don't yank the viewport
+  down; a "N new lines — resume follow" banner counts what arrived while paused, and scrolling back to
+  the bottom re-arms follow automatically.
 
 **Search**
 - Full-text search over a file, independent of the in-memory ring buffer (finds matches already evicted
@@ -87,6 +104,10 @@ architecture decisions.
   pre-filled).
 - RDP session detection, widening the UI refresh interval to reduce traffic over Remote Desktop
   (configurable).
+- Localization: all UI text comes from resource bundles (English and Português (Portugal) ship in the
+  box). Pick the language in Settings; a restart applies it.
+- Live performance readout in the status bar: throughput (lines/s), ring-buffer fill and approximate
+  memory, UI dispatch latency, and process RAM.
 - System tray icon, with a per-tab file-change indicator.
 
 **MCP server (optional)**
@@ -157,6 +178,7 @@ C:\Dev\LogViewer\
                                      #   full-text regex search, structured-line caching
 
   samples\block-diff\            # sample files for manually exercising block-diff
+  samples\timeline\             # sample logs (CLEF + plain text) for the volume timeline / merged view
 
   .github\workflows\build.yml    # CI: build + tests on GitHub Actions
 ```
