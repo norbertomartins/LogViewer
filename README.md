@@ -104,6 +104,8 @@ architecture decisions.
   pre-filled).
 - RDP session detection, widening the UI refresh interval to reduce traffic over Remote Desktop
   (configurable).
+- Localization: all UI text comes from resource bundles (English and Português (Portugal) ship in the
+  box). Pick the language in Settings; a restart applies it.
 - Live performance readout in the status bar: throughput (lines/s), ring-buffer fill and approximate
   memory, UI dispatch latency, and process RAM.
 - System tray icon, with a per-tab file-change indicator.

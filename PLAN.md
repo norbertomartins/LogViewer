@@ -151,7 +151,7 @@
     This also covers "open one or several directories and merge them". `MainViewModel.OpenMergedFiles`
     still receives a flat resolved file list, so persistence/restore/dedup are unchanged.
 
-- **Phase 6h — UX / platform pass.** (Localization/`.resx` extraction deliberately deferred.)
+- **Phase 6h — UX / platform pass.**
   - **Command palette (Ctrl+P)** — `CommandPaletteView`/`ViewModel` + `IDialogService.ShowCommandPalette`.
     Fuzzy-ranked (title-prefix › substring › subsequence) over the menu actions, one "Go to…" per open
     document, the highlight-preset toggles, and the active document's commands. `MainViewModel.
@@ -175,6 +175,21 @@
     fill + approx MB, worst-case UI dispatch latency, process RAM. Backed by
     `RingLineBuffer.RetainedTextLength` and `UiDispatcherLineSink.AverageFlushMilliseconds` (stopwatch
     around each flush, EMA-smoothed).
+
+- **Phase 6i — localization (restart-based).** `LogViewer.App/Localization/`: `Loc` (a `ResourceManager`
+  wrapper) + `LocExtension` (`{loc:Loc Key}` XAML markup extension, resolves once at parse time) over
+  `Strings.resx` (neutral, English — values byte-identical to the former hard-coded text) and
+  `Strings.pt-PT.resx`. `AppSettings.Language` (culture name, default `en`) is applied once in
+  `App.OnStartup` via `Loc.Initialize` *before the first window is built*; a language change needs a
+  restart, so `Loc` is a plain static lookup with no change notification. When no language is selected
+  `Loc` pins lookups to `InvariantCulture` so the neutral text is returned regardless of the OS UI
+  language. Every XAML view and every user-facing string built in a ViewModel / code-behind
+  (`StatusMessage`s, window title, performance readout, command-palette entries, composed filter status)
+  now goes through the bundle. Schema **v6→v7** (no-op migration — the field initializer already gives
+  pre-v7 files `"en"`). Settings dialog gains a Language dropdown (English / Português (Portugal)).
+  `LocTests` guards neutral↔pt-PT round-trip and that every neutral key has a pt-PT translation.
+  Adding a language: drop in `Strings.<culture>.resx` and add a `LanguageOption` to
+  `SettingsViewModel.AvailableLanguages`.
 
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
