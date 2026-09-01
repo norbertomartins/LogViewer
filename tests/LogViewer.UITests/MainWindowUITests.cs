@@ -49,7 +49,7 @@ public sealed class MainWindowUITests : IDisposable
 
         foreach (var entry in new[]
                  {
-                     "Open File...", "Open Directory (Watch)...", "Open Merged Files (by time)...",
+                     "Open File...", "Open Directory (Watch)...", "Open Merged Files / Folders (by time)...",
                      "Open Windows Event Log...", "Open Remote Log Endpoint...", "Open Command Output...",
                      "Open SSH Log Tail...", "Open ETW Provider...",
                  })

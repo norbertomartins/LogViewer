@@ -25,6 +25,18 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         return dialog.ShowDialog() == true ? dialog.FileNames : null;
     }
 
+    public IReadOnlyList<string>? ShowOpenMergedSourcesDialog()
+    {
+        var viewModel = new OpenMergedSourcesViewModel();
+        var window = new OpenMergedSourcesView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        return window.ShowDialog() == true ? viewModel.ResolveFiles() : null;
+    }
+
     public bool ShowHighlightPresetEditor(ICollection<HighlightPreset> presets)
     {
         var viewModel = new HighlightPresetEditorViewModel(presets);

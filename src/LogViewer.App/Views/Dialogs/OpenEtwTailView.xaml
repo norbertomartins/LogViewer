@@ -2,24 +2,30 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Open ETW Provider"
-        Width="520" Height="240"
+        Width="520" SizeToContent="Height"
+        MinHeight="240"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
     <Grid Margin="12">
         <Grid.RowDefinitions>
-            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
+
         <StackPanel Grid.Row="0">
-            <TextBlock Text="Requires running LogViewer as Administrator." FontStyle="Italic" Opacity="0.8" Margin="0,0,0,8" />
+            <TextBlock Text="Requires running LogViewer as Administrator." FontStyle="Italic" Opacity="0.8" Margin="0,0,0,8" TextWrapping="Wrap" />
 
             <TextBlock Text="Provider name or GUID" />
             <ComboBox IsEditable="True" Text="{Binding Provider, UpdateSourceTrigger=PropertyChanged}"
                       ItemsSource="{Binding Presets}" Margin="0,2,0,10" />
 
             <TextBlock Text="Level" />
-            <ComboBox ItemsSource="{Binding LevelOptions}" SelectedItem="{Binding Level}" Margin="0,2,0,10" HorizontalAlignment="Left" Width="160" />
+            <ComboBox ItemsSource="{Binding LevelOptions}" SelectedItem="{Binding Level}"
+                      Margin="0,2,0,4" HorizontalAlignment="Left" MinWidth="200" />
+            <TextBlock Text="Debug captures the most detail (verbose + any provider-defined levels above it)."
+                       FontStyle="Italic" Opacity="0.7" TextWrapping="Wrap" Margin="0,0,0,10" />
         </StackPanel>
+
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
             <Button Content="OK" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
             <Button Content="Cancel" Width="80" Click="OnCancelClick" IsCancel="True" />

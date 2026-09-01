@@ -41,8 +41,8 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_Open File..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
                 <MenuItem Header="Open _Directory (Watch)..." Command="{Binding OpenDirectoryWatchCommand}" />
-                <MenuItem Header="Open _Merged Files (by time)..." Command="{Binding OpenMergedFilesCommand}"
-                          ToolTip="Pick 2+ files to tail together, interleaved by timestamp" />
+                <MenuItem Header="Open _Merged Files / Folders (by time)..." Command="{Binding OpenMergedFilesCommand}"
+                          ToolTip="Merge 2+ files and/or whole folders (from any directories) into one timestamp-ordered view" />
                 <MenuItem Header="Open _Windows Event Log..." Command="{Binding OpenEventLogCommand}" />
                 <MenuItem Header="Open _Remote Log Endpoint..." Command="{Binding OpenRemoteEndpointCommand}"
                           ToolTip="Tail a log stream over HTTP(S) (SSE/chunked/polled) or a WebSocket" />

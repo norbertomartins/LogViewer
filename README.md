@@ -12,7 +12,9 @@ architecture decisions.
 - Directory + wildcard watching (`DirectoryWatch`), auto-switching to whichever matching file was most
   recently modified.
 - Merged tailing of several files at once (`MergedTailSource`), interleaved by each line's timestamp via
-  a bounded reorder buffer, each line prefixed with a short per-file label.
+  a bounded reorder buffer, each line prefixed with a short per-file label. The "Open Merged Files /
+  Folders" builder accepts loose files picked from any number of different folders and/or whole
+  directories (expanded by wildcard), so logs scattered across machines/services can be viewed as one.
 - Remote log tailing over HTTP(S) (`HttpTailSource` — streaming SSE/chunked, or polled) and over
   WebSockets (`WebSocketTailSource`), with optional request headers and linear-backoff reconnect.
   One "Open Remote Log Endpoint" dialog routes by URL scheme.

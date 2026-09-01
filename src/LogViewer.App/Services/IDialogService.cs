@@ -28,6 +28,10 @@ public interface IDialogService
 {
     IReadOnlyList<string>? ShowOpenFileDialog();
 
+    /// <summary>Opens the "merge files/folders by time" builder. Returns the resolved concrete file paths
+    /// (folder entries already expanded), or null if cancelled.</summary>
+    IReadOnlyList<string>? ShowOpenMergedSourcesDialog();
+
     /// <summary>Opens the highlight preset editor over <paramref name="presets"/>. Returns true if the user saved changes.</summary>
     bool ShowHighlightPresetEditor(ICollection<HighlightPreset> presets);
 

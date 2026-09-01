@@ -317,7 +317,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void OpenMergedFiles()
     {
-        var paths = _dialogService.ShowOpenFileDialog();
+        var paths = _dialogService.ShowOpenMergedSourcesDialog();
         if (paths is not { Count: >= 2 })
         {
             if (paths is { Count: 1 })

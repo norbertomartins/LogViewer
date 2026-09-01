@@ -139,6 +139,18 @@
   Verified via new Core/App unit tests + the FlaUI suite. Still no manual pass of the SSH / ETW dialogs
   against real remote hosts / an elevated session.
 
+- **Phase 6g — second UI-feedback pass.**
+  - **ETW dialog** — added a **Debug** level (maps to ETW byte `0xFF` = verbose + any provider-defined
+    level above it); the Level combo was being clipped by the fixed window height, now `SizeToContent`
+    with a `MinWidth` on the combo.
+  - **Merge from many folders / whole directories** — replaced the single multi-select `OpenFileDialog`
+    behind File ▸ "Open Merged Files / Folders (by time)…" with a builder dialog
+    (`OpenMergedSourcesView`/`ViewModel`, `IDialogService.ShowOpenMergedSourcesDialog`). It accumulates
+    loose files added across repeated pickers (so from different folders) and/or folder entries
+    (directory + wildcard) that expand to their matching files on OK, de-duplicated and order-preserving.
+    This also covers "open one or several directories and merge them". `MainViewModel.OpenMergedFiles`
+    still receives a flat resolved file list, so persistence/restore/dedup are unchanged.
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was
