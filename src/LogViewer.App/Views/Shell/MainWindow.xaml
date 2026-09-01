@@ -114,8 +114,18 @@
         </Menu>
 
         <StatusBar DockPanel.Dock="Bottom">
+            <StatusBar.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <DockPanel HorizontalAlignment="Stretch" />
+                </ItemsPanelTemplate>
+            </StatusBar.ItemsPanel>
             <StatusBarItem>
-                <TextBlock Text="{Binding StatusMessage}" />
+                <TextBlock Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis" />
+            </StatusBarItem>
+            <StatusBarItem DockPanel.Dock="Right">
+                <TextBlock Text="{Binding PerformanceStatus}" Opacity="0.75" FontFamily="Consolas"
+                           AutomationProperties.AutomationId="PerformanceStatus"
+                           ToolTip="Throughput • ring-buffer fill / memory • UI dispatch latency • process RAM" />
             </StatusBarItem>
         </StatusBar>
 

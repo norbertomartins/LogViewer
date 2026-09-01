@@ -573,6 +573,17 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// <summary>Total lines ever appended (not bounded by the ring buffer), used for the title-bar lines/sec stat.</summary>
     public long TotalLinesAppended => _buffer.TotalLinesAppended;
 
+    // --- Performance telemetry (polled ~1 Hz by MainViewModel for the status bar) ------------------
+    public int BufferedLineCount => _buffer.Count;
+
+    public int BufferCapacity => _buffer.Capacity;
+
+    /// <summary>Approximate live text held in this document's ring buffer, in bytes (2 per char).</summary>
+    public long BufferedTextBytes => _buffer.RetainedTextLength * 2;
+
+    /// <summary>Smoothed UI-thread time per flush tick for this document's tail, in milliseconds.</summary>
+    public double DispatchLatencyMs => _sink.AverageFlushMilliseconds;
+
     /// <summary>Title prefixed with the custom glyph (if set) and a change marker while unseen changes are
     /// pending — drives the tab/MDI-title-bar text.</summary>
     public string DisplayTitle

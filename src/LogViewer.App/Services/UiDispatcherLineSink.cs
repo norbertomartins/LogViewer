@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Windows.Threading;
 using LogViewer.Core.Tailing;
 
@@ -20,6 +21,13 @@ public sealed class UiDispatcherLineSink : IDisposable
     public event Action<IReadOnlyList<TailLine>>? LinesFlushed;
     public event Action<TailResetReason>? ResetFlushed;
 
+    /// <summary>Wall-clock time the most recent non-empty <see cref="Flush"/> held the UI thread, in ms.</summary>
+    public double LastFlushMilliseconds { get; private set; }
+
+    /// <summary>Exponential moving average of <see cref="LastFlushMilliseconds"/> (α = 0.3) — the number
+    /// shown in the performance status bar, steadier than the raw per-tick value.</summary>
+    public double AverageFlushMilliseconds { get; private set; }
+
     public UiDispatcherLineSink(TimeSpan interval)
     {
         _timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = interval };
@@ -38,6 +46,7 @@ public sealed class UiDispatcherLineSink : IDisposable
             return;
         }
 
+        var startedAt = Stopwatch.GetTimestamp();
         List<TailLine>? pendingLines = null;
         while (_queue.TryDequeue(out var item))
         {
@@ -53,6 +62,11 @@ public sealed class UiDispatcherLineSink : IDisposable
         }
 
         FlushPendingLines(ref pendingLines);
+
+        LastFlushMilliseconds = Stopwatch.GetElapsedTime(startedAt).TotalMilliseconds;
+        AverageFlushMilliseconds = AverageFlushMilliseconds == 0
+            ? LastFlushMilliseconds
+            : (0.3 * LastFlushMilliseconds) + (0.7 * AverageFlushMilliseconds);
     }
 
     private void FlushPendingLines(ref List<TailLine>? pendingLines)

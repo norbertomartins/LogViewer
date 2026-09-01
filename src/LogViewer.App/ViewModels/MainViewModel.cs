@@ -40,6 +40,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _windowTitle = "LogViewer";
 
+    /// <summary>Right-aligned performance readout in the status bar: throughput, ring-buffer fill and
+    /// memory, and UI dispatch latency — so a live regression is visible without opening a profiler.</summary>
+    [ObservableProperty]
+    private string _performanceStatus = string.Empty;
+
     public MainViewModel(
         ISettingsStore settingsStore,
         AppSettings settings,
@@ -91,6 +96,18 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var totalLines = Documents.Sum(d => d.TotalLinesAppended);
         var snapshot = _processStats.Sample(totalLines);
         WindowTitle = $"LogViewer — RAM: {snapshot.WorkingSetMb:F0} MB | CPU: {snapshot.CpuPercent:F1}% | {snapshot.LinesPerSecond:F0} lines/sec";
+
+        if (Documents.Count == 0)
+        {
+            PerformanceStatus = string.Empty;
+            return;
+        }
+
+        var bufferedLines = Documents.Sum(d => (long)d.BufferedLineCount);
+        var bufferedMb = Documents.Sum(d => d.BufferedTextBytes) / (1024.0 * 1024.0);
+        var worstLatency = Documents.Max(d => d.DispatchLatencyMs);
+        PerformanceStatus =
+            $"{snapshot.LinesPerSecond:F0} lines/s  •  buffer {bufferedLines:N0} lines / {bufferedMb:F1} MB  •  dispatch {worstLatency:F1} ms  •  RAM {snapshot.WorkingSetMb:F0} MB";
     }
 
     public DockingWindowModeHost Host { get; }
