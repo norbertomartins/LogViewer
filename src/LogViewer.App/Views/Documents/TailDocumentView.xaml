@@ -101,41 +101,62 @@
         </Grid.RowDefinitions>
 
         <ToolBar Grid.Row="0" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
-            <ToggleButton Content="Follow Tail" IsChecked="{Binding IsFollowingTail}" />
-            <ToggleButton Content="Structured View" IsChecked="{Binding IsStructuredView}"
-                          ToolTip="{Binding StructuredFormatName, StringFormat='Parse this document as structured logs ({0}) — Time/Level/Message columns + property details'}" />
-            <ComboBox ItemsSource="{Binding AvailableStructuredFormats}" SelectedItem="{Binding StructuredFormatId}" Width="90"
+            <!-- Compact icon toolbar. Every control keeps a descriptive ToolTip and an
+                 AutomationProperties.Name so screen readers and UI-automation tests still identify it. -->
+            <ToolBar.Resources>
+                <Style x:Key="IconButton" TargetType="ButtonBase">
+                    <Setter Property="MinWidth" Value="30" />
+                    <Setter Property="FontSize" Value="13" />
+                    <Setter Property="Padding" Value="4,2" />
+                </Style>
+            </ToolBar.Resources>
+
+            <ToggleButton Content="⤓" Style="{StaticResource IconButton}" IsChecked="{Binding IsFollowingTail}"
+                          AutomationProperties.Name="Follow Tail" ToolTip="Follow the tail (auto-scroll to newest line)" />
+            <ToggleButton Content="☰" Style="{StaticResource IconButton}" IsChecked="{Binding IsStructuredView}"
+                          AutomationProperties.Name="Structured View"
+                          ToolTip="{Binding StructuredFormatName, StringFormat='Structured view ({0}) — Time/Level/Message columns + property details'}" />
+            <ComboBox ItemsSource="{Binding AvailableStructuredFormats}" SelectedItem="{Binding StructuredFormatId}" Width="86"
+                      AutomationProperties.Name="Structured format"
                       ToolTip="{Binding StructuredFormatName, StringFormat='Structured format: {0}. Auto-detected on open; change to override.'}"
                       Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
-            <!-- Colorize toggle: only meaningful while in structured view -->
-            <ToggleButton Content="⬤ Colorize Values" IsChecked="{Binding IsColorizeStructuredValues}"
-                          ToolTip="Highlight variable values in the message with distinct colors"
+            <ToggleButton Content="🎨" Style="{StaticResource IconButton}" IsChecked="{Binding IsColorizeStructuredValues}"
+                          AutomationProperties.Name="Colorize values" ToolTip="Highlight variable values in the message with distinct colors"
                           Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
-            <TextBlock Text="Min Level:" VerticalAlignment="Center" Margin="8,0,4,0"
-                       Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
-            <ComboBox ItemsSource="{Binding LevelOptions}" SelectedItem="{Binding MinLevel}" Width="110"
-                      ToolTip="Only show lines at or above this severity"
+            <ComboBox ItemsSource="{Binding LevelOptions}" SelectedItem="{Binding MinLevel}" Width="96"
+                      AutomationProperties.Name="Minimum level" ToolTip="Only show lines at or above this severity"
                       Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
             <Separator />
-            <Button Content="Toggle Bookmark" Command="{Binding ToggleBookmarkCommand}" ToolTip="Ctrl+F2" />
-            <Button Content="◀ Bookmark" Command="{Binding PreviousBookmarkCommand}" ToolTip="Shift+F2" />
-            <Button Content="Bookmark ▶" Command="{Binding NextBookmarkCommand}" ToolTip="F2" />
+            <Button Content="🔖" Style="{StaticResource IconButton}" Command="{Binding ToggleBookmarkCommand}"
+                    AutomationProperties.Name="Toggle bookmark" ToolTip="Toggle bookmark on the selected line (Ctrl+F2)" />
+            <Button Content="🔖▲" Style="{StaticResource IconButton}" Command="{Binding PreviousBookmarkCommand}"
+                    AutomationProperties.Name="Previous bookmark" ToolTip="Previous bookmark (Shift+F2)" />
+            <Button Content="🔖▼" Style="{StaticResource IconButton}" Command="{Binding NextBookmarkCommand}"
+                    AutomationProperties.Name="Next bookmark" ToolTip="Next bookmark (F2)" />
             <Separator />
-            <TextBlock Text="Filter:" VerticalAlignment="Center" Margin="0,0,4,0" />
-            <TextBox Width="150" VerticalAlignment="Center"
+            <TextBlock Text="🔍" VerticalAlignment="Center" Margin="2,0,3,0" />
+            <TextBox Width="140" VerticalAlignment="Center"
+                     AutomationProperties.Name="Text filter"
                      Text="{Binding TextFilterPattern, UpdateSourceTrigger=PropertyChanged, Delay=200}"
                      ToolTip="Show only lines matching this text/regex (live). Applies to the raw line in both plain and structured view." />
-            <ToggleButton Content=".*" IsChecked="{Binding TextFilterIsRegex}" ToolTip="Treat the filter as a regular expression" />
-            <ToggleButton Content="Aa" IsChecked="{Binding TextFilterCaseSensitive}" ToolTip="Case-sensitive filter" />
-            <ToggleButton Content="Exclude" IsChecked="{Binding TextFilterExclude}" ToolTip="Hide matching lines instead of showing only them" />
-            <Button Content="✕" Command="{Binding ClearTextFilterCommand}" ToolTip="Clear the text filter"
+            <ToggleButton Content=".*" Style="{StaticResource IconButton}" IsChecked="{Binding TextFilterIsRegex}"
+                          AutomationProperties.Name="Regex filter" ToolTip="Treat the filter as a regular expression" />
+            <ToggleButton Content="Aa" Style="{StaticResource IconButton}" IsChecked="{Binding TextFilterCaseSensitive}"
+                          AutomationProperties.Name="Case-sensitive filter" ToolTip="Case-sensitive filter" />
+            <ToggleButton Content="🚫" Style="{StaticResource IconButton}" IsChecked="{Binding TextFilterExclude}"
+                          AutomationProperties.Name="Exclude filter" ToolTip="Hide matching lines instead of showing only them" />
+            <Button Content="✕" Style="{StaticResource IconButton}" Command="{Binding ClearTextFilterCommand}"
+                    AutomationProperties.Name="Clear filter" ToolTip="Clear the text filter"
                     Visibility="{Binding IsTextFilterActive, Converter={StaticResource BoolToVisibilityConverter}}" />
             <Separator />
-            <Button Content="◀ Highlight" Command="{Binding PreviousHighlightCommand}" ToolTip="Shift+F3" />
-            <Button Content="Highlight ▶" Command="{Binding NextHighlightCommand}" ToolTip="F3" />
+            <Button Content="🖍▲" Style="{StaticResource IconButton}" Command="{Binding PreviousHighlightCommand}"
+                    AutomationProperties.Name="Previous highlight" ToolTip="Previous highlighted line (Shift+F3)" />
+            <Button Content="🖍▼" Style="{StaticResource IconButton}" Command="{Binding NextHighlightCommand}"
+                    AutomationProperties.Name="Next highlight" ToolTip="Next highlighted line (F3)" />
             <Separator />
             <Menu Background="Transparent">
-                <MenuItem Header="Run Tool ▶" ItemsSource="{Binding ExternalTools}">
+                <MenuItem Header="⚙" FontSize="13" AutomationProperties.Name="Run tool" ToolTip="Run an external tool on the selected line"
+                          ItemsSource="{Binding ExternalTools}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Header" Value="{Binding Name}" />
@@ -145,26 +166,31 @@
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
             </Menu>
-            <Button Content="Search..." Command="{Binding SearchCommand}" ToolTip="Ctrl+Shift+F" />
-            <Button Content="Export..." Command="{Binding ExportVisibleCommand}" ToolTip="Save the currently visible (filtered) lines to a file" />
-            <ToggleButton Content="📊 Timeline" IsChecked="{Binding ShowTimeline}"
-                          ToolTip="Show a volume-over-time histogram of the visible timestamped lines" />
-            <Button Content="Customize..." Command="{Binding CustomizeCommand}" />
+            <Button Content="🔎" Style="{StaticResource IconButton}" Command="{Binding SearchCommand}"
+                    AutomationProperties.Name="Search" ToolTip="Search the whole file / channel (Ctrl+Shift+F)" />
+            <Button Content="💾" Style="{StaticResource IconButton}" Command="{Binding ExportVisibleCommand}"
+                    AutomationProperties.Name="Export" ToolTip="Save the currently visible (filtered) lines to a file" />
+            <ToggleButton Content="📊" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeline}"
+                          AutomationProperties.Name="Timeline" ToolTip="Show a volume-over-time histogram of the visible timestamped lines" />
+            <Button Content="🖌" Style="{StaticResource IconButton}" Command="{Binding CustomizeCommand}"
+                    AutomationProperties.Name="Customize" ToolTip="Customize this document's tab color and icon" />
             <Separator />
-            <Button Content="New lines below — resume follow" Command="{Binding ResumeFollowCommand}"
+            <Button Content="⤓ New lines — resume follow" Command="{Binding ResumeFollowCommand}"
+                    AutomationProperties.Name="Resume follow"
                     Visibility="{Binding HasUnseenChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
         </ToolBar>
 
         <!-- Volume timeline: one bar per time bucket (error red / warning amber / info accent), click to
              jump to the first line in that bucket. Only timestamped lines contribute. -->
-        <Border Grid.Row="1" Background="{DynamicResource Theme.LogBackground}"
+        <Border Grid.Row="1" x:Name="TimelineStrip"
+                Background="{DynamicResource Theme.LogBackground}"
                 BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,0,0,1" Padding="4,2"
                 Visibility="{Binding ShowTimeline, Converter={StaticResource BoolToVisibilityConverter}}">
             <Grid Height="52">
                 <TextBlock Text="No timestamped lines to chart" Opacity="0.6" HorizontalAlignment="Center" VerticalAlignment="Center"
                            Visibility="{Binding TimelineHasData, Converter={StaticResource InverseBoolToVisibilityConverter}}" />
                 <ItemsControl ItemsSource="{Binding VolumeBins}"
-                              Visibility="{Binding TimelineHasData, Converter={StaticResource BoolToVisibilityConverter}}">
+                              AutomationProperties.AutomationId="TimelineStrip" AutomationProperties.Name="Volume timeline">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
                             <UniformGrid Rows="1" />
