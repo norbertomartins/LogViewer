@@ -1,7 +1,8 @@
 <Window x:Class="LogViewer.App.Views.Dialogs.OpenProcessTailView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Open Command Output"
+        xmlns:loc="clr-namespace:LogViewer.App.Localization"
+        Title="{loc:Loc Process_Title}"
         Width="520" Height="270"
         WindowStartupLocation="CenterOwner"
         ResizeMode="NoResize">
@@ -11,20 +12,20 @@
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <StackPanel Grid.Row="0">
-            <TextBlock Text="Preset" />
+            <TextBlock Text="{loc:Loc Process_Preset}" />
             <ComboBox ItemsSource="{Binding Presets}" SelectionChanged="OnPresetChanged" Margin="0,2,0,10" />
 
-            <TextBlock Text="Executable" />
+            <TextBlock Text="{loc:Loc Process_Executable}" />
             <TextBox Text="{Binding FileName, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
 
-            <TextBlock Text="Arguments" />
+            <TextBlock Text="{loc:Loc Process_Arguments}" />
             <TextBox Text="{Binding Arguments, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" FontFamily="Consolas" />
 
-            <CheckBox Content="Relaunch the command when it exits (for -f / follow commands)" IsChecked="{Binding RestartOnExit}" />
+            <CheckBox Content="{loc:Loc Process_RestartOnExit}" IsChecked="{Binding RestartOnExit}" />
         </StackPanel>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="OK" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
-            <Button Content="Cancel" Width="80" Click="OnCancelClick" IsCancel="True" />
+            <Button Content="{loc:Loc Common_OK}" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" />
+            <Button Content="{loc:Loc Common_Cancel}" Width="80" Click="OnCancelClick" IsCancel="True" />
         </StackPanel>
     </Grid>
 </Window>

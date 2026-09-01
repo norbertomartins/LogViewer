@@ -6,6 +6,7 @@
         xmlns:views="clr-namespace:LogViewer.App.Views.Documents"
         xmlns:shell="clr-namespace:LogViewer.App.Views.Shell"
         xmlns:tb="http://www.hardcodet.net/taskbar"
+        xmlns:loc="clr-namespace:LogViewer.App.Localization"
         Title="{Binding WindowTitle}"
         Height="700" Width="1100"
         AllowDrop="True"
@@ -26,34 +27,34 @@
 
     <DockPanel>
         <tb:TaskbarIcon x:Name="TrayIcon"
-                         ToolTipText="LogViewer"
+                         ToolTipText="{loc:Loc Tray_ToolTip}"
                          TrayMouseDoubleClick="OnTrayShowClick"
                          Visibility="Collapsed">
             <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
-                    <MenuItem Header="Show LogViewer" Click="OnTrayShowClick" FontWeight="Bold" />
+                    <MenuItem Header="{loc:Loc Tray_Show}" Click="OnTrayShowClick" FontWeight="Bold" />
                     <Separator />
-                    <MenuItem Header="Exit" Command="{Binding ExitCommand}" />
+                    <MenuItem Header="{loc:Loc Tray_Exit}" Command="{Binding ExitCommand}" />
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
 
         <Menu DockPanel.Dock="Top">
-            <MenuItem Header="_File">
-                <MenuItem Header="_Open File..." Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
-                <MenuItem Header="Open _Directory (Watch)..." Command="{Binding OpenDirectoryWatchCommand}" />
-                <MenuItem Header="Open _Merged Files / Folders (by time)..." Command="{Binding OpenMergedFilesCommand}"
-                          ToolTip="Merge 2+ files and/or whole folders (from any directories) into one timestamp-ordered view" />
-                <MenuItem Header="Open _Windows Event Log..." Command="{Binding OpenEventLogCommand}" />
-                <MenuItem Header="Open _Remote Log Endpoint..." Command="{Binding OpenRemoteEndpointCommand}"
-                          ToolTip="Tail a log stream over HTTP(S) (SSE/chunked/polled) or a WebSocket" />
-                <MenuItem Header="Open _Command Output..." Command="{Binding OpenProcessTailCommand}"
-                          ToolTip="Tail the stdout/stderr of a command (journalctl -f, docker logs -f, …)" />
-                <MenuItem Header="Open S_SH Log Tail..." Command="{Binding OpenSshTailCommand}"
-                          ToolTip="Run a command over SSH on a remote host and tail its output" />
-                <MenuItem Header="Open _ETW Provider..." Command="{Binding OpenEtwTailCommand}"
-                          ToolTip="Tail a real-time Event Tracing for Windows provider (Administrator)" />
-                <MenuItem Header="Recent Files" ItemsSource="{Binding RecentFiles}">
+            <MenuItem Header="{loc:Loc Menu_File}">
+                <MenuItem Header="{loc:Loc Menu_File_OpenFile}" Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
+                <MenuItem Header="{loc:Loc Menu_File_OpenDirectory}" Command="{Binding OpenDirectoryWatchCommand}" />
+                <MenuItem Header="{loc:Loc Menu_File_OpenMerged}" Command="{Binding OpenMergedFilesCommand}"
+                          ToolTip="{loc:Loc Menu_File_OpenMerged_ToolTip}" />
+                <MenuItem Header="{loc:Loc Menu_File_OpenEventLog}" Command="{Binding OpenEventLogCommand}" />
+                <MenuItem Header="{loc:Loc Menu_File_OpenRemote}" Command="{Binding OpenRemoteEndpointCommand}"
+                          ToolTip="{loc:Loc Menu_File_OpenRemote_ToolTip}" />
+                <MenuItem Header="{loc:Loc Menu_File_OpenCommand}" Command="{Binding OpenProcessTailCommand}"
+                          ToolTip="{loc:Loc Menu_File_OpenCommand_ToolTip}" />
+                <MenuItem Header="{loc:Loc Menu_File_OpenSsh}" Command="{Binding OpenSshTailCommand}"
+                          ToolTip="{loc:Loc Menu_File_OpenSsh_ToolTip}" />
+                <MenuItem Header="{loc:Loc Menu_File_OpenEtw}" Command="{Binding OpenEtwTailCommand}"
+                          ToolTip="{loc:Loc Menu_File_OpenEtw_ToolTip}" />
+                <MenuItem Header="{loc:Loc Menu_File_RecentFiles}" ItemsSource="{Binding RecentFiles}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Header" Value="{Binding Path}" />
@@ -63,18 +64,18 @@
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
                 <Separator />
-                <MenuItem Header="Mi_nimize to Tray" Click="OnMinimizeToTrayClick" />
+                <MenuItem Header="{loc:Loc Menu_File_MinimizeToTray}" Click="OnMinimizeToTrayClick" />
                 <Separator />
-                <MenuItem Header="E_xit" Command="{Binding ExitCommand}" />
+                <MenuItem Header="{loc:Loc Menu_File_Exit}" Command="{Binding ExitCommand}" />
             </MenuItem>
-            <MenuItem Header="_Window Mode">
-                <MenuItem Header="_Tabbed" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Tabbed" />
-                <MenuItem Header="_Floating" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Floating" />
-                <MenuItem Header="_MDI" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Mdi" />
+            <MenuItem Header="{loc:Loc Menu_WindowMode}">
+                <MenuItem Header="{loc:Loc Menu_WindowMode_Tabbed}" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Tabbed" />
+                <MenuItem Header="{loc:Loc Menu_WindowMode_Floating}" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Floating" />
+                <MenuItem Header="{loc:Loc Menu_WindowMode_Mdi}" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Mdi" />
             </MenuItem>
-            <MenuItem Header="_Session">
-                <MenuItem Header="_Save Current Session as Profile..." Command="{Binding SaveSessionProfileAsCommand}" />
-                <MenuItem Header="_Load Profile" ItemsSource="{Binding SessionProfileNames}">
+            <MenuItem Header="{loc:Loc Menu_Session}">
+                <MenuItem Header="{loc:Loc Menu_Session_SaveAs}" Command="{Binding SaveSessionProfileAsCommand}" />
+                <MenuItem Header="{loc:Loc Menu_Session_Load}" ItemsSource="{Binding SessionProfileNames}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Header" Value="{Binding}" />
@@ -83,7 +84,7 @@
                         </Style>
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
-                <MenuItem Header="_Delete Profile" ItemsSource="{Binding SessionProfileNames}">
+                <MenuItem Header="{loc:Loc Menu_Session_Delete}" ItemsSource="{Binding SessionProfileNames}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Header" Value="{Binding}" />
@@ -93,9 +94,9 @@
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="_Tools">
-                <MenuItem Header="_Highlight Presets..." Command="{Binding EditHighlightPresetsCommand}" />
-                <MenuItem Header="_Toggle Highlight Presets" ItemsSource="{Binding HighlightPresetToggles}">
+            <MenuItem Header="{loc:Loc Menu_Tools}">
+                <MenuItem Header="{loc:Loc Menu_Tools_HighlightPresets}" Command="{Binding EditHighlightPresetsCommand}" />
+                <MenuItem Header="{loc:Loc Menu_Tools_ToggleHighlightPresets}" ItemsSource="{Binding HighlightPresetToggles}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
                             <Setter Property="Header" Value="{Binding Name}" />
@@ -105,11 +106,11 @@
                         </Style>
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
-                <MenuItem Header="External _Tools..." Command="{Binding EditExternalToolsCommand}" />
-                <MenuItem Header="_Windows Services..." Command="{Binding OpenServicesCommand}" />
-                <MenuItem Header="_Settings..." Command="{Binding OpenSettingsCommand}" />
+                <MenuItem Header="{loc:Loc Menu_Tools_ExternalTools}" Command="{Binding EditExternalToolsCommand}" />
+                <MenuItem Header="{loc:Loc Menu_Tools_Services}" Command="{Binding OpenServicesCommand}" />
+                <MenuItem Header="{loc:Loc Menu_Tools_Settings}" Command="{Binding OpenSettingsCommand}" />
                 <Separator />
-                <MenuItem Header="Command _Palette..." Command="{Binding ShowCommandPaletteCommand}" InputGestureText="Ctrl+P" />
+                <MenuItem Header="{loc:Loc Menu_Tools_CommandPalette}" Command="{Binding ShowCommandPaletteCommand}" InputGestureText="Ctrl+P" />
             </MenuItem>
         </Menu>
 
@@ -125,7 +126,7 @@
             <StatusBarItem DockPanel.Dock="Right">
                 <TextBlock Text="{Binding PerformanceStatus}" Opacity="0.75" FontFamily="Consolas"
                            AutomationProperties.AutomationId="PerformanceStatus"
-                           ToolTip="Throughput • ring-buffer fill / memory • UI dispatch latency • process RAM" />
+                           ToolTip="{loc:Loc Status_Performance_ToolTip}" />
             </StatusBarItem>
         </StatusBar>
 
