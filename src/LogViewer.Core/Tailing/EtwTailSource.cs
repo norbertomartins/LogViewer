@@ -29,6 +29,8 @@ public sealed class EtwTailOptions
 [SupportedOSPlatform("windows")]
 public sealed class EtwTailSource : ITailSource
 {
+    private static readonly Guid EtwSessionBookkeepingGuid = new("68fdd900-4a3e-11d1-84f4-0000f80464e3");
+
     private readonly EtwTailOptions _options;
     private readonly string _sessionName;
     private readonly object _sync = new();
@@ -83,7 +85,10 @@ public sealed class EtwTailSource : ITailSource
             try
             {
                 _session = new TraceEventSession(_sessionName) { StopOnDispose = true };
-                _session.Source.Dynamic.All += OnEvent;
+
+                // AllEvents fires for every event regardless of how (or whether) it can be parsed —
+                // Dynamic.All only covers EventSource/manifest events and misses classic providers.
+                _session.Source.AllEvents += OnEvent;
 
                 if (Guid.TryParse(_options.Provider, out var providerGuid))
                 {
@@ -152,6 +157,12 @@ public sealed class EtwTailSource : ITailSource
 
     private void OnEvent(TraceEvent data)
     {
+        // Session bookkeeping events (rundown/header) aren't log content.
+        if (data.ProviderGuid == EtwSessionBookkeepingGuid || data.EventName is "EventTrace" or "ManifestData")
+        {
+            return;
+        }
+
         var line = new StringBuilder();
         line.Append(data.TimeStamp.ToString("HH:mm:ss.ffffff", CultureInfo.InvariantCulture));
         line.Append(" [").Append(data.Level).Append("] ");
