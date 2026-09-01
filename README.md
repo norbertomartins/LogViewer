@@ -43,9 +43,18 @@ architecture decisions.
 - Quick filter by `TraceId`/`SpanId` from a given line (click to filter on that value), a minimum log
   level filter, and a button to clear all active filters.
 
+**Command palette and session profiles**
+- Command palette (Ctrl+P): fuzzy-searchable list of every menu action, a "Go to…" entry per open
+  document, the highlight-preset toggles, and the active document's commands.
+- Named session profiles: save the current set of open documents + window mode + docking layout +
+  per-document filters as a named profile, and switch between profiles (Session menu or the palette),
+  independent of the single auto-restored last session.
+
 **Highlighting, bookmarks, and navigation**
 - Highlight rules (regex, priority, color) evaluated live over incoming lines, with optional
   bold+underline emphasis of the exact matched sub-string within the line (toggle in Settings).
+- Embedded pattern tester in the highlight-rule editor and (as a popup) on the document filter box —
+  paste sample lines and see matches marked live as you tune the pattern.
 - Built-in highlight presets (e.g. "Errors & Exceptions", "Serilog Levels") plus an editor to
   create/export custom presets.
 - Bookmarks and next/previous navigation (highlight or bookmark) via keyboard shortcuts
@@ -59,6 +68,9 @@ architecture decisions.
 - Volume timeline: a collapsible histogram of line volume over time (error/warning/info stacked per time
   bucket), click a bar to jump to the first line in that bucket. Works on structured logs and on
   plain-text logs with a leading timestamp.
+- Smart auto-scroll lock: scrolling up off the tail pauses follow so new lines don't yank the viewport
+  down; a "N new lines — resume follow" banner counts what arrived while paused, and scrolling back to
+  the bottom re-arms follow automatically.
 
 **Search**
 - Full-text search over a file, independent of the in-memory ring buffer (finds matches already evicted
@@ -92,6 +104,8 @@ architecture decisions.
   pre-filled).
 - RDP session detection, widening the UI refresh interval to reduce traffic over Remote Desktop
   (configurable).
+- Live performance readout in the status bar: throughput (lines/s), ring-buffer fill and approximate
+  memory, UI dispatch latency, and process RAM.
 - System tray icon, with a per-tab file-change indicator.
 
 **MCP server (optional)**

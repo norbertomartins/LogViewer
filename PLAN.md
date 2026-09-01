@@ -151,6 +151,31 @@
     This also covers "open one or several directories and merge them". `MainViewModel.OpenMergedFiles`
     still receives a flat resolved file list, so persistence/restore/dedup are unchanged.
 
+- **Phase 6h — UX / platform pass.** (Localization/`.resx` extraction deliberately deferred.)
+  - **Command palette (Ctrl+P)** — `CommandPaletteView`/`ViewModel` + `IDialogService.ShowCommandPalette`.
+    Fuzzy-ranked (title-prefix › substring › subsequence) over the menu actions, one "Go to…" per open
+    document, the highlight-preset toggles, and the active document's commands. `MainViewModel.
+    BuildPaletteCommands()` assembles the list; the chosen `PaletteCommand.Execute` runs after close.
+  - **Embedded pattern tester** — `PatternMatchHelper` (shared regex/substring match-range logic) +
+    `RegexTestInlinesConverter`. A "Pattern tester" section in the highlight-rule editor and a 🧪 popup
+    on the document filter box: paste sample lines, matches highlight live as the pattern/regex/case
+    settings change, with an "N / M lines match" summary.
+  - **Named session profiles** — `SessionProfile` (Core): a named snapshot of the open documents (each a
+    `TailSourceSettings`), window mode, docking layout, active document. `AppSettings.SessionProfiles`,
+    schema **v5→v6** (no-op migration; `TailSourceSettings` also gains persisted per-document text/level
+    filter fields, so ordinary restore now remembers filters too). `MainViewModel` Save/Load/Delete +
+    `SaveSessionProfileAs` (name via `IDialogService.ShowTextPrompt`); `RestoreSession` refactored into a
+    shared `RestoreSources()` used by both startup and profile switching. New "Session" menu + palette
+    entries; `MainWindow` captures the live AvalonDock XML into the profile on save.
+  - **Smart auto-scroll lock** — `TailDocumentView.OnLineListScrollChanged` pauses follow when the user
+    scrolls up off the tail and re-arms it at the bottom; programmatic `ScrollIntoView` is flagged
+    (`IsProgrammaticScroll`) so it isn't mistaken for a user gesture. `UnseenLineCount` drives an
+    "⤓ N new lines — resume follow" banner.
+  - **Performance status bar** — `MainViewModel.PerformanceStatus` (polled ~1 Hz): lines/s, ring-buffer
+    fill + approx MB, worst-case UI dispatch latency, process RAM. Backed by
+    `RingLineBuffer.RetainedTextLength` and `UiDispatcherLineSink.AverageFlushMilliseconds` (stopwatch
+    around each flush, EMA-smoothed).
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was
