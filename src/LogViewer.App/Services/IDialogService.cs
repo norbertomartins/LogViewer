@@ -58,6 +58,10 @@ public interface IDialogService
 
     EtwTailSelection? ShowOpenEtwTailDialog();
 
+    /// <summary>Shows the Ctrl+P command palette over <paramref name="commands"/>. Returns the chosen
+    /// command (whose <c>Execute</c> the caller then runs), or null if dismissed.</summary>
+    PaletteCommand? ShowCommandPalette(IReadOnlyList<PaletteCommand> commands);
+
     void ShowServicesDialog();
 
     /// <summary>Opens a non-modal full-file/EventLog search window over <paramref name="document"/>.</summary>

@@ -15,6 +15,7 @@
         Closing="OnClosing">
     <Window.InputBindings>
         <KeyBinding Key="O" Modifiers="Control" Command="{Binding OpenFileCommand}" />
+        <KeyBinding Key="P" Modifiers="Control" Command="{Binding ShowCommandPaletteCommand}" />
         <KeyBinding Key="F3" Command="{Binding ActiveDocument.NextHighlightCommand}" />
         <KeyBinding Key="F3" Modifiers="Shift" Command="{Binding ActiveDocument.PreviousHighlightCommand}" />
         <KeyBinding Key="F2" Command="{Binding ActiveDocument.NextBookmarkCommand}" />
@@ -86,6 +87,8 @@
                 <MenuItem Header="External _Tools..." Command="{Binding EditExternalToolsCommand}" />
                 <MenuItem Header="_Windows Services..." Command="{Binding OpenServicesCommand}" />
                 <MenuItem Header="_Settings..." Command="{Binding OpenSettingsCommand}" />
+                <Separator />
+                <MenuItem Header="Command _Palette..." Command="{Binding ShowCommandPaletteCommand}" InputGestureText="Ctrl+P" />
             </MenuItem>
         </Menu>
 

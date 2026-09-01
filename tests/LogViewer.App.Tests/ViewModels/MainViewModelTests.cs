@@ -1,6 +1,7 @@
 using System.IO;
 using LogViewer.App.Services;
 using LogViewer.App.Tests.TestUtilities;
+using LogViewer.App.ViewModels;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
 using NSubstitute;
@@ -56,6 +57,37 @@ public sealed class MainViewModelTests : IDisposable
         Assert.Single(recent);
         Assert.Equal(TailSourceKind.File, recent[0].Kind);
 
+        viewModel.Dispose();
+    }
+
+    [Fact]
+    public void ShowCommandPalette_ExecutesTheChosenCommand()
+    {
+        var dialogs = Substitute.For<IDialogService>();
+        var (viewModel, _) = MainViewModelFactory.Create(dialogService: dialogs);
+        dialogs.ShowCommandPalette(Arg.Any<IReadOnlyList<PaletteCommand>>())
+            .Returns(ci => ((IReadOnlyList<PaletteCommand>)ci[0]).First(c => c.Title == "Window Mode: MDI"));
+
+        viewModel.ShowCommandPaletteCommand.Execute(null);
+
+        Assert.Equal(LogViewer.Core.Configuration.WindowModeKind.Mdi, viewModel.Host.Mode);
+        viewModel.Dispose();
+    }
+
+    [Fact]
+    public void BuildPaletteCommands_IncludesGoToEntryPerOpenDocument()
+    {
+        var a = _tempDir.CreateFile("first.log", "x\n");
+        var b = _tempDir.CreateFile("second.log", "y\n");
+        var (viewModel, _) = MainViewModelFactory.Create();
+        viewModel.OpenPath(a);
+        viewModel.OpenPath(b);
+
+        var commands = viewModel.BuildPaletteCommands();
+
+        Assert.Contains(commands, c => c.Category == "Document" && c.Title.Contains("first.log"));
+        Assert.Contains(commands, c => c.Category == "Document" && c.Title.Contains("second.log"));
+        Assert.Contains(commands, c => c.Title == "Open File…");
         viewModel.Dispose();
     }
 

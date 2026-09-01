@@ -202,6 +202,17 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
             : null;
     }
 
+    public PaletteCommand? ShowCommandPalette(IReadOnlyList<PaletteCommand> commands)
+    {
+        var window = new CommandPaletteView
+        {
+            DataContext = new CommandPaletteViewModel(commands),
+            Owner = Application.Current?.MainWindow,
+        };
+
+        return window.ShowDialog() == true ? window.ChosenCommand : null;
+    }
+
     public void ShowServicesDialog()
     {
         var window = new ServicesView

@@ -721,6 +721,69 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private void Exit() => System.Windows.Application.Current?.Shutdown();
 
+    [RelayCommand]
+    private void ShowCommandPalette()
+    {
+        var chosen = _dialogService.ShowCommandPalette(BuildPaletteCommands());
+        chosen?.Execute();
+    }
+
+    /// <summary>Flattens the app's menu actions, every open document ("Go to…"), and the active
+    /// document's own commands into one searchable list for the Ctrl+P palette.</summary>
+    public IReadOnlyList<PaletteCommand> BuildPaletteCommands()
+    {
+        var list = new List<PaletteCommand>
+        {
+            new("Open File…", "File", () => OpenFileCommand.Execute(null)),
+            new("Open Directory (Watch)…", "File", () => OpenDirectoryWatchCommand.Execute(null)),
+            new("Open Merged Files / Folders…", "File", () => OpenMergedFilesCommand.Execute(null)),
+            new("Open Windows Event Log…", "File", () => OpenEventLogCommand.Execute(null)),
+            new("Open Remote Log Endpoint…", "File", () => OpenRemoteEndpointCommand.Execute(null)),
+            new("Open Command Output…", "File", () => OpenProcessTailCommand.Execute(null)),
+            new("Open SSH Log Tail…", "File", () => OpenSshTailCommand.Execute(null)),
+            new("Open ETW Provider…", "File", () => OpenEtwTailCommand.Execute(null)),
+            new("Window Mode: Tabbed", "Window", () => SwitchWindowModeCommand.Execute("Tabbed")),
+            new("Window Mode: Floating", "Window", () => SwitchWindowModeCommand.Execute("Floating")),
+            new("Window Mode: MDI", "Window", () => SwitchWindowModeCommand.Execute("Mdi")),
+            new("Highlight Presets…", "Tools", () => EditHighlightPresetsCommand.Execute(null)),
+            new("External Tools…", "Tools", () => EditExternalToolsCommand.Execute(null)),
+            new("Windows Services…", "Tools", () => OpenServicesCommand.Execute(null)),
+            new("Settings…", "Tools", () => OpenSettingsCommand.Execute(null)),
+        };
+
+        foreach (var toggle in HighlightPresetToggles)
+        {
+            var captured = toggle;
+            list.Add(new PaletteCommand(
+                $"Toggle Highlight Preset: {captured.Name}",
+                "Tools",
+                () => captured.IsEnabled = !captured.IsEnabled));
+        }
+
+        foreach (var document in Documents)
+        {
+            var captured = document;
+            list.Add(new PaletteCommand($"Go to: {captured.DisplayTitle}", "Document", () => ActiveDocument = captured, captured.SourcePath));
+        }
+
+        if (ActiveDocument is { } active)
+        {
+            list.Add(new PaletteCommand("Toggle Follow Tail", "Active document", () => active.ToggleFollowCommand.Execute(null)));
+            list.Add(new PaletteCommand("Toggle Structured View", "Active document", () => active.IsStructuredView = !active.IsStructuredView));
+            list.Add(new PaletteCommand("Toggle Volume Timeline", "Active document", () => active.ToggleTimelineCommand.Execute(null)));
+            list.Add(new PaletteCommand("Clear All Filters", "Active document", () => active.ClearFilterCommand.Execute(null)));
+            list.Add(new PaletteCommand("Export Visible Lines…", "Active document", () => active.ExportVisibleCommand.Execute(null)));
+            list.Add(new PaletteCommand("Search in Document…", "Active document", () => active.SearchCommand.Execute(null)));
+            list.Add(new PaletteCommand("Customize Tab Color / Icon…", "Active document", () => active.CustomizeCommand.Execute(null)));
+            list.Add(new PaletteCommand("Next Highlight", "Active document", () => active.NextHighlightCommand.Execute(null)));
+            list.Add(new PaletteCommand("Previous Highlight", "Active document", () => active.PreviousHighlightCommand.Execute(null)));
+            list.Add(new PaletteCommand("Toggle Bookmark", "Active document", () => active.ToggleBookmarkCommand.Execute(null)));
+            list.Add(new PaletteCommand("Close Document", "Active document", () => CloseDocumentCommand.Execute(active)));
+        }
+
+        return list;
+    }
+
     /// <summary>Captures the main window's chrome (bounds/maximize/AvalonDock layout) before it closes,
     /// so the next launch can restore it. Called from <c>MainWindow</c>'s Closing handler.</summary>
     public void CaptureWindowLayout(double left, double top, double width, double height, bool isMaximized, string? dockingLayoutXml)
