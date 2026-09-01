@@ -47,6 +47,9 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private int _mcpPort;
 
+    [ObservableProperty]
+    private LanguageOption _selectedLanguage;
+
     public SettingsViewModel(AppSettings settings, IDialogService dialogService)
     {
         _settings = settings;
@@ -63,11 +66,21 @@ public sealed partial class SettingsViewModel : ObservableObject
         _mcpEnabled = settings.Mcp.Enabled;
         _mcpPort = settings.Mcp.Port;
 
+        _selectedLanguage = AvailableLanguages.FirstOrDefault(
+            l => string.Equals(l.Code, settings.Language, StringComparison.OrdinalIgnoreCase)) ?? AvailableLanguages[0];
+
         _availableThemes = BuildAvailableThemes();
         _selectedTheme = _availableThemes.FirstOrDefault(t => t.Id == settings.ActiveThemeId) ?? _availableThemes[0];
     }
 
     public IReadOnlyList<WindowModeKind> AvailableWindowModes { get; } = [WindowModeKind.Tabbed, WindowModeKind.Floating];
+
+    /// <summary>UI languages shipped with the app. <c>en</c> is the neutral (built-in) resource set.</summary>
+    public IReadOnlyList<LanguageOption> AvailableLanguages { get; } =
+    [
+        new("en", "English"),
+        new("pt-PT", "Português (Portugal)"),
+    ];
 
     [RelayCommand]
     private void ManageThemes()
@@ -96,5 +109,9 @@ public sealed partial class SettingsViewModel : ObservableObject
         settings.ActiveThemeId = SelectedTheme.Id;
         settings.Mcp.Enabled = McpEnabled;
         settings.Mcp.Port = McpPort;
+        settings.Language = SelectedLanguage.Code;
     }
 }
+
+/// <summary>A selectable UI language: <paramref name="Code"/> is a culture name, <paramref name="Display"/> its label.</summary>
+public sealed record LanguageOption(string Code, string Display);

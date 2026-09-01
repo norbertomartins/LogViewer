@@ -1,0 +1,368 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- ==== Common ==== -->
+  <data name="Common_OK" xml:space="preserve"><value>OK</value></data>
+  <data name="Common_Cancel" xml:space="preserve"><value>Cancelar</value></data>
+  <data name="Common_Close" xml:space="preserve"><value>Fechar</value></data>
+  <data name="Common_Browse" xml:space="preserve"><value>Procurar...</value></data>
+  <data name="Common_BrowseEllipsis" xml:space="preserve"><value>Procurar…</value></data>
+  <data name="Common_Add" xml:space="preserve"><value>Adicionar</value></data>
+  <data name="Common_Remove" xml:space="preserve"><value>Remover</value></data>
+  <data name="Common_New" xml:space="preserve"><value>Novo</value></data>
+  <data name="Common_Duplicate" xml:space="preserve"><value>Duplicar</value></data>
+  <data name="Common_Delete" xml:space="preserve"><value>Eliminar</value></data>
+  <data name="Common_Name" xml:space="preserve"><value>Nome</value></data>
+  <data name="Common_Enabled" xml:space="preserve"><value>Ativo</value></data>
+  <data name="Common_Refresh" xml:space="preserve"><value>Atualizar</value></data>
+  <data name="Common_Start" xml:space="preserve"><value>Iniciar</value></data>
+  <data name="Common_Stop" xml:space="preserve"><value>Parar</value></data>
+  <data name="Common_Search" xml:space="preserve"><value>Procurar</value></data>
+  <data name="Common_Regex" xml:space="preserve"><value>Regex</value></data>
+  <data name="Common_CaseSensitive" xml:space="preserve"><value>Sensível a maiúsculas</value></data>
+  <data name="Common_Find" xml:space="preserve"><value>Encontrar</value></data>
+  <data name="Common_RegularExpression" xml:space="preserve"><value>Expressão regular</value></data>
+  <data name="Common_PreviewSampleLogLine" xml:space="preserve"><value>Pré-visualização: linha de log de exemplo</value></data>
+  <data name="Common_ForegroundHex" xml:space="preserve"><value>Texto (#RRGGBB)</value></data>
+  <data name="Common_BackgroundHex" xml:space="preserve"><value>Fundo (#RRGGBB)</value></data>
+  <data name="Common_InvalidRegex" xml:space="preserve"><value>Expressão regular inválida</value></data>
+
+  <!-- ==== Tray icon ==== -->
+  <data name="Tray_ToolTip" xml:space="preserve"><value>LogViewer</value></data>
+  <data name="Tray_Show" xml:space="preserve"><value>Mostrar LogViewer</value></data>
+  <data name="Tray_Exit" xml:space="preserve"><value>Sair</value></data>
+
+  <!-- ==== Main menu ==== -->
+  <data name="Menu_File" xml:space="preserve"><value>_Ficheiro</value></data>
+  <data name="Menu_File_OpenFile" xml:space="preserve"><value>_Abrir ficheiro...</value></data>
+  <data name="Menu_File_OpenDirectory" xml:space="preserve"><value>Abrir _diretoria (vigiar)...</value></data>
+  <data name="Menu_File_OpenMerged" xml:space="preserve"><value>Abrir ficheiros / pastas _combinados (por tempo)...</value></data>
+  <data name="Menu_File_OpenMerged_ToolTip" xml:space="preserve"><value>Combina 2+ ficheiros e/ou pastas inteiras (de qualquer diretoria) numa vista única ordenada por data/hora</value></data>
+  <data name="Menu_File_OpenEventLog" xml:space="preserve"><value>Abrir _registo de eventos do Windows...</value></data>
+  <data name="Menu_File_OpenRemote" xml:space="preserve"><value>Abrir _endpoint de log remoto...</value></data>
+  <data name="Menu_File_OpenRemote_ToolTip" xml:space="preserve"><value>Segue um fluxo de log por HTTP(S) (SSE/chunked/polling) ou WebSocket</value></data>
+  <data name="Menu_File_OpenCommand" xml:space="preserve"><value>Abrir saída de _comando...</value></data>
+  <data name="Menu_File_OpenCommand_ToolTip" xml:space="preserve"><value>Segue o stdout/stderr de um comando (journalctl -f, docker logs -f, …)</value></data>
+  <data name="Menu_File_OpenSsh" xml:space="preserve"><value>Abrir tail de log por S_SH...</value></data>
+  <data name="Menu_File_OpenSsh_ToolTip" xml:space="preserve"><value>Executa um comando por SSH num host remoto e segue a sua saída</value></data>
+  <data name="Menu_File_OpenEtw" xml:space="preserve"><value>Abrir fornecedor _ETW...</value></data>
+  <data name="Menu_File_OpenEtw_ToolTip" xml:space="preserve"><value>Segue um fornecedor Event Tracing for Windows em tempo real (Administrador)</value></data>
+  <data name="Menu_File_RecentFiles" xml:space="preserve"><value>Ficheiros recentes</value></data>
+  <data name="Menu_File_MinimizeToTray" xml:space="preserve"><value>Mi_nimizar para a área de notificação</value></data>
+  <data name="Menu_File_Exit" xml:space="preserve"><value>_Sair</value></data>
+  <data name="Menu_WindowMode" xml:space="preserve"><value>_Modo de janela</value></data>
+  <data name="Menu_WindowMode_Tabbed" xml:space="preserve"><value>Com _separadores</value></data>
+  <data name="Menu_WindowMode_Floating" xml:space="preserve"><value>_Flutuante</value></data>
+  <data name="Menu_WindowMode_Mdi" xml:space="preserve"><value>_MDI</value></data>
+  <data name="Menu_Session" xml:space="preserve"><value>_Sessão</value></data>
+  <data name="Menu_Session_SaveAs" xml:space="preserve"><value>_Guardar sessão atual como perfil...</value></data>
+  <data name="Menu_Session_Load" xml:space="preserve"><value>_Carregar perfil</value></data>
+  <data name="Menu_Session_Delete" xml:space="preserve"><value>_Eliminar perfil</value></data>
+  <data name="Menu_Tools" xml:space="preserve"><value>_Ferramentas</value></data>
+  <data name="Menu_Tools_HighlightPresets" xml:space="preserve"><value>Predefinições de _realce...</value></data>
+  <data name="Menu_Tools_ToggleHighlightPresets" xml:space="preserve"><value>_Ativar/desativar predefinições de realce</value></data>
+  <data name="Menu_Tools_ExternalTools" xml:space="preserve"><value>Ferramentas e_xternas...</value></data>
+  <data name="Menu_Tools_Services" xml:space="preserve"><value>_Serviços do Windows...</value></data>
+  <data name="Menu_Tools_Settings" xml:space="preserve"><value>_Definições...</value></data>
+  <data name="Menu_Tools_CommandPalette" xml:space="preserve"><value>_Paleta de comandos...</value></data>
+
+  <!-- ==== Main status bar ==== -->
+  <data name="Status_Performance_ToolTip" xml:space="preserve"><value>Débito • ocupação/memória do buffer circular • latência de dispatch da UI • RAM do processo</value></data>
+
+  <!-- ==== TailDocumentView toolbar ==== -->
+  <data name="Doc_FollowTail_Name" xml:space="preserve"><value>Seguir o fim</value></data>
+  <data name="Doc_FollowTail_ToolTip" xml:space="preserve"><value>Seguir o fim do ficheiro (scroll automático para a linha mais recente)</value></data>
+  <data name="Doc_StructuredView_Name" xml:space="preserve"><value>Vista estruturada</value></data>
+  <data name="Doc_StructuredView_ToolTip" xml:space="preserve"><value>Vista estruturada ({0}) — colunas Hora/Nível/Mensagem + detalhes de propriedades</value></data>
+  <data name="Doc_StructuredFormat_Name" xml:space="preserve"><value>Formato estruturado</value></data>
+  <data name="Doc_StructuredFormat_ToolTip" xml:space="preserve"><value>Formato estruturado: {0}. Detetado automaticamente ao abrir; altere para forçar.</value></data>
+  <data name="Doc_ColorizeValues_Name" xml:space="preserve"><value>Colorir valores</value></data>
+  <data name="Doc_ColorizeValues_ToolTip" xml:space="preserve"><value>Realça os valores das variáveis na mensagem com cores distintas</value></data>
+  <data name="Doc_MinLevel_Name" xml:space="preserve"><value>Nível mínimo</value></data>
+  <data name="Doc_MinLevel_ToolTip" xml:space="preserve"><value>Mostrar apenas linhas com esta severidade ou superior</value></data>
+  <data name="Doc_ToggleBookmark_Name" xml:space="preserve"><value>Alternar marcador</value></data>
+  <data name="Doc_ToggleBookmark_ToolTip" xml:space="preserve"><value>Alternar marcador na linha selecionada (Ctrl+F2)</value></data>
+  <data name="Doc_PrevBookmark_Name" xml:space="preserve"><value>Marcador anterior</value></data>
+  <data name="Doc_PrevBookmark_ToolTip" xml:space="preserve"><value>Marcador anterior (Shift+F2)</value></data>
+  <data name="Doc_NextBookmark_Name" xml:space="preserve"><value>Marcador seguinte</value></data>
+  <data name="Doc_NextBookmark_ToolTip" xml:space="preserve"><value>Marcador seguinte (F2)</value></data>
+  <data name="Doc_TextFilter_Name" xml:space="preserve"><value>Filtro de texto</value></data>
+  <data name="Doc_TextFilter_ToolTip" xml:space="preserve"><value>Mostrar apenas linhas que correspondem a este texto/regex (ao vivo). Aplica-se à linha em bruto na vista simples e estruturada.</value></data>
+  <data name="Doc_RegexFilter_Name" xml:space="preserve"><value>Filtro regex</value></data>
+  <data name="Doc_RegexFilter_ToolTip" xml:space="preserve"><value>Tratar o filtro como expressão regular</value></data>
+  <data name="Doc_CaseFilter_Name" xml:space="preserve"><value>Filtro sensível a maiúsculas</value></data>
+  <data name="Doc_CaseFilter_ToolTip" xml:space="preserve"><value>Filtro sensível a maiúsculas</value></data>
+  <data name="Doc_ExcludeFilter_Name" xml:space="preserve"><value>Filtro de exclusão</value></data>
+  <data name="Doc_ExcludeFilter_ToolTip" xml:space="preserve"><value>Ocultar as linhas correspondentes em vez de mostrar só essas</value></data>
+  <data name="Doc_ClearFilter_Name" xml:space="preserve"><value>Limpar filtro</value></data>
+  <data name="Doc_ClearFilter_ToolTip" xml:space="preserve"><value>Limpar o filtro de texto</value></data>
+  <data name="Doc_FilterTester_Name" xml:space="preserve"><value>Testador de padrão do filtro</value></data>
+  <data name="Doc_FilterTester_ToolTip" xml:space="preserve"><value>Testar o padrão do filtro contra linhas de exemplo coladas</value></data>
+  <data name="Doc_FilterTester_Header" xml:space="preserve"><value>Testador de padrão do filtro</value></data>
+  <data name="Doc_FilterTester_Hint" xml:space="preserve"><value>Cole linhas de exemplo — o texto correspondente é marcado com as definições atuais do filtro.</value></data>
+  <data name="Doc_FilterTester_SampleName" xml:space="preserve"><value>Texto de exemplo do testador de filtro</value></data>
+  <data name="Doc_PrevHighlight_Name" xml:space="preserve"><value>Realce anterior</value></data>
+  <data name="Doc_PrevHighlight_ToolTip" xml:space="preserve"><value>Linha realçada anterior (Shift+F3)</value></data>
+  <data name="Doc_NextHighlight_Name" xml:space="preserve"><value>Realce seguinte</value></data>
+  <data name="Doc_NextHighlight_ToolTip" xml:space="preserve"><value>Linha realçada seguinte (F3)</value></data>
+  <data name="Doc_RunTool_Name" xml:space="preserve"><value>Executar ferramenta</value></data>
+  <data name="Doc_RunTool_ToolTip" xml:space="preserve"><value>Executar uma ferramenta externa sobre a linha selecionada</value></data>
+  <data name="Doc_Search_Name" xml:space="preserve"><value>Procurar</value></data>
+  <data name="Doc_Search_ToolTip" xml:space="preserve"><value>Procurar em todo o ficheiro / canal (Ctrl+Shift+F)</value></data>
+  <data name="Doc_Export_Name" xml:space="preserve"><value>Exportar</value></data>
+  <data name="Doc_Export_ToolTip" xml:space="preserve"><value>Guardar num ficheiro as linhas atualmente visíveis (filtradas)</value></data>
+  <data name="Doc_Timeline_Name" xml:space="preserve"><value>Linha temporal</value></data>
+  <data name="Doc_Timeline_ToolTip" xml:space="preserve"><value>Mostrar um histograma de volume ao longo do tempo das linhas visíveis com data/hora</value></data>
+  <data name="Doc_Customize_Name" xml:space="preserve"><value>Personalizar</value></data>
+  <data name="Doc_Customize_ToolTip" xml:space="preserve"><value>Personalizar a cor e o ícone do separador deste documento</value></data>
+  <data name="Doc_ResumeFollow_Name" xml:space="preserve"><value>Retomar seguimento</value></data>
+  <data name="Doc_Timeline_NoData" xml:space="preserve"><value>Sem linhas com data/hora para representar</value></data>
+  <data name="Doc_Timeline_Name2" xml:space="preserve"><value>Linha temporal de volume</value></data>
+  <data name="Doc_Ctx_FilterByTraceId" xml:space="preserve"><value>Filtrar por TraceId</value></data>
+  <data name="Doc_Ctx_FilterBySpanId" xml:space="preserve"><value>Filtrar por SpanId</value></data>
+  <data name="Doc_Ctx_FilterByThreadId" xml:space="preserve"><value>Filtrar por ThreadId</value></data>
+  <data name="Doc_Ctx_FindSimilarBlock" xml:space="preserve"><value>Encontrar bloco semelhante em...</value></data>
+  <data name="Doc_Ctx_ClearFilter" xml:space="preserve"><value>Limpar filtro</value></data>
+  <data name="Doc_Ctx_FilterByThisValue" xml:space="preserve"><value>Filtrar por este valor</value></data>
+  <data name="Doc_Detail_Properties" xml:space="preserve"><value>Propriedades</value></data>
+  <data name="Doc_Detail_Exception" xml:space="preserve"><value>Exceção</value></data>
+  <data name="Doc_ClearFilterButton" xml:space="preserve"><value>✕ Limpar filtro</value></data>
+
+  <!-- ==== MDI host ==== -->
+  <data name="Mdi_Cascade" xml:space="preserve"><value>Cascata</value></data>
+  <data name="Mdi_TileHorizontal" xml:space="preserve"><value>Mosaico horizontal</value></data>
+  <data name="Mdi_TileVertical" xml:space="preserve"><value>Mosaico vertical</value></data>
+  <data name="Mdi_MaximizeRestore" xml:space="preserve"><value>Maximizar / Restaurar</value></data>
+  <data name="Mdi_Close" xml:space="preserve"><value>Fechar</value></data>
+
+  <!-- ==== ColorPickerButton ==== -->
+  <data name="ColorPicker_ToolTip" xml:space="preserve"><value>Escolher uma cor</value></data>
+
+  <!-- ==== Settings dialog ==== -->
+  <data name="Settings_Title" xml:space="preserve"><value>Definições</value></data>
+  <data name="Settings_DefaultWindowMode" xml:space="preserve"><value>Modo de janela predefinido</value></data>
+  <data name="Settings_RingBufferCapacity" xml:space="preserve"><value>Capacidade do buffer circular (linhas mantidas em memória por documento)</value></data>
+  <data name="Settings_UiRefreshInterval" xml:space="preserve"><value>Intervalo de atualização da UI (ms)</value></data>
+  <data name="Settings_RestoreSession" xml:space="preserve"><value>Restaurar a sessão anterior ao arranque</value></data>
+  <data name="Settings_ReduceRedrawRdp" xml:space="preserve"><value>Reduzir a taxa de redesenho da UI quando em Ambiente de Trabalho Remoto</value></data>
+  <data name="Settings_ColorizeStructured" xml:space="preserve"><value>Colorir os valores das variáveis nas mensagens de log estruturadas</value></data>
+  <data name="Settings_EmphasizeMatches" xml:space="preserve"><value>Realçar o texto exato correspondente dentro das linhas realçadas (negrito + sublinhado)</value></data>
+  <data name="Settings_LogFontSize" xml:space="preserve"><value>Tamanho da letra do log (também ajustável com Ctrl+roda do rato sobre o log)</value></data>
+  <data name="Settings_Theme" xml:space="preserve"><value>Tema</value></data>
+  <data name="Settings_ManageThemes" xml:space="preserve"><value>Gerir temas...</value></data>
+  <data name="Settings_Language" xml:space="preserve"><value>Idioma (é necessário reiniciar para aplicar)</value></data>
+  <data name="Settings_McpEnable" xml:space="preserve"><value>Ativar servidor MCP (permite a um agente de IA analisar os logs abertos)</value></data>
+  <data name="Settings_McpPort" xml:space="preserve"><value>Porta do servidor MCP (apenas localhost; é necessário reiniciar para aplicar)</value></data>
+
+  <!-- ==== Windows Services dialog ==== -->
+  <data name="Services_Title" xml:space="preserve"><value>Serviços do Windows</value></data>
+  <data name="Services_Col_Name" xml:space="preserve"><value>Nome</value></data>
+  <data name="Services_Col_Status" xml:space="preserve"><value>Estado</value></data>
+  <data name="Services_Col_StartType" xml:space="preserve"><value>Tipo de arranque</value></data>
+
+  <!-- ==== Theme manager dialog ==== -->
+  <data name="Themes_Title" xml:space="preserve"><value>Gerir temas</value></data>
+  <data name="Themes_UseThis" xml:space="preserve"><value>Usar este tema</value></data>
+  <data name="Themes_ActiveSuffix" xml:space="preserve"><value>{0} (ativo)</value></data>
+  <data name="Themes_BuiltInNote" xml:space="preserve"><value>Os temas incorporados não podem ser renomeados nem recoloridos — duplique um para o personalizar.</value></data>
+  <data name="Themes_NativeControls" xml:space="preserve"><value>Controlos nativos (menus, diálogos, barras de scroll, caixas de combinação)</value></data>
+  <data name="Themes_Light" xml:space="preserve"><value>Claro</value></data>
+  <data name="Themes_Dark" xml:space="preserve"><value>Escuro</value></data>
+  <data name="Themes_Borders" xml:space="preserve"><value>Contornos</value></data>
+  <data name="Themes_MdiWorkspaceBg" xml:space="preserve"><value>Fundo da área de trabalho MDI</value></data>
+  <data name="Themes_LogAreaBg" xml:space="preserve"><value>Fundo da área do log</value></data>
+  <data name="Themes_LogAreaText" xml:space="preserve"><value>Texto da área do log</value></data>
+
+  <!-- ==== External tools dialog ==== -->
+  <data name="Tools_Title" xml:space="preserve"><value>Ferramentas externas</value></data>
+  <data name="Tools_ExecutablePath" xml:space="preserve"><value>Caminho do executável</value></data>
+  <data name="Tools_ArgumentTemplate" xml:space="preserve"><value>Modelo de argumentos — {FilePath}, {LineNumber}, {LineText}</value></data>
+  <data name="Tools_Shortcut" xml:space="preserve"><value>Atalho de teclado (ex.: Ctrl+Alt+1) — opcional</value></data>
+  <data name="Tools_AutoTrigger" xml:space="preserve"><value>Executar automaticamente quando uma linha corresponde a uma regra de realce</value></data>
+
+  <!-- ==== Open Directory Watch dialog ==== -->
+  <data name="DirWatch_Title" xml:space="preserve"><value>Abrir diretoria (vigiar)</value></data>
+  <data name="DirWatch_Directory" xml:space="preserve"><value>Diretoria</value></data>
+  <data name="DirWatch_Pattern" xml:space="preserve"><value>Padrão com wildcard (ex.: *.log, app-*.txt)</value></data>
+  <data name="DirWatch_AutoSwitch" xml:space="preserve"><value>Mudar automaticamente para o ficheiro correspondente modificado mais recentemente</value></data>
+
+  <!-- ==== Open Event Log dialog ==== -->
+  <data name="EventLog_Title" xml:space="preserve"><value>Abrir registo de eventos do Windows</value></data>
+  <data name="EventLog_Channel" xml:space="preserve"><value>Nome do canal</value></data>
+  <data name="EventLog_ChannelNote" xml:space="preserve"><value>Os canais padrão (Application, System) funcionam sem direitos de administrador. O canal Security e alguns canais personalizados requerem elevação.</value></data>
+  <data name="EventLog_FiltersOptional" xml:space="preserve"><value>Filtros (opcional)</value></data>
+  <data name="EventLog_ProviderName" xml:space="preserve"><value>Nome do fornecedor (opcional — deixe em branco para corresponder a qualquer fornecedor)</value></data>
+  <data name="EventLog_RegexPattern" xml:space="preserve"><value>Padrão regex</value></data>
+  <data name="EventLog_MatchAgainst" xml:space="preserve"><value>Corresponder contra</value></data>
+
+  <!-- ==== Search dialog ==== -->
+  <data name="Search_Title" xml:space="preserve"><value>Procurar</value></data>
+  <data name="Search_PropertyLabel" xml:space="preserve"><value>Propriedade (em branco = linha inteira):</value></data>
+  <data name="Search_Col_Line" xml:space="preserve"><value>Linha</value></data>
+  <data name="Search_Col_Text" xml:space="preserve"><value>Texto</value></data>
+
+  <!-- ==== Similar block dialog ==== -->
+  <data name="Similar_Title" xml:space="preserve"><value>Encontrar bloco semelhante</value></data>
+  <data name="Similar_CorrelationField" xml:space="preserve"><value>Campo de correlação:</value></data>
+  <data name="Similar_CorrelationField_ToolTip" xml:space="preserve"><value>Agrupa as linhas de log desta operação por esta propriedade (sugerido automaticamente — limpe-o para recorrer à proximidade de linha/tempo)</value></data>
+  <data name="Similar_CompareWith" xml:space="preserve"><value>Comparar com:</value></data>
+  <data name="Similar_FilePrefix" xml:space="preserve"><value>Ficheiro: {0}</value></data>
+  <data name="Similar_ScoreMatch" xml:space="preserve"><value>{0:P0} de correspondência</value></data>
+  <data name="Similar_LinesCount" xml:space="preserve"><value>{0} linhas</value></data>
+  <data name="Similar_Col_Line" xml:space="preserve"><value>Linha</value></data>
+  <data name="Similar_Col_Source" xml:space="preserve"><value>Origem</value></data>
+  <data name="Similar_Col_Target" xml:space="preserve"><value>Destino</value></data>
+  <data name="Similar_Legend" xml:space="preserve"><value>  |  Vermelho = só na origem · Verde = só no destino · Amarelo = mesma forma, valores diferentes</value></data>
+  <data name="Similar_JumpToSource" xml:space="preserve"><value>Ir para a linha de origem</value></data>
+  <data name="Similar_JumpToTarget" xml:space="preserve"><value>Ir para a linha de destino</value></data>
+
+  <!-- ==== Customize document dialog ==== -->
+  <data name="Customize_Title" xml:space="preserve"><value>Personalizar documento</value></data>
+  <data name="Customize_TabColor" xml:space="preserve"><value>Cor do separador / barra de título</value></data>
+  <data name="Customize_IconGlyph" xml:space="preserve"><value>Glifo do ícone</value></data>
+
+  <!-- ==== Highlight preset editor dialog ==== -->
+  <data name="Highlight_Title" xml:space="preserve"><value>Gerir predefinições de realce</value></data>
+  <data name="Highlight_Presets" xml:space="preserve"><value>Predefinições</value></data>
+  <data name="Highlight_MoveUp" xml:space="preserve"><value>Mover para cima</value></data>
+  <data name="Highlight_MoveDown" xml:space="preserve"><value>Mover para baixo</value></data>
+  <data name="Highlight_Export" xml:space="preserve"><value>📤 Exportar...</value></data>
+  <data name="Highlight_ExportAll" xml:space="preserve"><value>📤 Exportar tudo...</value></data>
+  <data name="Highlight_Import" xml:space="preserve"><value>📥 Importar...</value></data>
+  <data name="Highlight_PresetName" xml:space="preserve"><value>Nome da predefinição</value></data>
+  <data name="Highlight_PatternKeywordOrRegex" xml:space="preserve"><value>Padrão (palavra-chave ou regex)</value></data>
+  <data name="Highlight_TargetProperty" xml:space="preserve"><value>Propriedade alvo (logs Serilog estruturados; em branco = linha inteira)</value></data>
+  <data name="Highlight_LightColors" xml:space="preserve"><value>Cores do tema claro</value></data>
+  <data name="Highlight_DarkColors" xml:space="preserve"><value>Cores do tema escuro (em branco = iguais às do claro)</value></data>
+  <data name="Highlight_PatternTester" xml:space="preserve"><value>Testador de padrão</value></data>
+  <data name="Highlight_PatternTester_Hint" xml:space="preserve"><value>Cole linhas de exemplo — o texto correspondente é marcado ao vivo à medida que edita o padrão acima.</value></data>
+  <data name="Highlight_PatternTester_SampleName" xml:space="preserve"><value>Texto de exemplo do testador de padrão</value></data>
+  <data name="Highlight_OK" xml:space="preserve"><value>✔ OK</value></data>
+  <data name="Highlight_Cancel" xml:space="preserve"><value>✖ Cancelar</value></data>
+
+  <!-- ==== Open ETW dialog ==== -->
+  <data name="Etw_Title" xml:space="preserve"><value>Abrir fornecedor ETW</value></data>
+  <data name="Etw_AdminNote" xml:space="preserve"><value>Requer executar o LogViewer como Administrador.</value></data>
+  <data name="Etw_ProviderNameOrGuid" xml:space="preserve"><value>Nome do fornecedor ou GUID</value></data>
+  <data name="Etw_Level" xml:space="preserve"><value>Nível</value></data>
+  <data name="Etw_LevelNote" xml:space="preserve"><value>Debug captura o máximo de detalhe (verbose + quaisquer níveis acima definidos pelo fornecedor).</value></data>
+
+  <!-- ==== Open Remote (HTTP/WS) dialog ==== -->
+  <data name="Http_Title" xml:space="preserve"><value>Abrir endpoint de log remoto</value></data>
+  <data name="Http_Url" xml:space="preserve"><value>URL — http/https (streaming SSE/chunked, ou polling) ou ws/wss (WebSocket)</value></data>
+  <data name="Http_Mode" xml:space="preserve"><value>Modo (só HTTP)</value></data>
+  <data name="Http_Headers" xml:space="preserve"><value>Cabeçalhos (um "Nome: Valor" por linha, opcional)</value></data>
+
+  <!-- ==== Open Command Output dialog ==== -->
+  <data name="Process_Title" xml:space="preserve"><value>Abrir saída de comando</value></data>
+  <data name="Process_Preset" xml:space="preserve"><value>Predefinição</value></data>
+  <data name="Process_Executable" xml:space="preserve"><value>Executável</value></data>
+  <data name="Process_Arguments" xml:space="preserve"><value>Argumentos</value></data>
+  <data name="Process_RestartOnExit" xml:space="preserve"><value>Relançar o comando quando termina (para comandos -f / follow)</value></data>
+
+  <!-- ==== Open SSH dialog ==== -->
+  <data name="Ssh_Title" xml:space="preserve"><value>Abrir tail de log por SSH</value></data>
+  <data name="Ssh_Host" xml:space="preserve"><value>Host</value></data>
+  <data name="Ssh_Port" xml:space="preserve"><value>Porta</value></data>
+  <data name="Ssh_Username" xml:space="preserve"><value>Nome de utilizador</value></data>
+  <data name="Ssh_Password" xml:space="preserve"><value>Palavra-passe (usada só nesta sessão — não é guardada)</value></data>
+  <data name="Ssh_PrivateKey" xml:space="preserve"><value>…ou ficheiro de chave privada</value></data>
+  <data name="Ssh_Passphrase" xml:space="preserve"><value>Frase-passe da chave (só nesta sessão — não é guardada)</value></data>
+  <data name="Ssh_RemoteCommand" xml:space="preserve"><value>Comando remoto</value></data>
+  <data name="Ssh_Fingerprint" xml:space="preserve"><value>Impressão digital SHA-256 esperada da chave do host (recomendado)</value></data>
+  <data name="Ssh_AcceptAnyHostKey" xml:space="preserve"><value>Aceitar qualquer chave de host (inseguro — ignora a verificação da impressão digital)</value></data>
+
+  <!-- ==== Command palette ==== -->
+  <data name="Palette_QueryName" xml:space="preserve"><value>Consulta da paleta de comandos</value></data>
+  <data name="Palette_Placeholder" xml:space="preserve"><value>Escreva um comando…</value></data>
+
+  <!-- ==== ViewModel messages ==== -->
+  <data name="Vm_Mcp_StartFailed" xml:space="preserve"><value>Falha ao iniciar o servidor MCP: {0}</value></data>
+  <data name="Vm_Export_Done" xml:space="preserve"><value>Exportadas {0} linha(s) para {1}</value></data>
+  <data name="Vm_Export_Failed" xml:space="preserve"><value>Falha na exportação: {0}</value></data>
+  <data name="Vm_Profile_Saved" xml:space="preserve"><value>Perfil de sessão "{0}" guardado.</value></data>
+  <data name="Vm_Profile_Loaded" xml:space="preserve"><value>Perfil de sessão "{0}" carregado ({1} fonte(s)).</value></data>
+  <data name="Vm_Profile_Deleted" xml:space="preserve"><value>Perfil de sessão "{0}" eliminado.</value></data>
+  <data name="Vm_Search_EnterPattern" xml:space="preserve"><value>Introduza um padrão de pesquisa.</value></data>
+  <data name="Vm_Search_Searching" xml:space="preserve"><value>A procurar…</value></data>
+  <data name="Vm_Search_NothingToSearch" xml:space="preserve"><value>Nada para procurar — este documento não tem ficheiro de suporte nem canal de EventLog.</value></data>
+  <data name="Vm_Search_Matches" xml:space="preserve"><value>{0} correspondência{1}.</value></data>
+  <data name="Vm_Search_Cancelled" xml:space="preserve"><value>Cancelado — {0} correspondência{1} encontrada(s) até agora.</value></data>
+  <data name="Vm_Search_Failed" xml:space="preserve"><value>Falha na pesquisa: {0}</value></data>
+  <data name="Vm_Search_LineEvicted" xml:space="preserve"><value>Essa linha já não está na vista ao vivo (removida do buffer) — a mostrar apenas o texto acima.</value></data>
+  <data name="Vm_Services_Listed" xml:space="preserve"><value>{0} serviços listados.</value></data>
+  <data name="Vm_Services_ListFailed" xml:space="preserve"><value>Falha ao listar serviços: {0}</value></data>
+  <data name="Vm_Services_Done" xml:space="preserve"><value>Concluído.</value></data>
+  <data name="Vm_Services_ControlFailed" xml:space="preserve"><value>Falha: {0} (o controlo de serviços normalmente requer executar o LogViewer como administrador).</value></data>
+  <data name="Vm_Similar_ChooseTarget" xml:space="preserve"><value>Escolha um alvo de comparação — um documento aberto ou um ficheiro.</value></data>
+  <data name="Vm_Similar_NoBlock" xml:space="preserve"><value>Não foi possível construir um bloco em torno da linha selecionada.</value></data>
+  <data name="Vm_Similar_Searching" xml:space="preserve"><value>A procurar…</value></data>
+  <data name="Vm_Similar_Cancelled" xml:space="preserve"><value>Cancelado.</value></data>
+  <data name="Vm_Similar_ScanFailed" xml:space="preserve"><value>Falha na análise: {0}</value></data>
+  <data name="Vm_Similar_LineGone" xml:space="preserve"><value>Essa linha já não está na vista ao vivo.</value></data>
+  <data name="Vm_Similar_TargetNotOpen" xml:space="preserve"><value>O alvo não é um documento aberto — não é possível saltar diretamente para ele.</value></data>
+  <data name="Vm_Similar_NoProperty" xml:space="preserve"><value>A linha selecionada não tem a propriedade {0}.</value></data>
+  <data name="Vm_Doc_InvalidFilterRegex" xml:space="preserve"><value>Regex de filtro inválida: {0}</value></data>
+  <data name="Vm_Doc_SwitchStructuredFailed" xml:space="preserve"><value>Falha ao mudar para a vista estruturada: {0}</value></data>
+  <data name="Vm_Doc_SourceResumed" xml:space="preserve"><value>Fonte {0} — tailing retomado.</value></data>
+  <data name="Vm_Doc_NotStructured" xml:space="preserve"><value>A linha selecionada não é um evento de log estruturado.</value></data>
+  <data name="Vm_Doc_NoProperty" xml:space="preserve"><value>A linha selecionada não tem a propriedade {0}.</value></data>
+</root>

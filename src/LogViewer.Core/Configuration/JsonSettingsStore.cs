@@ -76,7 +76,9 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
         // disabled-by-default McpServerSettings, so no field-level migration is needed.
         // v5 -> v6: SessionProfiles is new (plus per-document filter fields on TailSourceSettings); the
         // field initializers already give pre-v6 files an empty profile list and inert filters.
-        settings.SchemaVersion = 6;
+        // v6 -> v7: Language is new; the field initializer already gives pre-v7 files "en" (neutral
+        // resources), which is exactly the English-only behavior they had before.
+        settings.SchemaVersion = 7;
         return settings;
     }
 

@@ -10,9 +10,15 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 6;
+    public int SchemaVersion { get; set; } = 7;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
+
+    /// <summary>
+    /// UI language as a culture name (e.g. <c>en</c>, <c>pt-PT</c>). Applied at startup only — the app
+    /// must be restarted for a change to take effect. <c>en</c> selects the neutral (built-in) resources.
+    /// </summary>
+    public string Language { get; set; } = "en";
 
     public List<TailSourceSettings> RecentSources { get; set; } = [];
 

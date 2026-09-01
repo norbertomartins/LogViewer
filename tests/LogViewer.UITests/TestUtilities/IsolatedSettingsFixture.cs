@@ -35,7 +35,7 @@ public sealed class IsolatedSettingsFixture : IDisposable
     public static string RestoringFile(string absoluteFilePath) =>
         $$"""
         {
-          "SchemaVersion": 6,
+          "SchemaVersion": 7,
           "RestorePreviousSessionOnStartup": true,
           "Mcp": { "Enabled": false },
           "RecentSources": [ { "Kind": 0, "Path": {{System.Text.Json.JsonSerializer.Serialize(absoluteFilePath)}} } ]

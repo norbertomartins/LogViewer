@@ -58,6 +58,10 @@ public partial class App : Application
         _serviceProvider = services.BuildServiceProvider();
 
         var settings = _serviceProvider.GetRequiredService<AppSettings>();
+
+        // Must run before the first window is constructed — LocExtension resolves strings at XAML parse time.
+        Localization.Loc.Initialize(settings.Language);
+
         var themeService = _serviceProvider.GetRequiredService<ThemeService>();
         themeService.Apply(themeService.ResolveActiveTheme(settings));
 
