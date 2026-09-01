@@ -148,6 +148,50 @@
             <Button Content="✕" Style="{StaticResource IconButton}" Command="{Binding ClearTextFilterCommand}"
                     AutomationProperties.Name="Clear filter" ToolTip="Clear the text filter"
                     Visibility="{Binding IsTextFilterActive, Converter={StaticResource BoolToVisibilityConverter}}" />
+            <ToggleButton x:Name="FilterTesterToggle" Content="🧪" Style="{StaticResource IconButton}"
+                          AutomationProperties.Name="Filter pattern tester"
+                          ToolTip="Test the filter pattern against pasted sample lines" />
+            <Popup PlacementTarget="{Binding ElementName=FilterTesterToggle}" Placement="Bottom"
+                   StaysOpen="False" AllowsTransparency="True"
+                   IsOpen="{Binding IsChecked, ElementName=FilterTesterToggle}">
+                <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+                        BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1"
+                        Padding="8" Width="460">
+                    <StackPanel>
+                        <TextBlock Text="Filter pattern tester" FontWeight="Bold" Margin="0,0,0,2" />
+                        <TextBlock Text="Paste sample lines — matched text is marked using the current filter settings."
+                                   FontSize="11" Opacity="0.7" TextWrapping="Wrap" Margin="0,0,0,4" />
+                        <TextBox Text="{Binding FilterTesterInput, UpdateSourceTrigger=PropertyChanged}"
+                                 AcceptsReturn="True" FontFamily="Consolas" TextWrapping="NoWrap"
+                                 VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                                 MinHeight="70" MaxHeight="140" Margin="0,0,0,4"
+                                 AutomationProperties.Name="Filter tester sample text" />
+                        <TextBlock Text="{Binding FilterTesterSummary}" FontSize="11" Opacity="0.85" Margin="0,0,0,4" />
+                        <ItemsControl ItemsSource="{Binding FilterTesterLines}" MaxHeight="150"
+                                      AutomationProperties.AutomationId="FilterTesterResults">
+                            <ItemsControl.Template>
+                                <ControlTemplate TargetType="ItemsControl">
+                                    <ScrollViewer VerticalScrollBarVisibility="Auto"><ItemsPresenter /></ScrollViewer>
+                                </ControlTemplate>
+                            </ItemsControl.Template>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock FontFamily="Consolas" TextWrapping="NoWrap" Text="{Binding}">
+                                        <controls:InlinesHelper.Source>
+                                            <MultiBinding Converter="{StaticResource RegexTestInlinesConverter}">
+                                                <Binding />
+                                                <Binding Path="DataContext.TextFilterPattern" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                <Binding Path="DataContext.TextFilterIsRegex" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                <Binding Path="DataContext.TextFilterCaseSensitive" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                            </MultiBinding>
+                                        </controls:InlinesHelper.Source>
+                                    </TextBlock>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+            </Popup>
             <Separator />
             <Button Content="🖍▲" Style="{StaticResource IconButton}" Command="{Binding PreviousHighlightCommand}"
                     AutomationProperties.Name="Previous highlight" ToolTip="Previous highlighted line (Shift+F3)" />

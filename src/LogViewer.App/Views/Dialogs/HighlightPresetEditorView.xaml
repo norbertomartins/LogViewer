@@ -161,6 +161,33 @@
                 <TextBlock Text="Preview: sample log line"
                            Foreground="{Binding EffectiveDarkForegroundHex, Converter={StaticResource HexToBrushConverter}}" />
             </Border>
+
+            <Separator Margin="0,2,0,8" />
+            <TextBlock Text="Pattern tester" FontWeight="Bold" Margin="0,0,0,2" />
+            <TextBlock Text="Paste sample lines — matched text is marked live as you edit the pattern above."
+                       FontSize="11" Opacity="0.7" TextWrapping="Wrap" Margin="0,0,0,4" />
+            <TextBox Text="{Binding TesterInput, UpdateSourceTrigger=PropertyChanged}"
+                     AcceptsReturn="True" AcceptsTab="False" FontFamily="Consolas"
+                     TextWrapping="NoWrap" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                     MinHeight="70" MaxHeight="150" Margin="0,0,0,4"
+                     AutomationProperties.Name="Pattern tester sample text" />
+            <TextBlock Text="{Binding TesterSummary}" FontSize="11" Opacity="0.85" Margin="0,0,0,4" />
+            <ItemsControl ItemsSource="{Binding TesterLines}" AutomationProperties.AutomationId="PatternTesterResults">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock FontFamily="Consolas" TextWrapping="NoWrap" Text="{Binding}">
+                            <controls:InlinesHelper.Source>
+                                <MultiBinding Converter="{StaticResource RegexTestInlinesConverter}">
+                                    <Binding />
+                                    <Binding Path="DataContext.Pattern" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                    <Binding Path="DataContext.IsRegex" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                    <Binding Path="DataContext.IsCaseSensitive" RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                </MultiBinding>
+                            </controls:InlinesHelper.Source>
+                        </TextBlock>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </StackPanel>
         </ScrollViewer>
 

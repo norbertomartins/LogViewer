@@ -153,13 +153,61 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public bool IsTextFilterActive => !string.IsNullOrEmpty(TextFilterPattern);
 
-    partial void OnTextFilterPatternChanged(string? value) => RebuildTextFilter();
+    // --- Embedded pattern tester for the filter box (mirrors the one in the highlight editor) --------
 
-    partial void OnTextFilterExcludeChanged(bool value) => RaiseFilterChanged();
+    [ObservableProperty]
+    private string _filterTesterInput = string.Empty;
 
-    partial void OnTextFilterIsRegexChanged(bool value) => RebuildTextFilter();
+    public IReadOnlyList<string> FilterTesterLines =>
+        FilterTesterInput.Length == 0 ? [] : FilterTesterInput.Replace("\r\n", "\n").Split('\n');
 
-    partial void OnTextFilterCaseSensitiveChanged(bool value) => RebuildTextFilter();
+    public string FilterTesterSummary
+    {
+        get
+        {
+            var lines = FilterTesterLines;
+            if (lines.Count == 0 || string.IsNullOrEmpty(TextFilterPattern))
+            {
+                return string.Empty;
+            }
+
+            var hits = lines.Count(l => PatternMatchHelper.IsMatch(l, TextFilterPattern!, TextFilterIsRegex, TextFilterCaseSensitive));
+            var verb = TextFilterExclude ? "hidden" : "shown";
+            return $"{hits} / {lines.Count} lines match ({(TextFilterExclude ? lines.Count - hits : hits)} {verb})";
+        }
+    }
+
+    private void NotifyFilterTesterChanged()
+    {
+        OnPropertyChanged(nameof(FilterTesterLines));
+        OnPropertyChanged(nameof(FilterTesterSummary));
+    }
+
+    partial void OnFilterTesterInputChanged(string value) => NotifyFilterTesterChanged();
+
+    partial void OnTextFilterPatternChanged(string? value)
+    {
+        RebuildTextFilter();
+        NotifyFilterTesterChanged();
+    }
+
+    partial void OnTextFilterExcludeChanged(bool value)
+    {
+        RaiseFilterChanged();
+        NotifyFilterTesterChanged();
+    }
+
+    partial void OnTextFilterIsRegexChanged(bool value)
+    {
+        RebuildTextFilter();
+        NotifyFilterTesterChanged();
+    }
+
+    partial void OnTextFilterCaseSensitiveChanged(bool value)
+    {
+        RebuildTextFilter();
+        NotifyFilterTesterChanged();
+    }
 
     private void RebuildTextFilter()
     {
