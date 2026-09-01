@@ -749,7 +749,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             new("External Tools…", "Tools", () => EditExternalToolsCommand.Execute(null)),
             new("Windows Services…", "Tools", () => OpenServicesCommand.Execute(null)),
             new("Settings…", "Tools", () => OpenSettingsCommand.Execute(null)),
+            new("Save Current Session as Profile…", "Session", () => SaveSessionProfileAsCommand.Execute(null)),
         };
+
+        foreach (var profileName in SessionProfileNames)
+        {
+            var captured = profileName;
+            list.Add(new PaletteCommand($"Load Session Profile: {captured}", "Session", () => LoadSessionProfileCommand.Execute(captured)));
+        }
 
         foreach (var toggle in HighlightPresetToggles)
         {
@@ -810,19 +817,31 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 continue;
             }
 
-            entry.CustomColorHex = document.CustomColorHex;
-            entry.CustomIconGlyph = document.CustomIconGlyph;
-            entry.MdiLeft = document.MdiLeft;
-            entry.MdiTop = document.MdiTop;
-            entry.MdiWidth = document.MdiWidth;
-            entry.MdiHeight = document.MdiHeight;
-            entry.MdiIsMaximized = document.IsMdiMaximized;
-            entry.IsStructuredView = document.IsStructuredView;
-            entry.StructuredFormatId = document.IsStructuredFormatManuallyChosen ? document.StructuredFormatId : null;
+            CaptureLiveState(document, entry);
         }
 
         _settingsStore.Save(_settings);
         Dispose();
+    }
+
+    /// <summary>Copies a live document's customization and display-filter state back onto its persisted
+    /// <see cref="TailSourceSettings"/> entry — shared by session save and session-profile capture.</summary>
+    private static void CaptureLiveState(TailDocumentViewModel document, TailSourceSettings entry)
+    {
+        entry.CustomColorHex = document.CustomColorHex;
+        entry.CustomIconGlyph = document.CustomIconGlyph;
+        entry.MdiLeft = document.MdiLeft;
+        entry.MdiTop = document.MdiTop;
+        entry.MdiWidth = document.MdiWidth;
+        entry.MdiHeight = document.MdiHeight;
+        entry.MdiIsMaximized = document.IsMdiMaximized;
+        entry.IsStructuredView = document.IsStructuredView;
+        entry.StructuredFormatId = document.IsStructuredFormatManuallyChosen ? document.StructuredFormatId : null;
+        entry.TextFilterPattern = string.IsNullOrEmpty(document.TextFilterPattern) ? null : document.TextFilterPattern;
+        entry.TextFilterIsRegex = document.TextFilterIsRegex;
+        entry.TextFilterCaseSensitive = document.TextFilterCaseSensitive;
+        entry.TextFilterExclude = document.TextFilterExclude;
+        entry.MinLevel = document.IsLevelFilterActive ? document.MinLevel : null;
     }
 
     public void Dispose()
@@ -839,9 +858,34 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     // --- Session restore -------------------------------------------------------------------
 
-    private void RestoreSession()
+    private void RestoreSession() => RestoreSources(_settings.RecentSources.ToList(), _settings.Layout.ActiveSourceDedupKey);
+
+    /// <summary>Opens every source in <paramref name="entries"/> (skipping ones that no longer resolve),
+    /// applies its saved customization/filters, and activates <paramref name="activeKey"/> if present.
+    /// Backs both startup session-restore and switching to a named session profile.</summary>
+    private void RestoreSources(IReadOnlyList<TailSourceSettings> entries, string? activeKey)
     {
-        foreach (var entry in _settings.RecentSources.ToList())
+        foreach (var entry in entries)
+        {
+            var document = TryRestoreSource(entry);
+            if (document is not null)
+            {
+                ApplyRestoredState(document, entry);
+            }
+        }
+
+        if (activeKey is not null)
+        {
+            var active = Documents.FirstOrDefault(d => string.Equals(d.SourcePath, activeKey, StringComparison.OrdinalIgnoreCase));
+            if (active is not null)
+            {
+                ActiveDocument = active;
+            }
+        }
+    }
+
+    private TailDocumentViewModel? TryRestoreSource(TailSourceSettings entry)
+    {
         {
             var document = entry.Kind switch
             {
@@ -875,23 +919,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
                 _ => null,
             };
 
-            if (document is not null)
-            {
-                ApplyRestoredCustomization(document, entry);
-            }
-        }
-
-        if (_settings.Layout.ActiveSourceDedupKey is { } activeKey)
-        {
-            var active = Documents.FirstOrDefault(d => string.Equals(d.SourcePath, activeKey, StringComparison.OrdinalIgnoreCase));
-            if (active is not null)
-            {
-                ActiveDocument = active;
-            }
+            return document;
         }
     }
 
-    private static void ApplyRestoredCustomization(TailDocumentViewModel document, TailSourceSettings entry)
+    private static void ApplyRestoredState(TailDocumentViewModel document, TailSourceSettings entry)
     {
         if (entry.CustomColorHex is not null)
         {
@@ -910,6 +942,128 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             document.MdiWidth = width;
             document.MdiHeight = height;
             document.IsMdiMaximized = entry.MdiIsMaximized;
+        }
+
+        if (!string.IsNullOrEmpty(entry.TextFilterPattern))
+        {
+            document.TextFilterIsRegex = entry.TextFilterIsRegex;
+            document.TextFilterCaseSensitive = entry.TextFilterCaseSensitive;
+            document.TextFilterExclude = entry.TextFilterExclude;
+            document.TextFilterPattern = entry.TextFilterPattern;
+        }
+
+        if (!string.IsNullOrEmpty(entry.MinLevel))
+        {
+            document.MinLevel = entry.MinLevel;
+        }
+    }
+
+    // --- Named session profiles ------------------------------------------------------------------
+
+    public IReadOnlyList<string> SessionProfileNames =>
+        _settings.SessionProfiles.Select(p => p.Name).OrderBy(n => n, StringComparer.CurrentCultureIgnoreCase).ToList();
+
+    /// <summary>Snapshots the currently open documents (with live customization/filter state) plus the
+    /// window mode and docking layout as a named profile, replacing any existing profile of that name.</summary>
+    public void SaveSessionProfile(string name, string? dockingLayoutXml = null)
+    {
+        name = name.Trim();
+        if (name.Length == 0)
+        {
+            return;
+        }
+
+        var sources = new List<TailSourceSettings>();
+        foreach (var document in Documents)
+        {
+            var entry = _settings.RecentSources.FirstOrDefault(r =>
+                string.Equals(ComputeDedupKey(r), document.SourcePath, StringComparison.OrdinalIgnoreCase));
+            if (entry is null)
+            {
+                continue;
+            }
+
+            var clone = entry.Clone();
+            CaptureLiveState(document, clone);
+            sources.Add(clone);
+        }
+
+        _settings.SessionProfiles.RemoveAll(p => string.Equals(p.Name, name, StringComparison.CurrentCultureIgnoreCase));
+        _settings.SessionProfiles.Add(new SessionProfile
+        {
+            Name = name,
+            Sources = sources,
+            WindowMode = Host.Mode,
+            DockingLayoutXml = dockingLayoutXml ?? _settings.Layout.DockingLayoutXml,
+            ActiveSourceDedupKey = ActiveDocument?.SourcePath,
+        });
+
+        _settingsStore.Save(_settings);
+        OnPropertyChanged(nameof(SessionProfileNames));
+        StatusMessage = $"Saved session profile \"{name}\".";
+    }
+
+    [RelayCommand]
+    private void SaveSessionProfileAs()
+    {
+        var name = _dialogService.ShowTextPrompt("Save Session Profile", "Profile name:", SuggestProfileName());
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            SaveProfileRequested?.Invoke(name.Trim());
+        }
+    }
+
+    /// <summary>Raised so <c>MainWindow</c> can capture the live AvalonDock layout XML before the
+    /// profile is written (the VM has no reference to the docking control).</summary>
+    public event Action<string>? SaveProfileRequested;
+
+    private string SuggestProfileName()
+    {
+        for (var i = 1; ; i++)
+        {
+            var candidate = i == 1 ? "My Session" : $"My Session {i}";
+            if (!_settings.SessionProfiles.Any(p => string.Equals(p.Name, candidate, StringComparison.CurrentCultureIgnoreCase)))
+            {
+                return candidate;
+            }
+        }
+    }
+
+    [RelayCommand]
+    private void LoadSessionProfile(string? name)
+    {
+        var profile = _settings.SessionProfiles.FirstOrDefault(p =>
+            string.Equals(p.Name, name, StringComparison.CurrentCultureIgnoreCase));
+        if (profile is null)
+        {
+            return;
+        }
+
+        foreach (var document in Documents.ToList())
+        {
+            CloseDocument(document);
+        }
+
+        if (profile.DockingLayoutXml is not null)
+        {
+            _settings.Layout.DockingLayoutXml = profile.DockingLayoutXml;
+        }
+
+        SwitchWindowMode(profile.WindowMode.ToString());
+        RestoreSources(profile.Sources.Select(s => s.Clone()).ToList(), profile.ActiveSourceDedupKey);
+        StatusMessage = $"Loaded session profile \"{profile.Name}\" ({profile.Sources.Count} source(s)).";
+    }
+
+    [RelayCommand]
+    private void DeleteSessionProfile(string? name)
+    {
+        var removed = _settings.SessionProfiles.RemoveAll(p =>
+            string.Equals(p.Name, name, StringComparison.CurrentCultureIgnoreCase));
+        if (removed > 0)
+        {
+            _settingsStore.Save(_settings);
+            OnPropertyChanged(nameof(SessionProfileNames));
+            StatusMessage = $"Deleted session profile \"{name}\".";
         }
     }
 

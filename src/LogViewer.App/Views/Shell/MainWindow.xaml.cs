@@ -32,6 +32,7 @@ public partial class MainWindow : Window
             viewModel.Host.AttachDockingManager(DockManager);
             ApplyWindowLayout(viewModel.WindowLayout);
             viewModel.ExternalToolsChanged += SyncExternalToolShortcuts;
+            viewModel.SaveProfileRequested += name => viewModel.SaveSessionProfile(name, TrySerializeDockLayout());
             SyncExternalToolShortcuts();
         }
 
@@ -135,20 +136,24 @@ public partial class MainWindow : Window
 
         var bounds = WindowState == WindowState.Maximized ? RestoreBounds : new Rect(Left, Top, Width, Height);
 
-        string? layoutXml = null;
+        viewModel.CaptureWindowLayout(bounds.Left, bounds.Top, bounds.Width, bounds.Height, WindowState == WindowState.Maximized, TrySerializeDockLayout());
+    }
+
+    /// <summary>Serializes the current AvalonDock layout to XML, or null if it can't be captured
+    /// (e.g. mid-teardown) — callers fall back to the default layout.</summary>
+    private string? TrySerializeDockLayout()
+    {
         try
         {
             var serializer = new XmlLayoutSerializer(DockManager);
             using var writer = new StringWriter();
             serializer.Serialize(writer);
-            layoutXml = writer.ToString();
+            return writer.ToString();
         }
         catch (Exception ex) when (ex is XmlException or InvalidOperationException)
         {
-            // Layout couldn't be serialized (e.g. mid-teardown) — next launch just falls back to the default layout.
+            return null;
         }
-
-        viewModel.CaptureWindowLayout(bounds.Left, bounds.Top, bounds.Width, bounds.Height, WindowState == WindowState.Maximized, layoutXml);
     }
 
     private void ApplyWindowLayout(WindowLayoutSettings layout)

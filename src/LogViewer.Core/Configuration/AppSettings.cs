@@ -10,11 +10,14 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 5;
+    public int SchemaVersion { get; set; } = 6;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
 
     public List<TailSourceSettings> RecentSources { get; set; } = [];
+
+    /// <summary>Named, user-switchable working-set snapshots (see <see cref="SessionProfile"/>).</summary>
+    public List<SessionProfile> SessionProfiles { get; set; } = [];
 
     public List<HighlightPreset> HighlightPresets { get; set; } = [];
 

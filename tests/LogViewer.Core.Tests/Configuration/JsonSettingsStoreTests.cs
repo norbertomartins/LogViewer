@@ -104,7 +104,7 @@ public sealed class JsonSettingsStoreTests
         store.Save(original);
         var loaded = store.Load();
 
-        Assert.Equal(5, loaded.SchemaVersion);
+        Assert.Equal(6, loaded.SchemaVersion);
         Assert.False(loaded.AutoTuneForRemoteDesktop);
         Assert.Equal("eventlog:Application", loaded.Layout.ActiveSourceDedupKey);
 
@@ -146,7 +146,7 @@ public sealed class JsonSettingsStoreTests
         Assert.Equal("My Highlights", preset.Name);
         Assert.True(preset.IsEnabled);
         Assert.Equal(["High", "Low"], preset.Rules.Select(r => r.Name));
-        Assert.Equal(5, settings.SchemaVersion);
+        Assert.Equal(6, settings.SchemaVersion);
 
         Directory.Delete(Path.GetDirectoryName(path)!, recursive: true);
     }
@@ -162,7 +162,7 @@ public sealed class JsonSettingsStoreTests
         var settings = store.Load();
 
         Assert.Empty(settings.HighlightPresets);
-        Assert.Equal(5, settings.SchemaVersion);
+        Assert.Equal(6, settings.SchemaVersion);
 
         Directory.Delete(Path.GetDirectoryName(path)!, recursive: true);
     }

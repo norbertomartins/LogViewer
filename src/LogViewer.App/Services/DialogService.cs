@@ -213,6 +213,12 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         return window.ShowDialog() == true ? window.ChosenCommand : null;
     }
 
+    public string? ShowTextPrompt(string title, string prompt, string? initialValue = null)
+    {
+        var window = new TextPromptView(title, prompt, initialValue) { Owner = Application.Current?.MainWindow };
+        return window.ShowDialog() == true ? window.Value : null;
+    }
+
     public void ShowServicesDialog()
     {
         var window = new ServicesView

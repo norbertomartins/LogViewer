@@ -62,6 +62,10 @@ public interface IDialogService
     /// command (whose <c>Execute</c> the caller then runs), or null if dismissed.</summary>
     PaletteCommand? ShowCommandPalette(IReadOnlyList<PaletteCommand> commands);
 
+    /// <summary>Single-line text prompt (e.g. "name this session profile"). Returns the entered text,
+    /// or null if cancelled.</summary>
+    string? ShowTextPrompt(string title, string prompt, string? initialValue = null);
+
     void ShowServicesDialog();
 
     /// <summary>Opens a non-modal full-file/EventLog search window over <paramref name="document"/>.</summary>

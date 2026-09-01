@@ -74,7 +74,9 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
 
         // v4 -> v5: Mcp is new; AppSettings' field initializer already gives pre-v5 files a sensible
         // disabled-by-default McpServerSettings, so no field-level migration is needed.
-        settings.SchemaVersion = 5;
+        // v5 -> v6: SessionProfiles is new (plus per-document filter fields on TailSourceSettings); the
+        // field initializers already give pre-v6 files an empty profile list and inert filters.
+        settings.SchemaVersion = 6;
         return settings;
     }
 

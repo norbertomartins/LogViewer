@@ -72,6 +72,27 @@
                 <MenuItem Header="_Floating" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Floating" />
                 <MenuItem Header="_MDI" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Mdi" />
             </MenuItem>
+            <MenuItem Header="_Session">
+                <MenuItem Header="_Save Current Session as Profile..." Command="{Binding SaveSessionProfileAsCommand}" />
+                <MenuItem Header="_Load Profile" ItemsSource="{Binding SessionProfileNames}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding}" />
+                            <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=Menu}, Path=DataContext.LoadSessionProfileCommand}" />
+                            <Setter Property="CommandParameter" Value="{Binding}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <MenuItem Header="_Delete Profile" ItemsSource="{Binding SessionProfileNames}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding}" />
+                            <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=Menu}, Path=DataContext.DeleteSessionProfileCommand}" />
+                            <Setter Property="CommandParameter" Value="{Binding}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+            </MenuItem>
             <MenuItem Header="_Tools">
                 <MenuItem Header="_Highlight Presets..." Command="{Binding EditHighlightPresetsCommand}" />
                 <MenuItem Header="_Toggle Highlight Presets" ItemsSource="{Binding HighlightPresetToggles}">
