@@ -1,0 +1,190 @@
+2026-02-15 09:00:03.000 [INFO] Payment pay_514002 captured
+2026-02-15 09:00:09.000 [WARN] Gateway slow: 372ms for pay_632084
+2026-02-15 09:00:11.000 [INFO] Authorizing payment pay_677814 amount $215.14
+2026-02-15 09:00:12.000 [WARN] Idempotency replay for pay_151998
+2026-02-15 09:00:17.000 [DEBUG] Gateway latency 1283ms for pay_666950
+2026-02-15 09:00:19.000 [WARN] Gateway slow: 277ms for pay_490487
+2026-02-15 09:00:29.000 [INFO] Webhook delivered for pay_813451
+2026-02-15 09:00:37.000 [INFO] Refund pay_360494 processed
+2026-02-15 09:00:42.000 [WARN] Idempotency replay for pay_460160
+2026-02-15 09:00:44.000 [WARN] Idempotency replay for pay_272975
+2026-02-15 09:00:45.000 [ERROR] Gateway timeout for pay_901710
+2026-02-15 09:00:55.000 [DEBUG] Retrying pay_172103 (attempt 3)
+2026-02-15 09:00:56.000 [ERROR] Payment pay_778563 rejected: gateway 503
+2026-02-15 09:01:07.000 [INFO] Authorizing payment pay_584122 amount $180.95
+2026-02-15 09:01:11.000 [INFO] Payment pay_874230 captured
+2026-02-15 09:01:14.000 [DEBUG] Retrying pay_676129 (attempt 3)
+2026-02-15 09:01:19.000 [ERROR] Payment pay_476198 rejected: card expired
+2026-02-15 09:01:21.000 [INFO] Payment pay_343224 captured
+2026-02-15 09:01:24.000 [INFO] Refund pay_104292 processed
+2026-02-15 09:01:30.000 [INFO] Authorizing payment pay_578825 amount $450.27
+2026-02-15 09:01:37.000 [INFO] Webhook delivered for pay_765100
+2026-02-15 09:01:45.000 [INFO] Authorizing payment pay_456572 amount $302.36
+2026-02-15 09:01:48.000 [WARN] Gateway slow: 308ms for pay_481272
+2026-02-15 09:01:55.000 [INFO] Refund pay_464264 processed
+2026-02-15 09:02:03.000 [DEBUG] Retrying pay_607337 (attempt 2)
+2026-02-15 09:02:08.000 [DEBUG] Gateway latency 2183ms for pay_641415
+2026-02-15 09:02:17.000 [INFO] Refund pay_774147 processed
+2026-02-15 09:02:20.000 [INFO] Payment pay_658463 captured
+2026-02-15 09:02:30.000 [INFO] Payment pay_958084 captured
+2026-02-15 09:02:38.000 [INFO] Authorizing payment pay_129294 amount $396.11
+2026-02-15 09:02:48.000 [INFO] Webhook delivered for pay_947842
+2026-02-15 09:02:52.000 [INFO] Payment pay_592914 captured
+2026-02-15 09:03:02.000 [INFO] Webhook delivered for pay_784697
+2026-02-15 09:03:09.000 [ERROR] Gateway timeout for pay_601253
+2026-02-15 09:03:11.000 [ERROR] Payment pay_585659 rejected: card expired
+2026-02-15 09:03:14.000 [INFO] Authorizing payment pay_258492 amount $297.45
+2026-02-15 09:03:24.000 [WARN] Idempotency replay for pay_789195
+2026-02-15 09:03:27.000 [INFO] Authorizing payment pay_938186 amount $485.59
+2026-02-15 09:03:34.000 [INFO] Payment pay_129353 captured
+2026-02-15 09:03:44.000 [INFO] Refund pay_670795 processed
+2026-02-15 09:03:52.000 [ERROR] Payment pay_967318 rejected: network reset
+2026-02-15 09:03:55.000 [WARN] Gateway slow: 36ms for pay_561504
+2026-02-15 09:03:58.000 [DEBUG] Gateway latency 2143ms for pay_683506
+2026-02-15 09:04:06.000 [INFO] Authorizing payment pay_360565 amount $99.7
+2026-02-15 09:04:14.000 [WARN] Gateway slow: 279ms for pay_896910
+2026-02-15 09:04:24.000 [WARN] Gateway slow: 2101ms for pay_826381
+2026-02-15 09:04:33.000 [INFO] Refund pay_686692 processed
+2026-02-15 09:04:40.000 [INFO] Webhook delivered for pay_563594
+2026-02-15 09:04:44.000 [ERROR] Payment pay_922016 rejected: risk hold
+2026-02-15 09:04:47.000 [INFO] Payment pay_590456 captured
+2026-02-15 09:04:50.000 [ERROR] Gateway timeout for pay_269309
+2026-02-15 09:04:57.000 [INFO] Refund pay_433998 processed
+2026-02-15 09:05:06.000 [DEBUG] Retrying pay_837307 (attempt 4)
+2026-02-15 09:05:11.000 [WARN] Gateway slow: 956ms for pay_218331
+2026-02-15 09:05:16.000 [INFO] Authorizing payment pay_916838 amount $94.87
+2026-02-15 09:05:23.000 [INFO] Webhook delivered for pay_834440
+2026-02-15 09:05:30.000 [INFO] Refund pay_117649 processed
+2026-02-15 09:05:34.000 [INFO] Refund pay_227588 processed
+2026-02-15 09:05:39.000 [WARN] Gateway slow: 996ms for pay_145304
+2026-02-15 09:05:44.000 [INFO] Payment pay_311569 captured
+2026-02-15 09:05:49.000 [DEBUG] Gateway latency 94ms for pay_383663
+2026-02-15 09:05:50.000 [INFO] Payment pay_639214 captured
+2026-02-15 09:06:01.000 [DEBUG] Retrying pay_631298 (attempt 2)
+2026-02-15 09:06:05.000 [ERROR] Gateway timeout for pay_524356
+2026-02-15 09:06:07.000 [ERROR] Payment pay_551664 rejected: gateway 503
+2026-02-15 09:06:16.000 [ERROR] Payment pay_727864 rejected: gateway 503
+2026-02-15 09:06:19.000 [INFO] Refund pay_567480 processed
+2026-02-15 09:06:25.000 [INFO] Authorizing payment pay_424584 amount $112.84
+2026-02-15 09:06:32.000 [INFO] Webhook delivered for pay_392478
+2026-02-15 09:06:33.000 [INFO] Refund pay_956733 processed
+2026-02-15 09:06:40.000 [INFO] Refund pay_419023 processed
+2026-02-15 09:06:43.000 [ERROR] Payment pay_901438 rejected: risk hold
+2026-02-15 09:06:53.000 [ERROR] Gateway timeout for pay_145915
+2026-02-15 09:07:02.000 [INFO] Authorizing payment pay_966552 amount $344.8
+2026-02-15 09:07:03.000 [INFO] Refund pay_210012 processed
+2026-02-15 09:07:14.000 [INFO] Payment pay_613062 captured
+2026-02-15 09:07:23.000 [INFO] Authorizing payment pay_881952 amount $369.71
+2026-02-15 09:07:27.000 [ERROR] Gateway timeout for pay_341944
+2026-02-15 09:07:29.000 [DEBUG] Retrying pay_904226 (attempt 2)
+2026-02-15 09:07:32.000 [INFO] Refund pay_783183 processed
+2026-02-15 09:07:35.000 [INFO] Webhook delivered for pay_163607
+2026-02-15 09:07:46.000 [DEBUG] Retrying pay_843305 (attempt 3)
+2026-02-15 09:07:48.000 [WARN] Gateway slow: 1957ms for pay_426814
+2026-02-15 09:07:56.000 [INFO] Webhook delivered for pay_381707
+2026-02-15 09:07:58.000 [INFO] Refund pay_477019 processed
+2026-02-15 09:08:04.000 [INFO] Webhook delivered for pay_609755
+2026-02-15 09:08:15.000 [DEBUG] Retrying pay_416618 (attempt 3)
+2026-02-15 09:08:21.000 [INFO] Refund pay_101825 processed
+2026-02-15 09:08:25.000 [ERROR] Gateway timeout for pay_875849
+2026-02-15 09:08:32.000 [WARN] Gateway slow: 1147ms for pay_478231
+2026-02-15 09:08:34.000 [INFO] Refund pay_765807 processed
+2026-02-15 09:08:43.000 [INFO] Payment pay_910741 captured
+2026-02-15 09:08:52.000 [WARN] Gateway slow: 1702ms for pay_854526
+2026-02-15 09:08:55.000 [ERROR] Payment pay_609162 rejected: gateway 503
+2026-02-15 09:09:02.000 [ERROR] Payment pay_874931 rejected: card expired
+2026-02-15 09:09:07.000 [DEBUG] Retrying pay_225559 (attempt 2)
+2026-02-15 09:09:16.000 [DEBUG] Retrying pay_449002 (attempt 3)
+2026-02-15 09:09:25.000 [ERROR] Gateway timeout for pay_458566
+2026-02-15 09:09:30.000 [ERROR] Gateway timeout for pay_886072
+2026-02-15 09:09:34.000 [ERROR] Gateway timeout for pay_622343
+2026-02-15 09:09:43.000 [ERROR] Gateway timeout for pay_197096
+2026-02-15 09:09:54.000 [ERROR] Payment pay_989909 rejected: insufficient funds
+2026-02-15 09:10:01.000 [ERROR] Payment pay_715699 rejected: network reset
+2026-02-15 09:10:09.000 [DEBUG] Gateway latency 652ms for pay_921147
+2026-02-15 09:10:20.000 [INFO] Webhook delivered for pay_189132
+2026-02-15 09:10:24.000 [WARN] Gateway slow: 544ms for pay_776861
+2026-02-15 09:10:33.000 [ERROR] Payment pay_832516 rejected: risk hold
+2026-02-15 09:10:42.000 [WARN] Gateway slow: 24ms for pay_506933
+2026-02-15 09:10:47.000 [DEBUG] Retrying pay_431724 (attempt 3)
+2026-02-15 09:10:51.000 [WARN] Gateway slow: 1279ms for pay_130703
+2026-02-15 09:10:55.000 [DEBUG] Retrying pay_185031 (attempt 3)
+2026-02-15 09:11:03.000 [INFO] Refund pay_853225 processed
+2026-02-15 09:11:08.000 [ERROR] Gateway timeout for pay_315187
+2026-02-15 09:11:12.000 [DEBUG] Gateway latency 1228ms for pay_377895
+2026-02-15 09:11:20.000 [WARN] Gateway slow: 251ms for pay_334172
+2026-02-15 09:11:27.000 [INFO] Payment pay_124776 captured
+2026-02-15 09:11:28.000 [INFO] Webhook delivered for pay_571483
+2026-02-15 09:11:30.000 [INFO] Refund pay_299946 processed
+2026-02-15 09:11:31.000 [INFO] Webhook delivered for pay_979888
+2026-02-15 09:11:33.000 [INFO] Authorizing payment pay_393398 amount $44.98
+2026-02-15 09:11:37.000 [DEBUG] Retrying pay_906074 (attempt 2)
+2026-02-15 09:11:45.000 [INFO] Refund pay_667834 processed
+2026-02-15 09:11:53.000 [INFO] Webhook delivered for pay_360060
+2026-02-15 09:11:54.000 [DEBUG] Gateway latency 1072ms for pay_942361
+2026-02-15 09:12:04.000 [INFO] Refund pay_385542 processed
+2026-02-15 09:12:09.000 [INFO] Authorizing payment pay_856623 amount $379.05
+2026-02-15 09:12:11.000 [DEBUG] Retrying pay_914068 (attempt 3)
+2026-02-15 09:12:14.000 [DEBUG] Gateway latency 1262ms for pay_109128
+2026-02-15 09:12:24.000 [INFO] Refund pay_435071 processed
+2026-02-15 09:12:31.000 [INFO] Payment pay_527563 captured
+2026-02-15 09:12:40.000 [INFO] Payment pay_547274 captured
+2026-02-15 09:12:42.000 [INFO] Authorizing payment pay_541513 amount $251.75
+2026-02-15 09:12:45.000 [DEBUG] Retrying pay_750439 (attempt 4)
+2026-02-15 09:12:56.000 [INFO] Refund pay_408052 processed
+2026-02-15 09:13:01.000 [INFO] Webhook delivered for pay_359448
+2026-02-15 09:13:11.000 [INFO] Refund pay_167952 processed
+2026-02-15 09:13:15.000 [ERROR] Gateway timeout for pay_785062
+2026-02-15 09:13:23.000 [INFO] Webhook delivered for pay_492037
+2026-02-15 09:13:24.000 [INFO] Payment pay_178765 captured
+2026-02-15 09:13:29.000 [ERROR] Gateway timeout for pay_210918
+2026-02-15 09:13:35.000 [INFO] Payment pay_146311 captured
+2026-02-15 09:13:46.000 [INFO] Authorizing payment pay_958608 amount $166.99
+2026-02-15 09:13:51.000 [INFO] Payment pay_132995 captured
+2026-02-15 09:13:53.000 [DEBUG] Gateway latency 690ms for pay_770230
+2026-02-15 09:14:00.000 [INFO] Refund pay_538142 processed
+2026-02-15 09:14:06.000 [DEBUG] Retrying pay_119097 (attempt 4)
+2026-02-15 09:14:13.000 [ERROR] Payment pay_313560 rejected: gateway 503
+2026-02-15 09:14:15.000 [INFO] Webhook delivered for pay_705862
+2026-02-15 09:14:16.000 [INFO] Payment pay_771787 captured
+2026-02-15 09:14:26.000 [INFO] Payment pay_252973 captured
+2026-02-15 09:14:28.000 [INFO] Webhook delivered for pay_614336
+2026-02-15 09:14:29.000 [DEBUG] Retrying pay_155967 (attempt 2)
+2026-02-15 09:14:32.000 [ERROR] Gateway timeout for pay_751221
+2026-02-15 09:14:42.000 [INFO] Authorizing payment pay_519163 amount $469.58
+2026-02-15 09:14:44.000 [INFO] Payment pay_860094 captured
+2026-02-15 09:14:55.000 [INFO] Refund pay_223449 processed
+2026-02-15 09:15:06.000 [DEBUG] Retrying pay_710926 (attempt 4)
+2026-02-15 09:15:14.000 [WARN] Idempotency replay for pay_287447
+2026-02-15 09:15:22.000 [WARN] Idempotency replay for pay_977181
+2026-02-15 09:15:24.000 [INFO] Refund pay_551515 processed
+2026-02-15 09:15:35.000 [INFO] Authorizing payment pay_767352 amount $69.48
+2026-02-15 09:15:37.000 [INFO] Webhook delivered for pay_784453
+2026-02-15 09:15:47.000 [ERROR] Gateway timeout for pay_303116
+2026-02-15 09:15:58.000 [ERROR] Gateway timeout for pay_168698
+2026-02-15 09:16:08.000 [INFO] Webhook delivered for pay_250546
+2026-02-15 09:16:13.000 [WARN] Gateway slow: 834ms for pay_434577
+2026-02-15 09:16:16.000 [ERROR] Payment pay_812696 rejected: risk hold
+2026-02-15 09:16:18.000 [WARN] Gateway slow: 1875ms for pay_767228
+2026-02-15 09:16:28.000 [ERROR] Gateway timeout for pay_364274
+2026-02-15 09:16:33.000 [DEBUG] Retrying pay_705406 (attempt 2)
+2026-02-15 09:16:37.000 [INFO] Authorizing payment pay_410780 amount $410.81
+2026-02-15 09:16:48.000 [INFO] Authorizing payment pay_883411 amount $21.73
+2026-02-15 09:16:59.000 [DEBUG] Retrying pay_637581 (attempt 2)
+2026-02-15 09:17:03.000 [WARN] Gateway slow: 1473ms for pay_123372
+2026-02-15 09:17:12.000 [INFO] Payment pay_533311 captured
+2026-02-15 09:17:22.000 [DEBUG] Gateway latency 1017ms for pay_241294
+2026-02-15 09:17:30.000 [INFO] Authorizing payment pay_769211 amount $76.62
+2026-02-15 09:17:31.000 [INFO] Refund pay_723613 processed
+2026-02-15 09:17:39.000 [INFO] Payment pay_100418 captured
+2026-02-15 09:17:42.000 [INFO] Payment pay_161215 captured
+2026-02-15 09:17:51.000 [ERROR] Gateway timeout for pay_249177
+2026-02-15 09:18:02.000 [ERROR] Payment pay_952891 rejected: insufficient funds
+2026-02-15 09:18:07.000 [ERROR] Gateway timeout for pay_859489
+2026-02-15 09:18:15.000 [INFO] Webhook delivered for pay_283911
+2026-02-15 09:18:26.000 [INFO] Authorizing payment pay_451814 amount $446.18
+2026-02-15 09:18:31.000 [ERROR] Payment pay_819043 rejected: risk hold
+2026-02-15 09:18:42.000 [INFO] Authorizing payment pay_632077 amount $12.54
+2026-02-15 09:18:45.000 [ERROR] Payment pay_301260 rejected: card expired
+2026-02-15 09:18:52.000 [ERROR] Payment pay_595075 rejected: gateway 503
+2026-02-15 09:18:56.000 [WARN] Idempotency replay for pay_927538
