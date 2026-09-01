@@ -112,9 +112,32 @@
   + `TailSourceSettings` fields (SSH secrets excluded), three dialogs (`OpenProcessTailView` /
   `OpenSshTailView` / `OpenEtwTailView`) with `PasswordBox`-backed secret entry, `MainViewModel.Open*`
   methods + File-menu items, session restore (SSH only for key-based auth), `Kind` mapping. Verified via
-  7 new Core + 2 new App unit tests (273 total) + full build. **Still open:** journald has no dedicated
-  source — it is covered by `ProcessTailSource` running `journalctl -f` (locally or `wsl journalctl`).
-  No Phase 6 UI path has had an interactive WPF pass.
+  7 new Core + 2 new App unit tests (273 total) + full build. journald has no dedicated source — it is
+  covered by `ProcessTailSource` running `journalctl -f` (locally or `wsl journalctl`).
+
+- **Phase 6f — first interactive-UI pass + fixes.** Ran the app under FlaUI and fixed what the pass
+  turned up:
+  - **Merged view + structured toggle did nothing** — merged lines carry a `label│ ` prefix that broke
+    every parser. `MergedTailSource.StripLabel` now removes it; `TailDocumentViewModel` strips it before
+    parsing when the source is a `MergedTailSource`, and `MainViewModel.OpenMergedFiles` auto-detects the
+    format from the underlying files and turns structured view on.
+  - **Volume timeline only worked for structured docs** — `RecomputeTimeline` now falls back to
+    `MergedTimestampExtractor` + `LogLevelNormalizer.GuessSeverityFromLine` for plain-text lines, so a
+    plain `yyyy-MM-dd HH:mm:ss [LEVEL]` log also charts.
+  - **ETW delivered no events** — switched from `Source.Dynamic.All` (EventSource/manifest only) to
+    `Source.AllEvents`, skipping only session-bookkeeping events.
+  - **Compact toolbar** — the document toolbar's text buttons are now single-glyph icons, each keeping
+    its `ToolTip` and an `AutomationProperties.Name`.
+  - **Sample logs** — `samples/timeline/{orders-service.clef, payments-service.log}` (+ a deterministic
+    `generate.py`) covering the same 15-minute window with a volume burst and an error storm, for
+    exercising the timeline and merged view.
+  - **UI automation** — `LogViewer.UITests` now drives the app through UIA patterns (Invoke / Toggle /
+    ExpandCollapse / Value) instead of synthesized mouse input, so the suite runs in a locked session.
+    New `DocumentUITests` (restores a sample log via an isolated `settings.json`, then asserts lines
+    render, the icon toolbar is reachable by accessible name, the timeline toggles + draws bars, and a
+    text filter hides lines) plus a File-menu-completeness check.
+  Verified via new Core/App unit tests + the FlaUI suite. Still no manual pass of the SSH / ETW dialogs
+  against real remote hosts / an elevated session.
 
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and

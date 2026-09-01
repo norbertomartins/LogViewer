@@ -35,6 +35,8 @@ architecture decisions.
   toolbar picker and can be overridden per document (persisted across restarts).
 - Gzip (`.gz`) log archives open transparently — decompressed once to a temp copy and then viewed,
   searched, and parsed like any other file.
+- Structured view (and format auto-detection) also works on a merged multi-file document — the per-file
+  label prefix is stripped before parsing.
 - Colorization by structured property (applied only to the message, not the whole line).
 - Quick filter by `TraceId`/`SpanId` from a given line (click to filter on that value), a minimum log
   level filter, and a button to clear all active filters.
@@ -53,7 +55,8 @@ architecture decisions.
   trace/span/level filters.
 - Export the currently visible (filtered) lines to a file.
 - Volume timeline: a collapsible histogram of line volume over time (error/warning/info stacked per time
-  bucket), click a bar to jump to the first line in that bucket.
+  bucket), click a bar to jump to the first line in that bucket. Works on structured logs and on
+  plain-text logs with a leading timestamp.
 
 **Search**
 - Full-text search over a file, independent of the in-memory ring buffer (finds matches already evicted
@@ -157,6 +160,7 @@ C:\Dev\LogViewer\
                                      #   full-text regex search, structured-line caching
 
   samples\block-diff\            # sample files for manually exercising block-diff
+  samples\timeline\             # sample logs (CLEF + plain text) for the volume timeline / merged view
 
   .github\workflows\build.yml    # CI: build + tests on GitHub Actions
 ```
