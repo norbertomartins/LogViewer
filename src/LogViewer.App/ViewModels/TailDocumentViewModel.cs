@@ -980,15 +980,22 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             DateTimeOffset? timestamp;
             int severity;
 
+            var raw = TextForParsing(line.Text);
+
             if (line.Structured?.Timestamp is { } structuredTs)
             {
                 timestamp = structuredTs;
                 severity = LogLevelSeverity.Rank(line.Structured.Level) ?? 2;
             }
+            else if (_lineParser.TryParse(raw, out var parsed) && parsed?.Timestamp is { } parsedTs)
+            {
+                // Structured view is off but the line still parses (ndjson/logfmt/serilog/etc.).
+                timestamp = parsedTs;
+                severity = LogLevelSeverity.Rank(parsed.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(raw) ?? 2;
+            }
             else
             {
                 // Plain-text line: pull a leading timestamp and a level word out of the raw text.
-                var raw = TextForParsing(line.Text);
                 timestamp = MergedTimestampExtractor.TryExtract(raw);
                 severity = LogLevelNormalizer.GuessSeverityFromLine(raw) ?? 2;
             }

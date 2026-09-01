@@ -109,26 +109,42 @@ public partial class TailDocumentView : UserControl
 
     private void OnScrollToEndRequested()
     {
-        Dispatcher.BeginInvoke(() =>
+        Dispatcher.BeginInvoke(() => SafeScrollIntoView(() =>
         {
             if (LineListView.Items.Count > 0)
             {
-                BeginProgrammaticScroll();
                 LineListView.ScrollIntoView(LineListView.Items[^1]);
             }
-
-            ResetHorizontalScrollAfterLayout();
-        });
+        }));
     }
 
     private void OnScrollToLineRequested(LogLineViewModel line)
     {
-        Dispatcher.BeginInvoke(() =>
+        Dispatcher.BeginInvoke(() => SafeScrollIntoView(() => LineListView.ScrollIntoView(line)));
+    }
+
+    /// <summary>Runs a <c>ScrollIntoView</c> call guarded against the transient states the ListView passes
+    /// through while AvalonDock re-parents it during a window-mode switch — with a live tail (ETW, remote,
+    /// process) new lines keep firing scroll requests right through the reparent, and ScrollIntoView on a
+    /// ListView whose virtualizing panel is momentarily detached throws from a Dispatcher callback, which
+    /// would otherwise take down the process.</summary>
+    private void SafeScrollIntoView(Action scroll)
+    {
+        if (!IsLoaded || !LineListView.IsLoaded)
+        {
+            return;
+        }
+
+        try
         {
             BeginProgrammaticScroll();
-            LineListView.ScrollIntoView(line);
+            scroll();
             ResetHorizontalScrollAfterLayout();
-        });
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or NullReferenceException or ArgumentOutOfRangeException)
+        {
+            // Mid-reparent — the next flushed batch (or the user) will scroll again once layout settles.
+        }
     }
 
     /// <summary>Marks the next scroll as ours so <see cref="OnLineListScrollChanged"/> doesn't read it as

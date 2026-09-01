@@ -157,6 +157,19 @@ public sealed class EtwTailSource : ITailSource
 
     private void OnEvent(TraceEvent data)
     {
+        try
+        {
+            AppendEvent(data);
+        }
+        catch (Exception)
+        {
+            // A single malformed/partial ETW event (missing manifest, odd payload) must never break the
+            // trace session or bubble out of Source.Process() — just skip it.
+        }
+    }
+
+    private void AppendEvent(TraceEvent data)
+    {
         // Session bookkeeping events (rundown/header) aren't log content.
         if (data.ProviderGuid == EtwSessionBookkeepingGuid || data.EventName is "EventTrace" or "ManifestData")
         {
