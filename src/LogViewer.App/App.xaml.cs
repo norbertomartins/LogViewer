@@ -92,7 +92,7 @@ public partial class App : Application
         var started = await host.StartAsync(CancellationToken.None);
         if (!started)
         {
-            mainViewModel.StatusMessage = $"MCP server failed to start: {host.StartupError}";
+            mainViewModel.StatusMessage = Localization.Loc.Format("Vm_Mcp_StartFailed", host.StartupError);
         }
     }
 

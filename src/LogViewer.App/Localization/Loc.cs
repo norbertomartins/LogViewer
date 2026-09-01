@@ -45,10 +45,15 @@ public static class Loc
         }
     }
 
-    /// <summary>Returns the localized string for <paramref name="key"/>, or the key itself if it is missing.</summary>
-    public static string Get(string key) => Resources.GetString(key, Culture) ?? key;
+    /// <summary>
+    /// Returns the localized string for <paramref name="key"/>, or the key itself if it is missing. When no
+    /// culture has been set (<see cref="Initialize"/> not called, or called with an "en" name), lookups are
+    /// pinned to <see cref="CultureInfo.InvariantCulture"/> so the result is the neutral (English) text
+    /// regardless of the operating system's UI language.
+    /// </summary>
+    public static string Get(string key) => Resources.GetString(key, Culture ?? CultureInfo.InvariantCulture) ?? key;
 
     /// <summary><see cref="Get"/> followed by <see cref="string.Format(IFormatProvider, string, object?[])"/>.</summary>
     public static string Format(string key, params object?[] args) =>
-        string.Format(Culture ?? CultureInfo.CurrentCulture, Get(key), args);
+        string.Format(Culture ?? CultureInfo.InvariantCulture, Get(key), args);
 }

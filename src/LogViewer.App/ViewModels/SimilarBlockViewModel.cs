@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
 using LogViewer.Core.BlockDiff;
@@ -117,14 +118,14 @@ public sealed partial class SimilarBlockViewModel : ObservableObject
         var targetPath = SelectedTargetDocument?.SearchableFilePath ?? BrowsedTargetPath;
         if (string.IsNullOrEmpty(targetPath))
         {
-            StatusMessage = "Choose a comparison target — an open document or a file.";
+            StatusMessage = Loc.Get("Vm_Similar_ChooseTarget");
             return;
         }
 
         var anchor = BuildAnchorBlock();
         if (anchor is null || anchor.Lines.Count == 0)
         {
-            StatusMessage = "Couldn't build a block around the selected line.";
+            StatusMessage = Loc.Get("Vm_Similar_NoBlock");
             return;
         }
 
@@ -138,7 +139,7 @@ public sealed partial class SimilarBlockViewModel : ObservableObject
         DiffEntries.Clear();
         SelectedCandidate = null;
         IsSearching = true;
-        StatusMessage = "Searching…";
+        StatusMessage = Loc.Get("Vm_Similar_Searching");
 
         try
         {
@@ -153,19 +154,22 @@ public sealed partial class SimilarBlockViewModel : ObservableObject
                 Candidates.Add(match);
             }
 
-            StatusMessage = matches.Count == 0
-                ? "No matching block found."
-                : $"{matches.Count} candidate{(matches.Count == 1 ? string.Empty : "s")} found.";
+            StatusMessage = matches.Count switch
+            {
+                0 => Loc.Get("Vm_Similar_NoMatch"),
+                1 => Loc.Get("Vm_Similar_CandidatesOne"),
+                _ => Loc.Format("Vm_Similar_CandidatesMany", matches.Count),
+            };
 
             SelectedCandidate = Candidates.FirstOrDefault();
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = "Cancelled.";
+            StatusMessage = Loc.Get("Vm_Similar_Cancelled");
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            StatusMessage = $"Scan failed: {ex.Message}";
+            StatusMessage = Loc.Format("Vm_Similar_ScanFailed", ex.Message);
         }
         finally
         {
@@ -197,12 +201,12 @@ public sealed partial class SimilarBlockViewModel : ObservableObject
         {
             if (!SelectedTargetDocument.TryNavigateToLineNumber(right.LineNumber))
             {
-                StatusMessage = "That line is no longer in the live view.";
+                StatusMessage = Loc.Get("Vm_Similar_LineGone");
             }
         }
         else
         {
-            StatusMessage = "Target isn't an open document — can't jump to it directly.";
+            StatusMessage = Loc.Get("Vm_Similar_TargetNotOpen");
         }
     }
 
@@ -217,7 +221,7 @@ public sealed partial class SimilarBlockViewModel : ObservableObject
             var value = StructuredFieldResolver.Resolve(_anchorLine.Structured, SelectedCorrelationField);
             if (string.IsNullOrEmpty(value))
             {
-                StatusMessage = $"Selected line has no {SelectedCorrelationField} property.";
+                StatusMessage = Loc.Format("Vm_Similar_NoProperty", SelectedCorrelationField);
                 return null;
             }
 

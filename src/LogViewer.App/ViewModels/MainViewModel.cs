@@ -3,6 +3,7 @@ using System.IO;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
 using LogViewer.Core.BlockDiff;
@@ -95,7 +96,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var totalLines = Documents.Sum(d => d.TotalLinesAppended);
         var snapshot = _processStats.Sample(totalLines);
-        WindowTitle = $"LogViewer — RAM: {snapshot.WorkingSetMb:F0} MB | CPU: {snapshot.CpuPercent:F1}% | {snapshot.LinesPerSecond:F0} lines/sec";
+        WindowTitle = Loc.Format("Vm_WindowTitle", snapshot.WorkingSetMb, snapshot.CpuPercent, snapshot.LinesPerSecond);
 
         if (Documents.Count == 0)
         {
@@ -106,8 +107,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         var bufferedLines = Documents.Sum(d => (long)d.BufferedLineCount);
         var bufferedMb = Documents.Sum(d => d.BufferedTextBytes) / (1024.0 * 1024.0);
         var worstLatency = Documents.Max(d => d.DispatchLatencyMs);
-        PerformanceStatus =
-            $"{snapshot.LinesPerSecond:F0} lines/s  •  buffer {bufferedLines:N0} lines / {bufferedMb:F1} MB  •  dispatch {worstLatency:F1} ms  •  RAM {snapshot.WorkingSetMb:F0} MB";
+        PerformanceStatus = Loc.Format("Vm_PerformanceStatus",
+            snapshot.LinesPerSecond, bufferedLines, bufferedMb, worstLatency, snapshot.WorkingSetMb);
     }
 
     public DockingWindowModeHost Host { get; }
@@ -749,60 +750,66 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     /// document's own commands into one searchable list for the Ctrl+P palette.</summary>
     public IReadOnlyList<PaletteCommand> BuildPaletteCommands()
     {
+        var file = Loc.Get("Palette_Cat_File");
+        var window = Loc.Get("Palette_Cat_Window");
+        var tools = Loc.Get("Palette_Cat_Tools");
+        var session = Loc.Get("Palette_Cat_Session");
+        var activeCat = Loc.Get("Palette_Cat_ActiveDoc");
+
         var list = new List<PaletteCommand>
         {
-            new("Open File…", "File", () => OpenFileCommand.Execute(null)),
-            new("Open Directory (Watch)…", "File", () => OpenDirectoryWatchCommand.Execute(null)),
-            new("Open Merged Files / Folders…", "File", () => OpenMergedFilesCommand.Execute(null)),
-            new("Open Windows Event Log…", "File", () => OpenEventLogCommand.Execute(null)),
-            new("Open Remote Log Endpoint…", "File", () => OpenRemoteEndpointCommand.Execute(null)),
-            new("Open Command Output…", "File", () => OpenProcessTailCommand.Execute(null)),
-            new("Open SSH Log Tail…", "File", () => OpenSshTailCommand.Execute(null)),
-            new("Open ETW Provider…", "File", () => OpenEtwTailCommand.Execute(null)),
-            new("Window Mode: Tabbed", "Window", () => SwitchWindowModeCommand.Execute("Tabbed")),
-            new("Window Mode: Floating", "Window", () => SwitchWindowModeCommand.Execute("Floating")),
-            new("Window Mode: MDI", "Window", () => SwitchWindowModeCommand.Execute("Mdi")),
-            new("Highlight Presets…", "Tools", () => EditHighlightPresetsCommand.Execute(null)),
-            new("External Tools…", "Tools", () => EditExternalToolsCommand.Execute(null)),
-            new("Windows Services…", "Tools", () => OpenServicesCommand.Execute(null)),
-            new("Settings…", "Tools", () => OpenSettingsCommand.Execute(null)),
-            new("Save Current Session as Profile…", "Session", () => SaveSessionProfileAsCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenFile"), file, () => OpenFileCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenDirectory"), file, () => OpenDirectoryWatchCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenMerged"), file, () => OpenMergedFilesCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenEventLog"), file, () => OpenEventLogCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenRemote"), file, () => OpenRemoteEndpointCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenCommand"), file, () => OpenProcessTailCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenSsh"), file, () => OpenSshTailCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenEtw"), file, () => OpenEtwTailCommand.Execute(null)),
+            new(Loc.Get("Palette_WindowTabbed"), window, () => SwitchWindowModeCommand.Execute("Tabbed")),
+            new(Loc.Get("Palette_WindowFloating"), window, () => SwitchWindowModeCommand.Execute("Floating")),
+            new(Loc.Get("Palette_WindowMdi"), window, () => SwitchWindowModeCommand.Execute("Mdi")),
+            new(Loc.Get("Palette_HighlightPresets"), tools, () => EditHighlightPresetsCommand.Execute(null)),
+            new(Loc.Get("Palette_ExternalTools"), tools, () => EditExternalToolsCommand.Execute(null)),
+            new(Loc.Get("Palette_Services"), tools, () => OpenServicesCommand.Execute(null)),
+            new(Loc.Get("Palette_Settings"), tools, () => OpenSettingsCommand.Execute(null)),
+            new(Loc.Get("Palette_SaveProfile"), session, () => SaveSessionProfileAsCommand.Execute(null)),
         };
 
         foreach (var profileName in SessionProfileNames)
         {
             var captured = profileName;
-            list.Add(new PaletteCommand($"Load Session Profile: {captured}", "Session", () => LoadSessionProfileCommand.Execute(captured)));
+            list.Add(new PaletteCommand(Loc.Format("Palette_LoadProfileFmt", captured), session, () => LoadSessionProfileCommand.Execute(captured)));
         }
 
         foreach (var toggle in HighlightPresetToggles)
         {
             var captured = toggle;
             list.Add(new PaletteCommand(
-                $"Toggle Highlight Preset: {captured.Name}",
-                "Tools",
+                Loc.Format("Palette_ToggleHighlightFmt", captured.Name),
+                tools,
                 () => captured.IsEnabled = !captured.IsEnabled));
         }
 
         foreach (var document in Documents)
         {
             var captured = document;
-            list.Add(new PaletteCommand($"Go to: {captured.DisplayTitle}", "Document", () => ActiveDocument = captured, captured.SourcePath));
+            list.Add(new PaletteCommand(Loc.Format("Palette_GoToFmt", captured.DisplayTitle), Loc.Get("Palette_Cat_Document"), () => ActiveDocument = captured, captured.SourcePath));
         }
 
         if (ActiveDocument is { } active)
         {
-            list.Add(new PaletteCommand("Toggle Follow Tail", "Active document", () => active.ToggleFollowCommand.Execute(null)));
-            list.Add(new PaletteCommand("Toggle Structured View", "Active document", () => active.IsStructuredView = !active.IsStructuredView));
-            list.Add(new PaletteCommand("Toggle Volume Timeline", "Active document", () => active.ToggleTimelineCommand.Execute(null)));
-            list.Add(new PaletteCommand("Clear All Filters", "Active document", () => active.ClearFilterCommand.Execute(null)));
-            list.Add(new PaletteCommand("Export Visible Lines…", "Active document", () => active.ExportVisibleCommand.Execute(null)));
-            list.Add(new PaletteCommand("Search in Document…", "Active document", () => active.SearchCommand.Execute(null)));
-            list.Add(new PaletteCommand("Customize Tab Color / Icon…", "Active document", () => active.CustomizeCommand.Execute(null)));
-            list.Add(new PaletteCommand("Next Highlight", "Active document", () => active.NextHighlightCommand.Execute(null)));
-            list.Add(new PaletteCommand("Previous Highlight", "Active document", () => active.PreviousHighlightCommand.Execute(null)));
-            list.Add(new PaletteCommand("Toggle Bookmark", "Active document", () => active.ToggleBookmarkCommand.Execute(null)));
-            list.Add(new PaletteCommand("Close Document", "Active document", () => CloseDocumentCommand.Execute(active)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ToggleFollow"), activeCat, () => active.ToggleFollowCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ToggleStructured"), activeCat, () => active.IsStructuredView = !active.IsStructuredView));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ToggleTimeline"), activeCat, () => active.ToggleTimelineCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ClearFilters"), activeCat, () => active.ClearFilterCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ExportVisible"), activeCat, () => active.ExportVisibleCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_SearchInDoc"), activeCat, () => active.SearchCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_Customize"), activeCat, () => active.CustomizeCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_NextHighlight"), activeCat, () => active.NextHighlightCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_PrevHighlight"), activeCat, () => active.PreviousHighlightCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ToggleBookmark"), activeCat, () => active.ToggleBookmarkCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_CloseDoc"), activeCat, () => CloseDocumentCommand.Execute(active)));
         }
 
         return list;
@@ -1017,13 +1024,14 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         _settingsStore.Save(_settings);
         OnPropertyChanged(nameof(SessionProfileNames));
-        StatusMessage = $"Saved session profile \"{name}\".";
+        StatusMessage = Loc.Format("Vm_Profile_Saved", name);
     }
 
     [RelayCommand]
     private void SaveSessionProfileAs()
     {
-        var name = _dialogService.ShowTextPrompt("Save Session Profile", "Profile name:", SuggestProfileName());
+        var name = _dialogService.ShowTextPrompt(
+            Loc.Get("Prompt_SaveProfile_Title"), Loc.Get("Prompt_SaveProfile_Message"), SuggestProfileName());
         if (!string.IsNullOrWhiteSpace(name))
         {
             SaveProfileRequested?.Invoke(name.Trim());
@@ -1068,7 +1076,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         SwitchWindowMode(profile.WindowMode.ToString());
         RestoreSources(profile.Sources.Select(s => s.Clone()).ToList(), profile.ActiveSourceDedupKey);
-        StatusMessage = $"Loaded session profile \"{profile.Name}\" ({profile.Sources.Count} source(s)).";
+        StatusMessage = Loc.Format("Vm_Profile_Loaded", profile.Name, profile.Sources.Count);
     }
 
     [RelayCommand]
@@ -1080,7 +1088,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             _settingsStore.Save(_settings);
             OnPropertyChanged(nameof(SessionProfileNames));
-            StatusMessage = $"Deleted session profile \"{name}\".";
+            StatusMessage = Loc.Format("Vm_Profile_Deleted", name);
         }
     }
 

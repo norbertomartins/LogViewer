@@ -3,6 +3,7 @@ using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LogViewer.App.Controls;
+using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
 using LogViewer.Core.Analysis;
@@ -216,8 +217,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             }
 
             var hits = lines.Count(l => PatternMatchHelper.IsMatch(l, TextFilterPattern!, TextFilterIsRegex, TextFilterCaseSensitive));
-            var verb = TextFilterExclude ? "hidden" : "shown";
-            return $"{hits} / {lines.Count} lines match ({(TextFilterExclude ? lines.Count - hits : hits)} {verb})";
+            var verb = Loc.Get(TextFilterExclude ? "Vm_Doc_Tester_Hidden" : "Vm_Doc_Tester_Shown");
+            var affected = TextFilterExclude ? lines.Count - hits : hits;
+            return Loc.Format("Vm_Doc_Tester_Summary", hits, lines.Count, affected, verb);
         }
     }
 
@@ -267,7 +269,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             }
             catch (ArgumentException ex)
             {
-                StatusMessage = $"Invalid filter regex: {ex.Message}";
+                StatusMessage = Loc.Format("Vm_Doc_InvalidFilterRegex", ex.Message);
             }
         }
 
@@ -330,15 +332,15 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
             if (IsLevelFilterActive)
             {
-                parts.Add($"Level ≥ {MinLevel}");
+                parts.Add(Loc.Format("Vm_Doc_LevelAtLeast", MinLevel));
             }
 
             if (IsTextFilterActive)
             {
-                parts.Add($"text {(TextFilterExclude ? "≠" : "~")} \"{TextFilterPattern}\"");
+                parts.Add(Loc.Format("Vm_Doc_TextFilterPart", TextFilterExclude ? "≠" : "~", TextFilterPattern));
             }
 
-            return parts.Count > 0 ? "Filtered by " + string.Join(" AND ", parts) : null;
+            return parts.Count > 0 ? Loc.Get("Vm_Doc_FilteredByPrefix") + string.Join(Loc.Get("Vm_Doc_FilterJoiner"), parts) : null;
         }
     }
 
@@ -653,7 +655,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
-            StatusMessage = $"Failed to switch structured view: {ex.Message}";
+            StatusMessage = Loc.Format("Vm_Doc_SwitchStructuredFailed", ex.Message);
             _isReprocessing = false;
         }
     }
@@ -843,7 +845,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
         var marker = new LogLineViewModel(0, $"── file {reason.ToString().ToLowerInvariant()} — resuming ──", structured: null, match: null, isBookmarked: false);
         Lines.AppendRange([marker]);
-        StatusMessage = $"Source {reason.ToString().ToLowerInvariant()} — resumed tailing.";
+        StatusMessage = Loc.Format("Vm_Doc_SourceResumed", reason.ToString().ToLowerInvariant());
     }
 
     private void TrimEvictedLineNumbers()
@@ -901,7 +903,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     {
         if (line?.Structured is null)
         {
-            StatusMessage = "Selected line is not a structured log event.";
+            StatusMessage = Loc.Get("Vm_Doc_NotStructured");
             return;
         }
 
@@ -1066,7 +1068,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var value = StructuredFieldResolver.Resolve(line?.Structured, field);
         if (string.IsNullOrEmpty(value))
         {
-            StatusMessage = $"Selected line has no {field} property.";
+            StatusMessage = Loc.Format("Vm_Doc_NoProperty", field);
             return;
         }
 

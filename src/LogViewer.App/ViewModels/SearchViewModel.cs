@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LogViewer.App.Localization;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.Search;
 using LogViewer.Core.Structured;
@@ -65,7 +66,7 @@ public sealed partial class SearchViewModel : ObservableObject
     {
         if (string.IsNullOrEmpty(Pattern))
         {
-            StatusMessage = "Enter a search pattern.";
+            StatusMessage = Loc.Get("Vm_Search_EnterPattern");
             return;
         }
 
@@ -75,7 +76,7 @@ public sealed partial class SearchViewModel : ObservableObject
 
         Results.Clear();
         IsSearching = true;
-        StatusMessage = "Searching…";
+        StatusMessage = Loc.Get("Vm_Search_Searching");
 
         var matchCount = 0;
         try
@@ -83,7 +84,7 @@ public sealed partial class SearchViewModel : ObservableObject
             var stream = BuildStream(cts.Token);
             if (stream is null)
             {
-                StatusMessage = "Nothing to search — this document has no backing file or EventLog channel.";
+                StatusMessage = Loc.Get("Vm_Search_NothingToSearch");
                 return;
             }
 
@@ -93,15 +94,19 @@ public sealed partial class SearchViewModel : ObservableObject
                 matchCount++;
             }
 
-            StatusMessage = $"{matchCount} match{(matchCount == 1 ? string.Empty : "es")}.";
+            StatusMessage = matchCount == 1
+                ? Loc.Get("Vm_Search_MatchesOne")
+                : Loc.Format("Vm_Search_MatchesMany", matchCount);
         }
         catch (OperationCanceledException)
         {
-            StatusMessage = $"Cancelled — {matchCount} match{(matchCount == 1 ? string.Empty : "es")} found so far.";
+            StatusMessage = matchCount == 1
+                ? Loc.Get("Vm_Search_CancelledOne")
+                : Loc.Format("Vm_Search_CancelledMany", matchCount);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or System.Text.RegularExpressions.RegexParseException)
         {
-            StatusMessage = $"Search failed: {ex.Message}";
+            StatusMessage = Loc.Format("Vm_Search_Failed", ex.Message);
         }
         finally
         {
@@ -135,7 +140,7 @@ public sealed partial class SearchViewModel : ObservableObject
 
         if (!_document.TryNavigateToLineNumber(SelectedResult.LineNumber))
         {
-            StatusMessage = "That line is no longer in the live view (evicted from the buffer) — showing text above only.";
+            StatusMessage = Loc.Get("Vm_Search_LineEvicted");
         }
     }
 }

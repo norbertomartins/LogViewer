@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.ComponentModel;
+using LogViewer.App.Localization;
 using LogViewer.Core.Highlighting;
 using LogViewer.Core.Structured;
 
@@ -88,7 +89,7 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
         {
             if (IsRegex && !IsPatternValid)
             {
-                return "Invalid regular expression";
+                return Loc.Get("Common_InvalidRegex");
             }
 
             var lines = TesterLines;
@@ -98,7 +99,7 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
             }
 
             var hits = lines.Count(l => PatternMatchHelper.IsMatch(l, Pattern, IsRegex, IsCaseSensitive));
-            return $"{hits} / {lines.Count} lines match";
+            return Loc.Format("Vm_Rule_Tester_Summary", hits, lines.Count);
         }
     }
 

@@ -2,6 +2,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LogViewer.App.Localization;
 using Microsoft.Win32;
 
 namespace LogViewer.App.ViewModels;
@@ -15,7 +16,7 @@ public sealed record MergeSourceEntry(bool IsFolder, string Path, string? Patter
 {
     public string Display => IsFolder ? System.IO.Path.Combine(Path, Pattern ?? "*.log") : Path;
 
-    public string Kind => IsFolder ? "Folder" : "File";
+    public string Kind => Loc.Get(IsFolder ? "Merged_Kind_Folder" : "Merged_Kind_File");
 }
 
 public sealed partial class OpenMergedSourcesViewModel : ObservableObject
@@ -35,7 +36,7 @@ public sealed partial class OpenMergedSourcesViewModel : ObservableObject
     {
         var dialog = new OpenFileDialog
         {
-            Title = "Add files to merge",
+            Title = Loc.Get("Merged_AddFilesDialogTitle"),
             Filter = "Log files (*.log;*.txt)|*.log;*.txt|All files (*.*)|*.*",
             Multiselect = true,
         };
@@ -58,7 +59,7 @@ public sealed partial class OpenMergedSourcesViewModel : ObservableObject
     [RelayCommand]
     private void AddFolder()
     {
-        var dialog = new OpenFolderDialog { Title = "Add a folder to merge (all matching files)", Multiselect = true };
+        var dialog = new OpenFolderDialog { Title = Loc.Get("Merged_AddFolderDialogTitle"), Multiselect = true };
         if (dialog.ShowDialog() != true)
         {
             return;

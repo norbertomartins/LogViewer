@@ -6,39 +6,32 @@ namespace LogViewer.App.Tests.Localization;
 public sealed class LocTests
 {
     [Fact]
-    public void Get_NeutralCulture_ReturnsEnglish()
+    public void Get_DefaultCulture_ReturnsEnglish_RegardlessOfOsUiLanguage()
     {
-        Loc.Initialize("en");
+        // Loc.Initialize is never called here, so Culture is null — lookups must still be neutral English.
         Assert.Equal("Cancel", Loc.Get("Common_Cancel"));
         Assert.Equal("Settings", Loc.Get("Settings_Title"));
     }
 
     [Fact]
-    public void Get_PortugueseCulture_ReturnsTranslation()
+    public void PortugueseSatellite_ContainsTranslations()
     {
-        try
-        {
-            Loc.Initialize("pt-PT");
-            Assert.Equal("Cancelar", Loc.Get("Common_Cancel"));
-            Assert.Equal("Definições", Loc.Get("Settings_Title"));
-        }
-        finally
-        {
-            Loc.Initialize("en");
-        }
+        // Read the compiled pt-PT satellite directly rather than mutating Loc's global culture.
+        var rm = new System.Resources.ResourceManager("LogViewer.App.Localization.Strings", typeof(Loc).Assembly);
+        var pt = System.Globalization.CultureInfo.GetCultureInfo("pt-PT");
+        Assert.Equal("Cancelar", rm.GetString("Common_Cancel", pt));
+        Assert.Equal("Definições", rm.GetString("Settings_Title", pt));
     }
 
     [Fact]
     public void Get_UnknownKey_ReturnsKey()
     {
-        Loc.Initialize("en");
         Assert.Equal("No_Such_Key_123", Loc.Get("No_Such_Key_123"));
     }
 
     [Fact]
     public void Format_SubstitutesArguments()
     {
-        Loc.Initialize("en");
         Assert.Equal("Export failed: boom", Loc.Format("Vm_Export_Failed", "boom"));
     }
 

@@ -4,6 +4,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.ViewModels;
 using LogViewer.Core.Structured;
@@ -99,11 +100,11 @@ public partial class TailDocumentView : UserControl
         {
             var lines = LineListView.Items.OfType<LogLineViewModel>().Select(l => l.Text);
             System.IO.File.WriteAllLines(dialog.FileName, lines);
-            _viewModel.StatusMessage = $"Exported {LineListView.Items.Count} line(s) to {System.IO.Path.GetFileName(dialog.FileName)}";
+            _viewModel.StatusMessage = Loc.Format("Vm_Export_Done", LineListView.Items.Count, System.IO.Path.GetFileName(dialog.FileName));
         }
         catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
         {
-            _viewModel.StatusMessage = $"Export failed: {ex.Message}";
+            _viewModel.StatusMessage = Loc.Format("Vm_Export_Failed", ex.Message);
         }
     }
 

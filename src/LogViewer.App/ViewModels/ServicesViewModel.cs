@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LogViewer.App.Localization;
 using LogViewer.Core.Services.ServiceControl;
 
 namespace LogViewer.App.ViewModels;
@@ -39,11 +40,11 @@ public sealed partial class ServicesViewModel : ObservableObject
             }
 
             SelectedService = Services.FirstOrDefault(s => s.ServiceName == selectedName);
-            StatusMessage = $"{Services.Count} services listed.";
+            StatusMessage = Loc.Format("Vm_Services_Listed", Services.Count);
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Failed to list services: {ex.Message}";
+            StatusMessage = Loc.Format("Vm_Services_ListFailed", ex.Message);
         }
         finally
         {
@@ -56,7 +57,7 @@ public sealed partial class ServicesViewModel : ObservableObject
     {
         return SelectedService is null
             ? Task.CompletedTask
-            : RunActionAsync(() => _serviceControl.Start(SelectedService.ServiceName), $"Starting '{SelectedService.DisplayName}'...");
+            : RunActionAsync(() => _serviceControl.Start(SelectedService.ServiceName), Loc.Format("Vm_Services_Starting", SelectedService.DisplayName));
     }
 
     [RelayCommand]
@@ -64,7 +65,7 @@ public sealed partial class ServicesViewModel : ObservableObject
     {
         return SelectedService is null
             ? Task.CompletedTask
-            : RunActionAsync(() => _serviceControl.Stop(SelectedService.ServiceName), $"Stopping '{SelectedService.DisplayName}'...");
+            : RunActionAsync(() => _serviceControl.Stop(SelectedService.ServiceName), Loc.Format("Vm_Services_Stopping", SelectedService.DisplayName));
     }
 
     private async Task RunActionAsync(Action action, string busyMessage)
@@ -74,11 +75,11 @@ public sealed partial class ServicesViewModel : ObservableObject
             IsBusy = true;
             StatusMessage = busyMessage;
             await Task.Run(action);
-            StatusMessage = "Done.";
+            StatusMessage = Loc.Get("Vm_Services_Done");
         }
         catch (Exception ex)
         {
-            StatusMessage = $"Failed: {ex.Message} (service control usually requires running LogViewer as administrator).";
+            StatusMessage = Loc.Format("Vm_Services_ControlFailed", ex.Message);
         }
         finally
         {

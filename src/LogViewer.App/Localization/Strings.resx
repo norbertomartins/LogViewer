@@ -353,6 +353,8 @@
   <data name="Merged_Col_Path" xml:space="preserve"><value>Path / Glob</value></data>
   <data name="Merged_Kind_Folder" xml:space="preserve"><value>Folder</value></data>
   <data name="Merged_Kind_File" xml:space="preserve"><value>File</value></data>
+  <data name="Merged_AddFilesDialogTitle" xml:space="preserve"><value>Add files to merge</value></data>
+  <data name="Merged_AddFolderDialogTitle" xml:space="preserve"><value>Add a folder to merge (all matching files)</value></data>
 
   <!-- ==== ViewModel messages ==== -->
   <data name="Vm_Mcp_StartFailed" xml:space="preserve"><value>MCP server failed to start: {0}</value></data>
@@ -364,11 +366,15 @@
   <data name="Vm_Search_EnterPattern" xml:space="preserve"><value>Enter a search pattern.</value></data>
   <data name="Vm_Search_Searching" xml:space="preserve"><value>Searching…</value></data>
   <data name="Vm_Search_NothingToSearch" xml:space="preserve"><value>Nothing to search — this document has no backing file or EventLog channel.</value></data>
-  <data name="Vm_Search_Matches" xml:space="preserve"><value>{0} match{1}.</value></data>
-  <data name="Vm_Search_Cancelled" xml:space="preserve"><value>Cancelled — {0} match{1} found so far.</value></data>
+  <data name="Vm_Search_MatchesOne" xml:space="preserve"><value>1 match.</value></data>
+  <data name="Vm_Search_MatchesMany" xml:space="preserve"><value>{0} matches.</value></data>
+  <data name="Vm_Search_CancelledOne" xml:space="preserve"><value>Cancelled — 1 match found so far.</value></data>
+  <data name="Vm_Search_CancelledMany" xml:space="preserve"><value>Cancelled — {0} matches found so far.</value></data>
   <data name="Vm_Search_Failed" xml:space="preserve"><value>Search failed: {0}</value></data>
   <data name="Vm_Search_LineEvicted" xml:space="preserve"><value>That line is no longer in the live view (evicted from the buffer) — showing text above only.</value></data>
   <data name="Vm_Services_Listed" xml:space="preserve"><value>{0} services listed.</value></data>
+  <data name="Vm_Services_Starting" xml:space="preserve"><value>Starting '{0}'...</value></data>
+  <data name="Vm_Services_Stopping" xml:space="preserve"><value>Stopping '{0}'...</value></data>
   <data name="Vm_Services_ListFailed" xml:space="preserve"><value>Failed to list services: {0}</value></data>
   <data name="Vm_Services_Done" xml:space="preserve"><value>Done.</value></data>
   <data name="Vm_Services_ControlFailed" xml:space="preserve"><value>Failed: {0} (service control usually requires running LogViewer as administrator).</value></data>
@@ -376,6 +382,9 @@
   <data name="Vm_Similar_NoBlock" xml:space="preserve"><value>Couldn't build a block around the selected line.</value></data>
   <data name="Vm_Similar_Searching" xml:space="preserve"><value>Searching…</value></data>
   <data name="Vm_Similar_Cancelled" xml:space="preserve"><value>Cancelled.</value></data>
+  <data name="Vm_Similar_NoMatch" xml:space="preserve"><value>No matching block found.</value></data>
+  <data name="Vm_Similar_CandidatesOne" xml:space="preserve"><value>1 candidate found.</value></data>
+  <data name="Vm_Similar_CandidatesMany" xml:space="preserve"><value>{0} candidates found.</value></data>
   <data name="Vm_Similar_ScanFailed" xml:space="preserve"><value>Scan failed: {0}</value></data>
   <data name="Vm_Similar_LineGone" xml:space="preserve"><value>That line is no longer in the live view.</value></data>
   <data name="Vm_Similar_TargetNotOpen" xml:space="preserve"><value>Target isn't an open document — can't jump to it directly.</value></data>
@@ -385,4 +394,54 @@
   <data name="Vm_Doc_SourceResumed" xml:space="preserve"><value>Source {0} — resumed tailing.</value></data>
   <data name="Vm_Doc_NotStructured" xml:space="preserve"><value>Selected line is not a structured log event.</value></data>
   <data name="Vm_Doc_NoProperty" xml:space="preserve"><value>Selected line has no {0} property.</value></data>
+  <data name="Vm_Doc_FilteredByPrefix" xml:space="preserve"><value>Filtered by </value></data>
+  <data name="Vm_Doc_FilterJoiner" xml:space="preserve"><value> AND </value></data>
+  <data name="Vm_Doc_LevelAtLeast" xml:space="preserve"><value>Level ≥ {0}</value></data>
+  <data name="Vm_Doc_TextFilterPart" xml:space="preserve"><value>text {0} "{1}"</value></data>
+  <data name="Vm_Doc_Tester_Hidden" xml:space="preserve"><value>hidden</value></data>
+  <data name="Vm_Doc_Tester_Shown" xml:space="preserve"><value>shown</value></data>
+  <data name="Vm_Doc_Tester_Summary" xml:space="preserve"><value>{0} / {1} lines match ({2} {3})</value></data>
+  <data name="Vm_Rule_Tester_Summary" xml:space="preserve"><value>{0} / {1} lines match</value></data>
+
+  <!-- ==== Window title / performance readout ==== -->
+  <data name="Vm_WindowTitle" xml:space="preserve"><value>LogViewer — RAM: {0:F0} MB | CPU: {1:F1}% | {2:F0} lines/sec</value></data>
+  <data name="Vm_PerformanceStatus" xml:space="preserve"><value>{0:F0} lines/s  •  buffer {1:N0} lines / {2:F1} MB  •  dispatch {3:F1} ms  •  RAM {4:F0} MB</value></data>
+
+  <!-- ==== Command palette entries ==== -->
+  <data name="Palette_Cat_File" xml:space="preserve"><value>File</value></data>
+  <data name="Palette_Cat_Window" xml:space="preserve"><value>Window</value></data>
+  <data name="Palette_Cat_Tools" xml:space="preserve"><value>Tools</value></data>
+  <data name="Palette_Cat_Session" xml:space="preserve"><value>Session</value></data>
+  <data name="Palette_Cat_Document" xml:space="preserve"><value>Document</value></data>
+  <data name="Palette_Cat_ActiveDoc" xml:space="preserve"><value>Active document</value></data>
+  <data name="Palette_OpenFile" xml:space="preserve"><value>Open File…</value></data>
+  <data name="Palette_OpenDirectory" xml:space="preserve"><value>Open Directory (Watch)…</value></data>
+  <data name="Palette_OpenMerged" xml:space="preserve"><value>Open Merged Files / Folders…</value></data>
+  <data name="Palette_OpenEventLog" xml:space="preserve"><value>Open Windows Event Log…</value></data>
+  <data name="Palette_OpenRemote" xml:space="preserve"><value>Open Remote Log Endpoint…</value></data>
+  <data name="Palette_OpenCommand" xml:space="preserve"><value>Open Command Output…</value></data>
+  <data name="Palette_OpenSsh" xml:space="preserve"><value>Open SSH Log Tail…</value></data>
+  <data name="Palette_OpenEtw" xml:space="preserve"><value>Open ETW Provider…</value></data>
+  <data name="Palette_WindowTabbed" xml:space="preserve"><value>Window Mode: Tabbed</value></data>
+  <data name="Palette_WindowFloating" xml:space="preserve"><value>Window Mode: Floating</value></data>
+  <data name="Palette_WindowMdi" xml:space="preserve"><value>Window Mode: MDI</value></data>
+  <data name="Palette_HighlightPresets" xml:space="preserve"><value>Highlight Presets…</value></data>
+  <data name="Palette_ExternalTools" xml:space="preserve"><value>External Tools…</value></data>
+  <data name="Palette_Services" xml:space="preserve"><value>Windows Services…</value></data>
+  <data name="Palette_Settings" xml:space="preserve"><value>Settings…</value></data>
+  <data name="Palette_SaveProfile" xml:space="preserve"><value>Save Current Session as Profile…</value></data>
+  <data name="Palette_LoadProfileFmt" xml:space="preserve"><value>Load Session Profile: {0}</value></data>
+  <data name="Palette_ToggleHighlightFmt" xml:space="preserve"><value>Toggle Highlight Preset: {0}</value></data>
+  <data name="Palette_GoToFmt" xml:space="preserve"><value>Go to: {0}</value></data>
+  <data name="Palette_ToggleFollow" xml:space="preserve"><value>Toggle Follow Tail</value></data>
+  <data name="Palette_ToggleStructured" xml:space="preserve"><value>Toggle Structured View</value></data>
+  <data name="Palette_ToggleTimeline" xml:space="preserve"><value>Toggle Volume Timeline</value></data>
+  <data name="Palette_ClearFilters" xml:space="preserve"><value>Clear All Filters</value></data>
+  <data name="Palette_ExportVisible" xml:space="preserve"><value>Export Visible Lines…</value></data>
+  <data name="Palette_SearchInDoc" xml:space="preserve"><value>Search in Document…</value></data>
+  <data name="Palette_Customize" xml:space="preserve"><value>Customize Tab Color / Icon…</value></data>
+  <data name="Palette_NextHighlight" xml:space="preserve"><value>Next Highlight</value></data>
+  <data name="Palette_PrevHighlight" xml:space="preserve"><value>Previous Highlight</value></data>
+  <data name="Palette_ToggleBookmark" xml:space="preserve"><value>Toggle Bookmark</value></data>
+  <data name="Palette_CloseDoc" xml:space="preserve"><value>Close Document</value></data>
 </root>
