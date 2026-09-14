@@ -332,6 +332,7 @@
 
   <!-- ==== Open SSH dialog ==== -->
   <data name="Ssh_Title" xml:space="preserve"><value>Open SSH Log Tail</value></data>
+  <data name="Ssh_SavedHost" xml:space="preserve"><value>Saved host (from ~/.ssh/config)</value></data>
   <data name="Ssh_Host" xml:space="preserve"><value>Host</value></data>
   <data name="Ssh_Port" xml:space="preserve"><value>Port</value></data>
   <data name="Ssh_Username" xml:space="preserve"><value>Username</value></data>

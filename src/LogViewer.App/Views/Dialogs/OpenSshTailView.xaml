@@ -13,6 +13,11 @@
         </Grid.RowDefinitions>
         <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
             <StackPanel>
+                <StackPanel Visibility="{Binding HasConfigAliases, Converter={StaticResource BoolToVisibilityConverter}}">
+                    <TextBlock Text="{loc:Loc Ssh_SavedHost}" />
+                    <ComboBox ItemsSource="{Binding AvailableAliases}" SelectedItem="{Binding SelectedAlias}" Margin="0,2,0,10" />
+                </StackPanel>
+
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
