@@ -28,6 +28,9 @@ public interface IDialogService
 {
     IReadOnlyList<string>? ShowOpenFileDialog();
 
+    /// <summary>Picks a single .wav file for the global sound-alert setting. Returns the path, or null if cancelled.</summary>
+    string? ShowOpenSoundFileDialog();
+
     /// <summary>Opens the "merge files/folders by time" builder. Returns the resolved concrete file paths
     /// (folder entries already expanded), or null if cancelled.</summary>
     IReadOnlyList<string>? ShowOpenMergedSourcesDialog();

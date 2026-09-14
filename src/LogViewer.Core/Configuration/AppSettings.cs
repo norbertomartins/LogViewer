@@ -10,7 +10,7 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 7;
+    public int SchemaVersion { get; set; } = 8;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
 
@@ -64,4 +64,8 @@ public sealed class AppSettings
     /// <summary>Embedded MCP server settings, letting an external AI agent analyze the logs this app is
     /// tailing. Disabled by default.</summary>
     public McpServerSettings Mcp { get; set; } = new();
+
+    /// <summary>Global audible-alert settings for Error/Fatal lines. Each open document independently
+    /// opts in or out via <see cref="TailSourceSettings.SoundAlertsEnabled"/>.</summary>
+    public SoundAlertSettings SoundAlerts { get; set; } = new();
 }

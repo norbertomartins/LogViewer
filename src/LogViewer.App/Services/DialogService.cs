@@ -25,6 +25,16 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         return dialog.ShowDialog() == true ? dialog.FileNames : null;
     }
 
+    public string? ShowOpenSoundFileDialog()
+    {
+        var dialog = new OpenFileDialog
+        {
+            Filter = "Wave files (*.wav)|*.wav|All files (*.*)|*.*",
+        };
+
+        return dialog.ShowDialog() == true ? dialog.FileName : null;
+    }
+
     public IReadOnlyList<string>? ShowOpenMergedSourcesDialog()
     {
         var viewModel = new OpenMergedSourcesViewModel();

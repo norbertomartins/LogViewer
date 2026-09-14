@@ -50,6 +50,7 @@ public partial class App : Application
         services.AddSingleton<ISimilarBlockFinder, SimilarBlockFinder>();
         services.AddSingleton<IPatternFrequencyAnalyzer, FilePatternFrequencyAnalyzer>();
         services.AddSingleton<ILineWindowReader, FileLineWindowReader>();
+        services.AddSingleton<ISoundAlertPlayer, SoundAlertPlayer>();
         services.AddSingleton<DockingWindowModeHost>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<IOpenDocumentCatalog, WpfOpenDocumentCatalog>();

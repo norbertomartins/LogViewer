@@ -27,6 +27,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IEventLogSearchService _eventLogSearchService;
     private readonly ISimilarBlockFinder _blockFinder;
     private readonly ThemeService _themeService;
+    private readonly ISoundAlertPlayer _soundAlertPlayer;
     private readonly AppSettings _settings;
     private readonly ProcessStatsService _processStats = new();
     private readonly DispatcherTimer _statsTimer;
@@ -54,7 +55,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         IFullTextSearchService fileSearchService,
         IEventLogSearchService eventLogSearchService,
         ISimilarBlockFinder blockFinder,
-        ThemeService themeService)
+        ThemeService themeService,
+        ISoundAlertPlayer soundAlertPlayer)
     {
         _settingsStore = settingsStore;
         _dialogService = dialogService;
@@ -62,6 +64,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _eventLogSearchService = eventLogSearchService;
         _blockFinder = blockFinder;
         _themeService = themeService;
+        _soundAlertPlayer = soundAlertPlayer;
         Host = host;
 
         _settings = settings;
@@ -543,6 +546,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             dedupKey,
             _settings.HighlightPresets,
             _settings.ExternalTools,
+            _settings.SoundAlerts,
+            _soundAlertPlayer,
             _settings.RingBufferCapacity,
             EffectiveUiRefreshInterval(),
             title,
@@ -866,6 +871,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         entry.TextFilterCaseSensitive = document.TextFilterCaseSensitive;
         entry.TextFilterExclude = document.TextFilterExclude;
         entry.MinLevel = document.IsLevelFilterActive ? document.MinLevel : null;
+        entry.SoundAlertsEnabled = document.IsSoundAlertEnabled;
     }
 
     public void Dispose()
@@ -979,6 +985,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (!string.IsNullOrEmpty(entry.MinLevel))
         {
             document.MinLevel = entry.MinLevel;
+        }
+
+        if (entry.SoundAlertsEnabled is { } soundAlertsEnabled)
+        {
+            document.IsSoundAlertEnabled = soundAlertsEnabled;
         }
     }
 

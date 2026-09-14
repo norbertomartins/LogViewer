@@ -66,6 +66,29 @@
 
             <TextBlock Text="{loc:Loc Settings_McpPort}" TextWrapping="Wrap" />
             <TextBox Text="{Binding McpPort, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
+
+            <Separator Margin="0,4,0,10" />
+
+            <CheckBox IsChecked="{Binding SoundAlertsEnabled}" Margin="0,0,0,10">
+                <TextBlock Text="{loc:Loc Settings_SoundAlertsEnable}" TextWrapping="Wrap" />
+            </CheckBox>
+
+            <TextBlock Text="{loc:Loc Settings_SoundAlertFile}" TextWrapping="Wrap" />
+            <Grid Margin="0,2,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="8" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="4" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+                <TextBox Grid.Column="0" Text="{Binding SoundAlertCustomFilePath, UpdateSourceTrigger=PropertyChanged}"
+                         IsReadOnly="True" ToolTip="{loc:Loc Settings_SoundAlertFile_ToolTip}" />
+                <Button Grid.Column="2" Content="…" Width="28" Command="{Binding BrowseSoundAlertFileCommand}"
+                        AutomationProperties.Name="{loc:Loc Settings_SoundAlertBrowse_Name}" ToolTip="{loc:Loc Settings_SoundAlertBrowse_Name}" />
+                <Button Grid.Column="4" Content="✕" Width="28" Command="{Binding ClearSoundAlertFileCommand}"
+                        AutomationProperties.Name="{loc:Loc Settings_SoundAlertClear_Name}" ToolTip="{loc:Loc Settings_SoundAlertClear_Name}" />
+            </Grid>
         </StackPanel>
         </ScrollViewer>
 

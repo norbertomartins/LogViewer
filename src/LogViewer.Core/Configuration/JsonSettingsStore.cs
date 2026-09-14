@@ -78,7 +78,10 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
         // field initializers already give pre-v6 files an empty profile list and inert filters.
         // v6 -> v7: Language is new; the field initializer already gives pre-v7 files "en" (neutral
         // resources), which is exactly the English-only behavior they had before.
-        settings.SchemaVersion = 7;
+        // v7 -> v8: SoundAlerts is new (plus the per-document SoundAlertsEnabled override); the field
+        // initializers already give pre-v8 files an enabled-by-default global setting and "use the
+        // global default" per document, so no field-level migration is needed.
+        settings.SchemaVersion = 8;
         return settings;
     }
 

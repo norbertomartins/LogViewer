@@ -106,6 +106,10 @@ public sealed class TailSourceSettings
     /// <summary>Minimum log level kept by the level filter (e.g. "Warning"), or null for "any level".</summary>
     public string? MinLevel { get; set; }
 
+    /// <summary>Whether this document plays the global sound alert on Error/Fatal lines. Null means
+    /// "use the default" (enabled); an explicit true/false is the user's manual per-window toggle.</summary>
+    public bool? SoundAlertsEnabled { get; set; }
+
     /// <summary>Deep copy via a JSON round-trip — used to snapshot open documents into a
     /// <see cref="SessionProfile"/> without later edits to the live recent-sources list leaking in.</summary>
     public TailSourceSettings Clone() =>

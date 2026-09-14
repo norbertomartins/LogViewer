@@ -31,7 +31,8 @@ public static class MainViewModelFactory
             Substitute.For<IFullTextSearchService>(),
             Substitute.For<IEventLogSearchService>(),
             Substitute.For<ISimilarBlockFinder>(),
-            themeService);
+            themeService,
+            Substitute.For<ISoundAlertPlayer>());
 
         return (viewModel, usedSettings);
     }

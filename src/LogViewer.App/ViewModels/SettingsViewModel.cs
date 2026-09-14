@@ -50,6 +50,13 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private LanguageOption _selectedLanguage;
 
+    [ObservableProperty]
+    private bool _soundAlertsEnabled;
+
+    /// <summary>Path to a custom .wav file for the sound alert, or null to use the system exclamation sound.</summary>
+    [ObservableProperty]
+    private string? _soundAlertCustomFilePath;
+
     public SettingsViewModel(AppSettings settings, IDialogService dialogService)
     {
         _settings = settings;
@@ -65,6 +72,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         _logFontSize = settings.LogFontSize;
         _mcpEnabled = settings.Mcp.Enabled;
         _mcpPort = settings.Mcp.Port;
+        _soundAlertsEnabled = settings.SoundAlerts.Enabled;
+        _soundAlertCustomFilePath = settings.SoundAlerts.CustomSoundFilePath;
 
         _selectedLanguage = AvailableLanguages.FirstOrDefault(
             l => string.Equals(l.Code, settings.Language, StringComparison.OrdinalIgnoreCase)) ?? AvailableLanguages[0];
@@ -96,6 +105,19 @@ public sealed partial class SettingsViewModel : ObservableObject
 
     private IReadOnlyList<AppTheme> BuildAvailableThemes() => [.. BuiltInThemes.All, .. _settings.CustomThemes];
 
+    [RelayCommand]
+    private void BrowseSoundAlertFile()
+    {
+        var path = _dialogService.ShowOpenSoundFileDialog();
+        if (path is not null)
+        {
+            SoundAlertCustomFilePath = path;
+        }
+    }
+
+    [RelayCommand]
+    private void ClearSoundAlertFile() => SoundAlertCustomFilePath = null;
+
     public void ApplyTo(AppSettings settings)
     {
         settings.DefaultWindowMode = DefaultWindowMode;
@@ -109,6 +131,8 @@ public sealed partial class SettingsViewModel : ObservableObject
         settings.ActiveThemeId = SelectedTheme.Id;
         settings.Mcp.Enabled = McpEnabled;
         settings.Mcp.Port = McpPort;
+        settings.SoundAlerts.Enabled = SoundAlertsEnabled;
+        settings.SoundAlerts.CustomSoundFilePath = string.IsNullOrWhiteSpace(SoundAlertCustomFilePath) ? null : SoundAlertCustomFilePath;
         settings.Language = SelectedLanguage.Code;
     }
 }

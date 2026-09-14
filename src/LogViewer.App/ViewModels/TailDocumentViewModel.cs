@@ -35,6 +35,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     private readonly SortedSet<long> _highlightedLineNumbers = new();
     private readonly UiDispatcherLineSink _sink;
     private readonly Dictionary<Guid, DateTime> _lastAutoTriggerAt = new();
+    private readonly SoundAlertSettings _soundAlertSettings;
+    private readonly ISoundAlertPlayer _soundAlertPlayer;
+    private DateTime _lastSoundAlertAt = DateTime.MinValue;
+    private static readonly TimeSpan SoundAlertThrottle = TimeSpan.FromSeconds(3);
+    private static readonly int SoundAlertMinSeverityRank = LogLevelSeverity.Rank("Error")!.Value;
     private CancellationTokenSource? _reprocessCts;
     private bool _isReprocessing;
     private readonly List<LogLineViewModel> _pendingDuringReprocess = new();
@@ -102,6 +107,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     [ObservableProperty]
     private bool _isColorizeStructuredValues = true;
+
+    /// <summary>Per-window opt-in/out for the global sound alert on Error/Fatal lines. The sound itself
+    /// (enabled, custom file) is a global setting — this toggle only decides whether this document plays it.</summary>
+    [ObservableProperty]
+    private bool _isSoundAlertEnabled = true;
 
     /// <summary>When true, the matched sub-string(s) of a highlight rule are emphasized within the line
     /// (bold + underline). Synced from the global setting via <see cref="ApplyShowHighlightMatchSpans"/>.</summary>
@@ -392,6 +402,8 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         string sourcePath,
         IReadOnlyList<HighlightPreset> highlightPresets,
         IReadOnlyList<ExternalToolDefinition> externalTools,
+        SoundAlertSettings soundAlertSettings,
+        ISoundAlertPlayer soundAlertPlayer,
         int ringBufferCapacity,
         TimeSpan uiRefreshInterval,
         string? title = null,
@@ -416,6 +428,8 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         };
         _highlightEngine.SetRules(HighlightPreset.FlattenForMatching(highlightPresets));
         _externalTools = externalTools;
+        _soundAlertSettings = soundAlertSettings;
+        _soundAlertPlayer = soundAlertPlayer;
         _title = title ?? (Path.GetFileName(sourcePath) is { Length: > 0 } fileName ? fileName : source.DisplayName);
         _isStructuredView = isStructuredView;
         _isColorizeStructuredValues = true;
@@ -570,6 +584,50 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
                 StatusMessage = error;
             }
         }
+    }
+
+    /// <summary>Plays the global sound alert when <paramref name="line"/> is Error/Fatal severity, this
+    /// document's toggle is on, and the global setting is enabled — throttled so a burst of matching
+    /// lines plays at most one alert per <see cref="SoundAlertThrottle"/> window.</summary>
+    private void TryPlaySoundAlert(TailLine line, StructuredLogEvent? structured)
+    {
+        if (!IsSoundAlertEnabled || !_soundAlertSettings.Enabled)
+        {
+            return;
+        }
+
+        if (DetectSeverityRank(line, structured) is not { } rank || rank < SoundAlertMinSeverityRank)
+        {
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        if (now - _lastSoundAlertAt < SoundAlertThrottle)
+        {
+            return;
+        }
+
+        _lastSoundAlertAt = now;
+        _soundAlertPlayer.PlayAlert(_soundAlertSettings.CustomSoundFilePath);
+    }
+
+    /// <summary>Same detection chain <see cref="RecomputeTimeline"/> uses: prefer the already-parsed
+    /// structured level (when structured view produced one for this line), otherwise parse the raw text
+    /// independently of the structured-view toggle, falling back to scanning for a level word.</summary>
+    private int? DetectSeverityRank(TailLine line, StructuredLogEvent? structured)
+    {
+        if (structured?.Level is { } structuredLevel && LogLevelSeverity.Rank(structuredLevel) is { } structuredRank)
+        {
+            return structuredRank;
+        }
+
+        var raw = TextForParsing(line.Text);
+        if (_lineParser.TryParse(raw, out var parsed) && parsed?.Level is { } parsedLevel)
+        {
+            return LogLevelSeverity.Rank(parsedLevel) ?? LogLevelNormalizer.GuessSeverityFromLine(raw);
+        }
+
+        return LogLevelNormalizer.GuessSeverityFromLine(raw);
     }
 
     /// <summary>Total lines ever appended (not bounded by the ring buffer), used for the title-bar lines/sec stat.</summary>
@@ -801,6 +859,8 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
                 _highlightedLineNumbers.Add(line.LineNumber);
                 TryAutoTriggerExternalTools(match.RuleId, line);
             }
+
+            TryPlaySoundAlert(line, structured);
 
             displayItems.Add(new LogLineViewModel(line.LineNumber, line.Text, structured, match, _bookmarks.IsBookmarked(line.LineNumber)));
         }

@@ -134,6 +134,8 @@
   <data name="Doc_StructuredView_ToolTip" xml:space="preserve"><value>Vista estruturada ({0}) — colunas Hora/Nível/Mensagem + detalhes de propriedades</value></data>
   <data name="Doc_StructuredFormat_Name" xml:space="preserve"><value>Formato estruturado</value></data>
   <data name="Doc_StructuredFormat_ToolTip" xml:space="preserve"><value>Formato estruturado: {0}. Detetado automaticamente ao abrir; altere para forçar.</value></data>
+  <data name="Doc_SoundAlert_Name" xml:space="preserve"><value>Alertas sonoros</value></data>
+  <data name="Doc_SoundAlert_ToolTip" xml:space="preserve"><value>Tocar um som quando chegar uma linha Error ou Fatal nesta janela</value></data>
   <data name="Doc_ColorizeValues_Name" xml:space="preserve"><value>Colorir valores</value></data>
   <data name="Doc_ColorizeValues_ToolTip" xml:space="preserve"><value>Realça os valores das variáveis na mensagem com cores distintas</value></data>
   <data name="Doc_MinLevel_Name" xml:space="preserve"><value>Nível mínimo</value></data>
@@ -216,6 +218,11 @@
   <data name="Settings_Language" xml:space="preserve"><value>Idioma (é necessário reiniciar para aplicar)</value></data>
   <data name="Settings_McpEnable" xml:space="preserve"><value>Ativar servidor MCP (permite a um agente de IA analisar os logs abertos)</value></data>
   <data name="Settings_McpPort" xml:space="preserve"><value>Porta do servidor MCP (apenas localhost; é necessário reiniciar para aplicar)</value></data>
+  <data name="Settings_SoundAlertsEnable" xml:space="preserve"><value>Tocar um som em linhas Error/Fatal (cada janela pode desativar abaixo)</value></data>
+  <data name="Settings_SoundAlertFile" xml:space="preserve"><value>Ficheiro de som personalizado (.wav) — deixe vazio para usar o som padrão do sistema</value></data>
+  <data name="Settings_SoundAlertFile_ToolTip" xml:space="preserve"><value>Caminho para um ficheiro .wav a tocar em vez do som padrão do sistema</value></data>
+  <data name="Settings_SoundAlertBrowse_Name" xml:space="preserve"><value>Procurar ficheiro de som</value></data>
+  <data name="Settings_SoundAlertClear_Name" xml:space="preserve"><value>Limpar ficheiro de som personalizado</value></data>
 
   <!-- ==== Windows Services dialog ==== -->
   <data name="Services_Title" xml:space="preserve"><value>Serviços do Windows</value></data>

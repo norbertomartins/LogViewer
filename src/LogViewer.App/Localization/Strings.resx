@@ -134,6 +134,8 @@
   <data name="Doc_StructuredView_ToolTip" xml:space="preserve"><value>Structured view ({0}) — Time/Level/Message columns + property details</value></data>
   <data name="Doc_StructuredFormat_Name" xml:space="preserve"><value>Structured format</value></data>
   <data name="Doc_StructuredFormat_ToolTip" xml:space="preserve"><value>Structured format: {0}. Auto-detected on open; change to override.</value></data>
+  <data name="Doc_SoundAlert_Name" xml:space="preserve"><value>Sound alerts</value></data>
+  <data name="Doc_SoundAlert_ToolTip" xml:space="preserve"><value>Play a sound when an Error or Fatal line arrives in this window</value></data>
   <data name="Doc_ColorizeValues_Name" xml:space="preserve"><value>Colorize values</value></data>
   <data name="Doc_ColorizeValues_ToolTip" xml:space="preserve"><value>Highlight variable values in the message with distinct colors</value></data>
   <data name="Doc_MinLevel_Name" xml:space="preserve"><value>Minimum level</value></data>
@@ -216,6 +218,11 @@
   <data name="Settings_Language" xml:space="preserve"><value>Language (restart required to apply)</value></data>
   <data name="Settings_McpEnable" xml:space="preserve"><value>Enable MCP server (lets an AI agent analyze open logs)</value></data>
   <data name="Settings_McpPort" xml:space="preserve"><value>MCP server port (localhost only; restart required to apply)</value></data>
+  <data name="Settings_SoundAlertsEnable" xml:space="preserve"><value>Play a sound on Error/Fatal lines (each window can opt out below)</value></data>
+  <data name="Settings_SoundAlertFile" xml:space="preserve"><value>Custom sound file (.wav) — leave empty for the default system sound</value></data>
+  <data name="Settings_SoundAlertFile_ToolTip" xml:space="preserve"><value>Path to a .wav file to play instead of the default system sound</value></data>
+  <data name="Settings_SoundAlertBrowse_Name" xml:space="preserve"><value>Browse for sound file</value></data>
+  <data name="Settings_SoundAlertClear_Name" xml:space="preserve"><value>Clear custom sound file</value></data>
 
   <!-- ==== Windows Services dialog ==== -->
   <data name="Services_Title" xml:space="preserve"><value>Windows Services</value></data>

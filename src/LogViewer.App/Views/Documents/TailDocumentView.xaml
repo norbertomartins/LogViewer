@@ -114,6 +114,8 @@
 
             <ToggleButton Content="⤓" Style="{StaticResource IconButton}" IsChecked="{Binding IsFollowingTail}"
                           AutomationProperties.Name="{loc:Loc Doc_FollowTail_Name}" ToolTip="{loc:Loc Doc_FollowTail_ToolTip}" />
+            <ToggleButton Content="🔔" Style="{StaticResource IconButton}" IsChecked="{Binding IsSoundAlertEnabled}"
+                          AutomationProperties.Name="{loc:Loc Doc_SoundAlert_Name}" ToolTip="{loc:Loc Doc_SoundAlert_ToolTip}" />
             <ToggleButton Content="☰" Style="{StaticResource IconButton}" IsChecked="{Binding IsStructuredView}"
                           AutomationProperties.Name="{loc:Loc Doc_StructuredView_Name}"
                           ToolTip="{Binding StructuredFormatName, StringFormat={loc:Loc Doc_StructuredView_ToolTip}}" />
