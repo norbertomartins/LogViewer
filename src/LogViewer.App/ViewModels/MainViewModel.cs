@@ -99,7 +99,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     {
         var totalLines = Documents.Sum(d => d.TotalLinesAppended);
         var snapshot = _processStats.Sample(totalLines);
-        WindowTitle = Loc.Format("Vm_WindowTitle", snapshot.WorkingSetMb, snapshot.CpuPercent, snapshot.LinesPerSecond);
+        WindowTitle = Loc.Format(
+            "Vm_WindowTitle", snapshot.WorkingSetMb, snapshot.CpuPercent, snapshot.LinesPerSecond, ThisAssembly.AssemblyInformationalVersion);
 
         if (Documents.Count == 0)
         {
