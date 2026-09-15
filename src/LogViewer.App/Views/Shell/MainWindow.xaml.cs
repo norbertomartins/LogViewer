@@ -38,7 +38,7 @@ public partial class MainWindow : Window
 
         DockManager.DocumentClosed += OnDocumentClosed;
         DockManager.ActiveContentChanged += OnActiveContentChanged;
-        TrayIcon.Icon = System.Drawing.SystemIcons.Application;
+        TrayIcon.Icon = new System.Drawing.Icon(Application.GetResourceStream(new Uri("/Resources/AppIcon.ico", UriKind.Relative)).Stream);
 
         Dispatcher.BeginInvoke(new Action(SyncActiveDocumentTabBackground), DispatcherPriority.Loaded);
     }
