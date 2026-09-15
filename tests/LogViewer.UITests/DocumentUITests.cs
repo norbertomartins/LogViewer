@@ -80,6 +80,40 @@ public sealed class DocumentUITests : IDisposable
     }
 
     [Fact]
+    public void Timeline_ClickingABar_SelectsALineAndStopsFollowingTail()
+    {
+        var window = LaunchRestoring("orders-service.clef");
+
+        var followTail = UiHelpers.WaitFor(
+            () => window.TryByName("Follow Tail", ControlType.Button) ?? window.TryByName("Follow Tail", ControlType.CheckBox),
+            "Follow Tail toggle").AsToggleButton();
+        Assert.Equal(ToggleState.On, followTail.ToggleState);
+
+        var timeline = UiHelpers.WaitFor(
+            () => window.TryByName("Timeline", ControlType.Button) ?? window.TryByName("Timeline", ControlType.CheckBox),
+            "Timeline toggle").AsToggleButton();
+        timeline.Toggle();
+
+        var strip = UiHelpers.WaitFor(() => window.TryByAutomationId("TimelineStrip"), "timeline strip");
+        Assert.True(
+            UiHelpers.WaitUntil(() => strip.FindAllDescendants(cf => cf.ByControlType(ControlType.Button)).Length > 0),
+            "The timeline produced no volume bars.");
+
+        var list = UiHelpers.WaitFor(() => window.TryByAutomationId("LineListView"), "log list view").AsListBox();
+        Assert.Empty(list.SelectedItems);
+
+        // The first bar always covers the earliest timestamped line, so it is guaranteed to hold data
+        // (unlike later bars, which can be empty gap buckets that SelectBin deliberately ignores).
+        var firstBar = strip.FindAllDescendants(cf => cf.ByControlType(ControlType.Button))[0].AsButton();
+        firstBar.Invoke();
+
+        Assert.True(UiHelpers.WaitUntil(() => list.SelectedItems.Length > 0),
+            "Clicking the first timeline bar did not select a log line.");
+        Assert.True(UiHelpers.WaitUntil(() => followTail.ToggleState == ToggleState.Off),
+            "Clicking a timeline bar did not stop following the tail.");
+    }
+
+    [Fact]
     public void TextFilter_HidesNonMatchingLines()
     {
         var window = LaunchRestoring("payments-service.log");
