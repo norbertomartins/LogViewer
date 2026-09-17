@@ -51,6 +51,8 @@ public partial class App : Application
         services.AddSingleton<IPatternFrequencyAnalyzer, FilePatternFrequencyAnalyzer>();
         services.AddSingleton<ILineWindowReader, FileLineWindowReader>();
         services.AddSingleton<ISoundAlertPlayer, SoundAlertPlayer>();
+        services.AddSingleton<WindowsNotificationService>();
+        services.AddSingleton<INotificationService>(sp => sp.GetRequiredService<WindowsNotificationService>());
         services.AddSingleton<DockingWindowModeHost>();
         services.AddSingleton<MainViewModel>();
         services.AddSingleton<IOpenDocumentCatalog, WpfOpenDocumentCatalog>();

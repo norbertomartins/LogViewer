@@ -227,10 +227,22 @@
             </Menu>
             <Button Content="🔎" Style="{StaticResource IconButton}" Command="{Binding SearchCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Search_Name}" ToolTip="{loc:Loc Doc_Search_ToolTip}" />
-            <Button Content="💾" Style="{StaticResource IconButton}" Command="{Binding ExportVisibleCommand}"
-                    AutomationProperties.Name="{loc:Loc Doc_Export_Name}" ToolTip="{loc:Loc Doc_Export_ToolTip}" />
+            <Menu Background="Transparent">
+                <MenuItem Header="💾" FontSize="13" AutomationProperties.Name="{loc:Loc Doc_Export_Name}" ToolTip="{loc:Loc Doc_Export_ToolTip}">
+                    <MenuItem Header="{loc:Loc Doc_ExportFile_Header}" Command="{Binding ExportVisibleCommand}"
+                              AutomationProperties.Name="{loc:Loc Doc_ExportFile_Header}" />
+                    <MenuItem Header="{loc:Loc Doc_CopyVisible_Header}" Command="{Binding CopyVisibleCommand}"
+                              AutomationProperties.Name="{loc:Loc Doc_CopyVisible_Header}" />
+                    <MenuItem Header="{loc:Loc Doc_CopyVisibleJson_Header}" Command="{Binding CopyVisibleAsJsonCommand}"
+                              AutomationProperties.Name="{loc:Loc Doc_CopyVisibleJson_Header}" />
+                    <MenuItem Header="{loc:Loc Doc_CopyVisibleFormatted_Header}" Command="{Binding CopyVisibleFormattedCommand}"
+                              AutomationProperties.Name="{loc:Loc Doc_CopyVisibleFormatted_Header}" />
+                </MenuItem>
+            </Menu>
             <ToggleButton Content="📊" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeline}"
                           AutomationProperties.Name="{loc:Loc Doc_Timeline_Name}" ToolTip="{loc:Loc Doc_Timeline_ToolTip}" />
+            <Button Content="📈" Style="{StaticResource IconButton}" Command="{Binding ShowStatsCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_Stats_Name}" ToolTip="{loc:Loc Doc_Stats_ToolTip}" />
             <Button Content="🖌" Style="{StaticResource IconButton}" Command="{Binding CustomizeCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Customize_Name}" ToolTip="{loc:Loc Doc_Customize_ToolTip}" />
             <Separator />
@@ -324,6 +336,13 @@
                     <Setter Property="Background" Value="{Binding Background}" />
                     <Setter Property="Foreground" Value="{Binding Foreground}" />
                     <Setter Property="Tag" Value="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext}" />
+                    <!-- Right-clicking an unselected row would otherwise leave the previous (or no)
+                         selection in place — WPF doesn't select-on-right-click by default — so the
+                         Copy/Copy JSON/Copy Formatted commands (which act on ListView.SelectedItems)
+                         would silently operate on the wrong lines. Selecting the clicked row first (unless
+                         it's already part of a multi-selection, which is preserved) makes them act on
+                         whatever the user actually right-clicked, same as most list UIs. -->
+                    <EventSetter Event="PreviewMouseRightButtonDown" Handler="OnLineItemPreviewRightClick" />
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
@@ -340,6 +359,13 @@
                                 <MenuItem Header="{loc:Loc Doc_Ctx_FindSimilarBlock}"
                                           Command="{Binding PlacementTarget.Tag.FindSimilarBlockCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <Separator />
+                                <MenuItem Header="{loc:Loc Doc_Ctx_Copy}"
+                                          Command="{Binding PlacementTarget.Tag.CopyVisibleCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="{loc:Loc Doc_Ctx_CopyFormatted}"
+                                          Command="{Binding PlacementTarget.Tag.CopyVisibleFormattedCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="{loc:Loc Doc_Ctx_CopyJson}"
+                                          Command="{Binding PlacementTarget.Tag.CopyVisibleAsJsonCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 <Separator />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_ClearFilter}"
                                           Command="{Binding PlacementTarget.Tag.ClearFilterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />

@@ -1,0 +1,72 @@
+<Window x:Class="LogViewer.App.Views.Dialogs.CompareFilesView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:LogViewer.App.Localization"
+        Title="{loc:Loc Compare_Title}"
+        Width="1000" Height="620"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="120" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{loc:Loc Compare_FileA}" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBox Grid.Column="1" Text="{Binding PathA}" IsReadOnly="True" VerticalAlignment="Center" />
+            <Button Grid.Column="2" Content="{loc:Loc Common_BrowseEllipsis}" Command="{Binding BrowseACommand}" Margin="8,0,0,0" Width="80" />
+        </Grid>
+
+        <Grid Grid.Row="1" Margin="0,0,0,6">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="{loc:Loc Compare_FileB}" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <TextBox Grid.Column="1" Text="{Binding PathB}" IsReadOnly="True" VerticalAlignment="Center" />
+            <Button Grid.Column="2" Content="{loc:Loc Common_BrowseEllipsis}" Command="{Binding BrowseBCommand}" Margin="8,0,0,0" Width="80" />
+            <Button Grid.Column="3" Content="{loc:Loc Compare_Run}" Command="{Binding CompareCommand}" Margin="8,0,0,0" Width="90" />
+        </Grid>
+
+        <ListView Grid.Row="2" ItemsSource="{Binding DiffEntries}"
+                  SelectedItem="{Binding SelectedDiffEntry, Mode=TwoWay}"
+                  Style="{StaticResource LogListViewStyle}"
+                  FontFamily="Consolas" FontSize="12">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource LogListViewItemStyle}">
+                    <Setter Property="Background" Value="{Binding Converter={StaticResource DiffEntryBrushConverter}}" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="{loc:Loc Similar_Col_Line}" Width="60" DisplayMemberBinding="{Binding Left.LineNumber}" />
+                    <GridViewColumn Header="{loc:Loc Compare_Col_FileA}" Width="420" DisplayMemberBinding="{Binding Left.Event.RenderedMessage}" />
+                    <GridViewColumn Header="{loc:Loc Similar_Col_Line}" Width="60" DisplayMemberBinding="{Binding Right.LineNumber}" />
+                    <GridViewColumn Header="{loc:Loc Compare_Col_FileB}" Width="420" DisplayMemberBinding="{Binding Right.Event.RenderedMessage}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <StackPanel Grid.Row="3" Orientation="Horizontal" Margin="0,6,0,0">
+            <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" VerticalAlignment="Center" />
+            <TextBlock Text="{loc:Loc Similar_Legend}" Opacity="0.6" VerticalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button Content="{loc:Loc Similar_JumpToSource}" Command="{Binding JumpToLeftCommand}" CommandParameter="{Binding SelectedDiffEntry}" Width="140" Margin="0,0,6,0" />
+            <Button Content="{loc:Loc Similar_JumpToTarget}" Command="{Binding JumpToRightCommand}" CommandParameter="{Binding SelectedDiffEntry}" Width="140" Margin="0,0,6,0" />
+            <Button Content="{loc:Loc Common_Cancel}" Command="{Binding CancelCompareCommand}" IsEnabled="{Binding IsComparing}" Width="80" Margin="0,0,6,0" />
+            <Button Content="{loc:Loc Common_Close}" Width="80" Click="OnCloseClick" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

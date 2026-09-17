@@ -37,6 +37,10 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     private readonly Dictionary<Guid, DateTime> _lastAutoTriggerAt = new();
     private readonly SoundAlertSettings _soundAlertSettings;
     private readonly ISoundAlertPlayer _soundAlertPlayer;
+    private readonly NotificationAlertSettings _notificationAlertSettings;
+    private readonly INotificationService _notificationService;
+    private readonly AlertWindowTracker _alertWindowTracker = new();
+    private IReadOnlyDictionary<Guid, HighlightRule> _rulesById;
     private DateTime _lastSoundAlertAt = DateTime.MinValue;
     private static readonly TimeSpan SoundAlertThrottle = TimeSpan.FromSeconds(3);
     private static readonly int SoundAlertMinSeverityRank = LogLevelSeverity.Rank("Error")!.Value;
@@ -365,12 +369,23 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [RelayCommand]
     private void ClearTextFilter() => TextFilterPattern = null;
 
-    /// <summary>Raised by <see cref="ExportVisibleCommand"/> — the view handles it because the effective
-    /// (filtered) line set lives in its <c>ICollectionView</c>, not in the view-model.</summary>
-    public event Action? ExportRequested;
+    /// <summary>Raised by <see cref="ExportVisibleCommand"/>/<see cref="CopyVisibleCommand"/>/
+    /// <see cref="CopyVisibleAsJsonCommand"/> — the view handles it because the effective (filtered, and
+    /// possibly user-selected) line set lives in its <c>ICollectionView</c>/<c>ListView</c>, not in the
+    /// view-model.</summary>
+    public event Action<ExportTarget>? ExportRequested;
 
     [RelayCommand]
-    private void ExportVisible() => ExportRequested?.Invoke();
+    private void ExportVisible() => ExportRequested?.Invoke(ExportTarget.File);
+
+    [RelayCommand]
+    private void CopyVisible() => ExportRequested?.Invoke(ExportTarget.Clipboard);
+
+    [RelayCommand]
+    private void CopyVisibleAsJson() => ExportRequested?.Invoke(ExportTarget.ClipboardJson);
+
+    [RelayCommand]
+    private void CopyVisibleFormatted() => ExportRequested?.Invoke(ExportTarget.ClipboardFormatted);
 
     public string? FilterStatusText
     {
@@ -452,6 +467,8 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         IReadOnlyList<ExternalToolDefinition> externalTools,
         SoundAlertSettings soundAlertSettings,
         ISoundAlertPlayer soundAlertPlayer,
+        NotificationAlertSettings notificationAlertSettings,
+        INotificationService notificationService,
         int ringBufferCapacity,
         TimeSpan uiRefreshInterval,
         string? title = null,
@@ -474,10 +491,12 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             _structuredLinesCache = null;
             ScheduleTimelineRecompute();
         };
-        _highlightEngine.SetRules(HighlightPreset.FlattenForMatching(highlightPresets));
+        SetHighlightRules(highlightPresets);
         _externalTools = externalTools;
         _soundAlertSettings = soundAlertSettings;
         _soundAlertPlayer = soundAlertPlayer;
+        _notificationAlertSettings = notificationAlertSettings;
+        _notificationService = notificationService;
         _title = title ?? (Path.GetFileName(sourcePath) is { Length: > 0 } fileName ? fileName : source.DisplayName);
         _isStructuredView = isStructuredView;
         _isColorizeStructuredValues = true;
@@ -577,11 +596,16 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public event Action? CustomizeRequested;
 
+    public event Action? StatsRequested;
+
     [RelayCommand]
     private void Search() => SearchRequested?.Invoke();
 
     [RelayCommand]
     private void Customize() => CustomizeRequested?.Invoke();
+
+    [RelayCommand]
+    private void ShowStats() => StatsRequested?.Invoke();
 
     /// <summary>Applies an updated external-tool set for the "Run Tool" toolbar menu and auto-trigger matching.</summary>
     public void ApplyExternalTools(IReadOnlyList<ExternalToolDefinition> tools)
@@ -659,6 +683,31 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _soundAlertPlayer.PlayAlert(_soundAlertSettings.CustomSoundFilePath);
     }
 
+    /// <summary>Raises a desktop notification once the matched rule has hit <c>AlertThresholdCount</c>
+    /// times within its <c>AlertWindowSeconds</c> window (see <see cref="AlertWindowTracker"/>) — a burst
+    /// of matching lines notifies exactly once, not once per line, since the tracker clears itself the
+    /// moment the threshold is reached.</summary>
+    private void TryRaiseThresholdAlert(Guid ruleId, TailLine line)
+    {
+        if (!_notificationAlertSettings.Enabled
+            || !_rulesById.TryGetValue(ruleId, out var rule)
+            || !rule.AlertEnabled)
+        {
+            return;
+        }
+
+        var hit = _alertWindowTracker.RecordHit(
+            ruleId, DateTime.UtcNow, rule.AlertThresholdCount, TimeSpan.FromSeconds(rule.AlertWindowSeconds));
+        if (!hit)
+        {
+            return;
+        }
+
+        _notificationService.Notify(
+            Loc.Format("Vm_Alert_Title", Title),
+            Loc.Format("Vm_Alert_Message", rule.Name, rule.AlertThresholdCount, rule.AlertWindowSeconds, line.LineNumber));
+    }
+
     /// <summary>Same detection chain <see cref="RecomputeTimeline"/> uses: prefer the already-parsed
     /// structured level (when structured view produced one for this line), otherwise parse the raw text
     /// independently of the structured-view toggle, falling back to scanning for a level word.</summary>
@@ -713,8 +762,18 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// <summary>Applies updated highlight presets, live-recoloring every currently displayed line to match.</summary>
     public void ApplyHighlightPresets(IReadOnlyList<HighlightPreset> presets)
     {
-        _highlightEngine.SetRules(HighlightPreset.FlattenForMatching(presets));
+        SetHighlightRules(presets);
         ReapplyHighlighting();
+    }
+
+    /// <summary>Flattens <paramref name="presets"/> into the matching engine and keeps the rule-lookup table
+    /// in sync, so <see cref="TryRaiseThresholdAlert"/> can look up a matched rule's alert configuration
+    /// (not carried by <see cref="HighlightMatch"/> itself).</summary>
+    private void SetHighlightRules(IReadOnlyList<HighlightPreset> presets)
+    {
+        var flattened = HighlightPreset.FlattenForMatching(presets).ToList();
+        _highlightEngine.SetRules(flattened);
+        _rulesById = flattened.ToDictionary(r => r.Id);
     }
 
     /// <summary>Switches which color pair highlight matches resolve to (see <see cref="HighlightRule.ResolveColors"/>),
@@ -925,6 +984,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             {
                 _highlightedLineNumbers.Add(line.LineNumber);
                 TryAutoTriggerExternalTools(match.RuleId, line);
+                TryRaiseThresholdAlert(match.RuleId, line);
             }
 
             TryPlaySoundAlert(line, structured);

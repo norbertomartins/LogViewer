@@ -103,6 +103,20 @@
             <ComboBox IsEditable="True" Text="{Binding TargetProperty, UpdateSourceTrigger=PropertyChanged}"
                       ItemsSource="{Binding WellKnownTargetProperties}" Margin="0,0,0,8" />
 
+            <CheckBox Content="{loc:Loc Highlight_AlertEnabled}" IsChecked="{Binding AlertEnabled}" Margin="0,0,0,6" />
+            <Grid Margin="0,0,0,8" IsEnabled="{Binding AlertEnabled}">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="60" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="60" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Text="{loc:Loc Highlight_AlertThreshold}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox Grid.Column="1" Text="{Binding AlertThresholdCount, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,12,0" />
+                <TextBlock Grid.Column="2" Text="{loc:Loc Highlight_AlertWindow}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox Grid.Column="3" Text="{Binding AlertWindowSeconds, UpdateSourceTrigger=PropertyChanged}" />
+            </Grid>
+
             <TextBlock Text="{loc:Loc Highlight_LightColors}" FontWeight="Bold" Margin="0,0,0,2" />
             <Grid Margin="0,0,0,4">
                 <Grid.ColumnDefinitions>

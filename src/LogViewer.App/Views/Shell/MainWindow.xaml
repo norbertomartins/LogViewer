@@ -55,6 +55,8 @@
                           ToolTip="{loc:Loc Menu_File_OpenSsh_ToolTip}" />
                 <MenuItem Header="{loc:Loc Menu_File_OpenEtw}" Command="{Binding OpenEtwTailCommand}"
                           ToolTip="{loc:Loc Menu_File_OpenEtw_ToolTip}" />
+                <Separator />
+                <MenuItem Header="{loc:Loc Menu_File_CompareFiles}" Command="{Binding OpenCompareFilesCommand}" />
                 <MenuItem Header="{loc:Loc Menu_File_RecentFiles}" ItemsSource="{Binding RecentFiles}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">

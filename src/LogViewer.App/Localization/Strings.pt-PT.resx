@@ -105,6 +105,7 @@
   <data name="Menu_File_OpenSsh_ToolTip" xml:space="preserve"><value>Executa um comando por SSH num host remoto e segue a sua saída</value></data>
   <data name="Menu_File_OpenEtw" xml:space="preserve"><value>Abrir fornecedor _ETW...</value></data>
   <data name="Menu_File_OpenEtw_ToolTip" xml:space="preserve"><value>Segue um fornecedor Event Tracing for Windows em tempo real (Administrador)</value></data>
+  <data name="Menu_File_CompareFiles" xml:space="preserve"><value>Comparar Ficheiros...</value></data>
   <data name="Menu_File_RecentFiles" xml:space="preserve"><value>Ficheiros recentes</value></data>
   <data name="Menu_File_MinimizeToTray" xml:space="preserve"><value>Mi_nimizar para a área de notificação</value></data>
   <data name="Menu_File_Exit" xml:space="preserve"><value>_Sair</value></data>
@@ -180,7 +181,11 @@
   <data name="Doc_Search_Name" xml:space="preserve"><value>Procurar</value></data>
   <data name="Doc_Search_ToolTip" xml:space="preserve"><value>Procurar em todo o ficheiro / canal (Ctrl+Shift+F)</value></data>
   <data name="Doc_Export_Name" xml:space="preserve"><value>Exportar</value></data>
-  <data name="Doc_Export_ToolTip" xml:space="preserve"><value>Guardar num ficheiro as linhas atualmente visíveis (filtradas)</value></data>
+  <data name="Doc_Export_ToolTip" xml:space="preserve"><value>Exportar ou copiar as linhas selecionadas (ou atualmente visíveis)</value></data>
+  <data name="Doc_ExportFile_Header" xml:space="preserve"><value>Exportar para Ficheiro…</value></data>
+  <data name="Doc_CopyVisible_Header" xml:space="preserve"><value>Copiar para a Área de Transferência</value></data>
+  <data name="Doc_CopyVisibleJson_Header" xml:space="preserve"><value>Copiar como JSON</value></data>
+  <data name="Doc_CopyVisibleFormatted_Header" xml:space="preserve"><value>Copiar Formatado</value></data>
   <data name="Doc_Timeline_Name" xml:space="preserve"><value>Linha temporal</value></data>
   <data name="Doc_Timeline_ToolTip" xml:space="preserve"><value>Mostrar um histograma de volume ao longo do tempo das linhas visíveis com data/hora</value></data>
   <data name="Doc_Customize_Name" xml:space="preserve"><value>Personalizar</value></data>
@@ -195,6 +200,9 @@
   <data name="Doc_Ctx_FilterBySpanId" xml:space="preserve"><value>Filtrar por SpanId</value></data>
   <data name="Doc_Ctx_FilterByThreadId" xml:space="preserve"><value>Filtrar por ThreadId</value></data>
   <data name="Doc_Ctx_FindSimilarBlock" xml:space="preserve"><value>Encontrar bloco semelhante em...</value></data>
+  <data name="Doc_Ctx_Copy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="Doc_Ctx_CopyFormatted" xml:space="preserve"><value>Copiar Formatado</value></data>
+  <data name="Doc_Ctx_CopyJson" xml:space="preserve"><value>Copiar como JSON</value></data>
   <data name="Doc_Ctx_ClearFilter" xml:space="preserve"><value>Limpar filtro</value></data>
   <data name="Doc_Ctx_FilterByThisValue" xml:space="preserve"><value>Filtrar por este valor</value></data>
   <data name="Doc_Detail_TimestampFormat" xml:space="preserve"><value>Data/hora: {0:yyyy-MM-dd HH:mm:ss.fff zzz}</value></data>
@@ -202,6 +210,22 @@
   <data name="Doc_Detail_Properties" xml:space="preserve"><value>Propriedades</value></data>
   <data name="Doc_Detail_Exception" xml:space="preserve"><value>Exceção</value></data>
   <data name="Doc_ClearFilterButton" xml:space="preserve"><value>✕ Limpar filtro</value></data>
+  <data name="Doc_Stats_Name" xml:space="preserve"><value>Estatísticas</value></data>
+  <data name="Doc_Stats_ToolTip" xml:space="preserve"><value>Mostrar contagens de linhas/erros, taxa e padrões mais recorrentes</value></data>
+
+  <!-- ==== Document statistics panel ==== -->
+  <data name="Stats_TitleFmt" xml:space="preserve"><value>Estatísticas — {0}</value></data>
+  <data name="Stats_TotalLines" xml:space="preserve"><value>Total de Linhas</value></data>
+  <data name="Stats_LinesPerSecond" xml:space="preserve"><value>Linhas / seg</value></data>
+  <data name="Stats_ErrorsWarnings" xml:space="preserve"><value>Erros / Avisos</value></data>
+  <data name="Stats_Col_Count" xml:space="preserve"><value>Contagem</value></data>
+  <data name="Stats_Col_Level" xml:space="preserve"><value>Nível</value></data>
+  <data name="Stats_Col_FirstLine" xml:space="preserve"><value>Primeira Linha</value></data>
+  <data name="Stats_Col_Sample" xml:space="preserve"><value>Mensagem de Exemplo</value></data>
+  <data name="Vm_Stats_NoFile" xml:space="preserve"><value>A análise de padrões só está disponível para documentos com ficheiro.</value></data>
+  <data name="Vm_Stats_Analyzing" xml:space="preserve"><value>A analisar…</value></data>
+  <data name="Vm_Stats_NoPatterns" xml:space="preserve"><value>Nenhum padrão recorrente encontrado.</value></data>
+  <data name="Vm_Stats_AnalyzeFailed" xml:space="preserve"><value>Falha na análise: {0}</value></data>
 
   <!-- ==== MDI host ==== -->
   <data name="Mdi_Cascade" xml:space="preserve"><value>Cascata</value></data>
@@ -233,6 +257,7 @@
   <data name="Settings_SoundAlertFile_ToolTip" xml:space="preserve"><value>Caminho para um ficheiro .wav a tocar em vez do som padrão do sistema</value></data>
   <data name="Settings_SoundAlertBrowse_Name" xml:space="preserve"><value>Procurar ficheiro de som</value></data>
   <data name="Settings_SoundAlertClear_Name" xml:space="preserve"><value>Limpar ficheiro de som personalizado</value></data>
+  <data name="Settings_NotificationAlertsEnable" xml:space="preserve"><value>Mostrar uma notificação do sistema quando o limiar de alerta de uma regra for atingido</value></data>
 
   <!-- ==== Windows Services dialog ==== -->
   <data name="Services_Title" xml:space="preserve"><value>Serviços do Windows</value></data>
@@ -296,6 +321,19 @@
   <data name="Similar_JumpToSource" xml:space="preserve"><value>Ir para a linha de origem</value></data>
   <data name="Similar_JumpToTarget" xml:space="preserve"><value>Ir para a linha de destino</value></data>
 
+  <!-- ==== Compare Files dialog ==== -->
+  <data name="Compare_Title" xml:space="preserve"><value>Comparar Ficheiros</value></data>
+  <data name="Compare_FileA" xml:space="preserve"><value>Ficheiro A:</value></data>
+  <data name="Compare_FileB" xml:space="preserve"><value>Ficheiro B:</value></data>
+  <data name="Compare_Run" xml:space="preserve"><value>Comparar</value></data>
+  <data name="Compare_Col_FileA" xml:space="preserve"><value>Ficheiro A</value></data>
+  <data name="Compare_Col_FileB" xml:space="preserve"><value>Ficheiro B</value></data>
+  <data name="Vm_Compare_ChooseBoth" xml:space="preserve"><value>Escolha os dois ficheiros a comparar.</value></data>
+  <data name="Vm_Compare_Comparing" xml:space="preserve"><value>A comparar…</value></data>
+  <data name="Vm_Compare_Done" xml:space="preserve"><value>{0} linha(s) alinhadas, {1} diferentes.</value></data>
+  <data name="Vm_Compare_Cancelled" xml:space="preserve"><value>Comparação cancelada.</value></data>
+  <data name="Vm_Compare_Failed" xml:space="preserve"><value>Falha na comparação: {0}</value></data>
+
   <!-- ==== Customize document dialog ==== -->
   <data name="Customize_Title" xml:space="preserve"><value>Personalizar documento</value></data>
   <data name="Customize_TabColor" xml:space="preserve"><value>Cor do separador / barra de título</value></data>
@@ -312,6 +350,9 @@
   <data name="Highlight_PresetName" xml:space="preserve"><value>Nome da predefinição</value></data>
   <data name="Highlight_PatternKeywordOrRegex" xml:space="preserve"><value>Padrão (palavra-chave ou regex)</value></data>
   <data name="Highlight_TargetProperty" xml:space="preserve"><value>Propriedade alvo (logs Serilog estruturados; em branco = linha inteira)</value></data>
+  <data name="Highlight_AlertEnabled" xml:space="preserve"><value>Mostrar uma notificação do sistema quando esta regra ocorrer repetidamente</value></data>
+  <data name="Highlight_AlertThreshold" xml:space="preserve"><value>Ocorrências:</value></data>
+  <data name="Highlight_AlertWindow" xml:space="preserve"><value>Em (segundos):</value></data>
   <data name="Highlight_LightColors" xml:space="preserve"><value>Cores do tema claro</value></data>
   <data name="Highlight_DarkColors" xml:space="preserve"><value>Cores do tema escuro (em branco = iguais às do claro)</value></data>
   <data name="Highlight_PatternTester" xml:space="preserve"><value>Testador de padrão</value></data>
@@ -376,7 +417,12 @@
 
   <!-- ==== ViewModel messages ==== -->
   <data name="Vm_Mcp_StartFailed" xml:space="preserve"><value>Falha ao iniciar o servidor MCP: {0}</value></data>
+  <data name="Vm_Alert_Title" xml:space="preserve"><value>LogViewer — {0}</value></data>
+  <data name="Vm_Alert_Message" xml:space="preserve"><value>"{0}" ocorreu {1}+ vezes em {2}s (linha {3})</value></data>
   <data name="Vm_Export_Done" xml:space="preserve"><value>Exportadas {0} linha(s) para {1}</value></data>
+  <data name="Vm_Export_CopiedDone" xml:space="preserve"><value>Copiadas {0} linha(s) para a área de transferência</value></data>
+  <data name="Vm_Export_CopiedJsonDone" xml:space="preserve"><value>Copiadas {0} linha(s) para a área de transferência como JSON</value></data>
+  <data name="Vm_Export_CopiedFormattedDone" xml:space="preserve"><value>Copiadas {0} linha(s) formatadas para a área de transferência</value></data>
   <data name="Vm_Export_Failed" xml:space="preserve"><value>Falha na exportação: {0}</value></data>
   <data name="Vm_Profile_Saved" xml:space="preserve"><value>Perfil de sessão "{0}" guardado.</value></data>
   <data name="Vm_Profile_Loaded" xml:space="preserve"><value>Perfil de sessão "{0}" carregado ({1} fonte(s)).</value></data>
@@ -457,8 +503,12 @@
   <data name="Palette_ToggleTimeline" xml:space="preserve"><value>Alternar linha temporal de volume</value></data>
   <data name="Palette_ClearFilters" xml:space="preserve"><value>Limpar todos os filtros</value></data>
   <data name="Palette_ExportVisible" xml:space="preserve"><value>Exportar linhas visíveis…</value></data>
+  <data name="Palette_CopyVisible" xml:space="preserve"><value>Copiar linhas visíveis para a área de transferência</value></data>
+  <data name="Palette_CopyVisibleJson" xml:space="preserve"><value>Copiar linhas visíveis como JSON</value></data>
+  <data name="Palette_CopyVisibleFormatted" xml:space="preserve"><value>Copiar linhas visíveis formatadas</value></data>
   <data name="Palette_SearchInDoc" xml:space="preserve"><value>Procurar no documento…</value></data>
   <data name="Palette_Customize" xml:space="preserve"><value>Personalizar cor / ícone do separador…</value></data>
+  <data name="Palette_Stats" xml:space="preserve"><value>Mostrar estatísticas do documento…</value></data>
   <data name="Palette_NextHighlight" xml:space="preserve"><value>Realce seguinte</value></data>
   <data name="Palette_PrevHighlight" xml:space="preserve"><value>Realce anterior</value></data>
   <data name="Palette_ToggleBookmark" xml:space="preserve"><value>Alternar marcador</value></data>

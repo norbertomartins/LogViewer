@@ -2,6 +2,7 @@ using System.Windows;
 using LogViewer.App.Models;
 using LogViewer.App.ViewModels;
 using LogViewer.App.Views.Dialogs;
+using LogViewer.Core.Analysis;
 using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
@@ -260,6 +261,28 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         var window = new SimilarBlockView
         {
             DataContext = new SimilarBlockViewModel(sourceDocument, anchorLine, openDocuments, blockFinder, this),
+            Owner = Application.Current?.MainWindow,
+        };
+
+        window.Show();
+    }
+
+    public void ShowCompareFilesDialog(Action<string, long> openPath)
+    {
+        var window = new CompareFilesView
+        {
+            DataContext = new CompareFilesViewModel(this, openPath),
+            Owner = Application.Current?.MainWindow,
+        };
+
+        window.Show();
+    }
+
+    public void ShowDocumentStatsDialog(TailDocumentViewModel document, IPatternFrequencyAnalyzer patternAnalyzer)
+    {
+        var window = new DocumentStatsView
+        {
+            DataContext = new DocumentStatsViewModel(document, patternAnalyzer),
             Owner = Application.Current?.MainWindow,
         };
 

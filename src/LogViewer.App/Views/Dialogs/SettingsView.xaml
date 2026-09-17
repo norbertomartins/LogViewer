@@ -89,6 +89,10 @@
                 <Button Grid.Column="4" Content="✕" Width="28" Command="{Binding ClearSoundAlertFileCommand}"
                         AutomationProperties.Name="{loc:Loc Settings_SoundAlertClear_Name}" ToolTip="{loc:Loc Settings_SoundAlertClear_Name}" />
             </Grid>
+
+            <CheckBox IsChecked="{Binding NotificationAlertsEnabled}" Margin="0,0,0,10">
+                <TextBlock Text="{loc:Loc Settings_NotificationAlertsEnable}" TextWrapping="Wrap" />
+            </CheckBox>
         </StackPanel>
         </ScrollViewer>
 

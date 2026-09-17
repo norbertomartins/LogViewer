@@ -57,6 +57,9 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string? _soundAlertCustomFilePath;
 
+    [ObservableProperty]
+    private bool _notificationAlertsEnabled;
+
     public SettingsViewModel(AppSettings settings, IDialogService dialogService)
     {
         _settings = settings;
@@ -74,6 +77,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _mcpPort = settings.Mcp.Port;
         _soundAlertsEnabled = settings.SoundAlerts.Enabled;
         _soundAlertCustomFilePath = settings.SoundAlerts.CustomSoundFilePath;
+        _notificationAlertsEnabled = settings.NotificationAlerts.Enabled;
 
         _selectedLanguage = AvailableLanguages.FirstOrDefault(
             l => string.Equals(l.Code, settings.Language, StringComparison.OrdinalIgnoreCase)) ?? AvailableLanguages[0];
@@ -133,6 +137,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         settings.Mcp.Port = McpPort;
         settings.SoundAlerts.Enabled = SoundAlertsEnabled;
         settings.SoundAlerts.CustomSoundFilePath = string.IsNullOrWhiteSpace(SoundAlertCustomFilePath) ? null : SoundAlertCustomFilePath;
+        settings.NotificationAlerts.Enabled = NotificationAlertsEnabled;
         settings.Language = SelectedLanguage.Code;
     }
 }

@@ -191,6 +191,47 @@
   Adding a language: drop in `Strings.<culture>.resx` and add a `LanguageOption` to
   `SettingsViewModel.AvailableLanguages`.
 
+- **Phase 7 — alerts, per-document stats, file-diff UI, richer export.** Four independent additions on
+  top of `master` (Phase 6 was merged there in the meantime), each reusing an existing engine/pattern
+  rather than adding new machinery. WinRM-based remote EventLog tailing was scoped for this phase but
+  explicitly deferred — no lightweight WinRM/WS-Man client exists for .NET; the only real options are the
+  full PowerShell SDK (heavy) or a hand-rolled WS-Man client, and the user chose to punt on that decision
+  rather than block the rest of the phase.
+  - **7a — clipboard / structured-JSON export.** `ExportRequested` now carries an `ExportTarget`
+    (`File`/`Clipboard`/`ClipboardJson`) instead of firing bare; `TailDocumentView.OnExportRequested`
+    honors the `ListView` selection when non-empty, else the filtered/visible set, same as before.
+    `LogLineExportFormatter` (pure, testable) builds plain text or indented JSON — a structured line
+    serializes its parsed fields (`timestamp`/`level`/`message`/`exception`/`properties`), a plain line
+    falls back to `{ lineNumber, text }`. Toolbar export button became a 💾 menu with the three
+    destinations; palette gained matching entries.
+  - **7b — per-document statistics panel.** `DocumentStatsViewModel`/`View`, opened via a new 📈 toolbar
+    button, modeled on the non-modal `SimilarBlockView` pattern. Live line/error/warning counts (scanned
+    from the document's own buffered `Lines`) and a 1s-sampled lines/sec rate, plus an on-demand "top
+    recurring patterns" scan reusing the existing `IPatternFrequencyAnalyzer` (previously MCP-only) —
+    click a pattern to jump to its first occurrence.
+  - **7c — "Compare Files" whole-file diff dialog.** `CompareFilesViewModel`/`View` (File ▸ "Compare
+    Files…") brings the block-diff/similarity engine into the WPF UI directly: each chosen file is read
+    via `StructuredFileReader`, wrapped as one whole-file `LogBlock` (no anchor/correlation step needed),
+    and aligned with the same `BlockAlignment.Align` the anchored "Find Similar Block" dialog already
+    uses — same `DiffEntry`/`DiffLineKind` rendering, same red/green/yellow legend. Jumping to a diff line
+    opens (or focuses) that file as a live document via `MainViewModel.OpenPath`.
+  - **7d — highlight-rule threshold/window alerts.** `HighlightRule` gained `AlertEnabled` /
+    `AlertThresholdCount` / `AlertWindowSeconds` (schema-compatible record fields); a new pure Core class,
+    `AlertWindowTracker`, tracks a rolling per-rule hit count and fires once the threshold is reached
+    within the window, then clears itself so a burst notifies once, not per line.
+    `TailDocumentViewModel.OnLinesFlushed` calls it alongside the existing auto-trigger-tool/sound-alert
+    checks. Notifications go out via the app's existing tray icon (`WindowsNotificationService` wrapping
+    `Hardcodet.NotifyIcon.Wpf`'s `ShowBalloonTip` — no new dependency), temporarily forcing the icon
+    visible and restoring its prior state afterward so it never interferes with actual minimize-to-tray.
+    Gated by a new global `NotificationAlertSettings.Enabled` master switch (Settings dialog) on top of
+    the per-rule opt-in (highlight preset editor gained threshold/window fields next to the existing
+    target-property picker). Schema **v8→v9** (no-op migration — field initializers cover pre-v9 files).
+  Verified via 12 new Core tests (`AlertWindowTracker`) + 12 new App tests (export formatting, stats VM,
+  compare-files VM, end-to-end alert firing through a real `TailDocumentViewModel`) — 233 Core / 105 App
+  / 21 Mcp, all green — plus a full solution build. **Still needs a manual interactive pass**: opening
+  each new dialog from the running app, triggering a real toast via the tray icon, and eyeballing the new
+  pt-PT strings.
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was
