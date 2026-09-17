@@ -133,6 +133,54 @@ public sealed class DirectoryWatchTailSourceTests
         }
     }
 
+    [Fact]
+    public void DirectoryDeletedThenRecreated_ResumesTailingAndRaisesReset()
+    {
+        var parent = CreateTempDirectory();
+        var watchedDir = Path.Combine(parent, "logs");
+        try
+        {
+            Directory.CreateDirectory(watchedDir);
+            var pathA = Path.Combine(watchedDir, "a.log");
+            File.WriteAllText(pathA, "content a\n");
+
+            var events = new ConcurrentQueue<string>();
+            using var source = new DirectoryWatchTailSource(
+                watchedDir, "*.log", autoSwitchEnabled: true, FastPollOptions, directoryPollInterval: TimeSpan.FromMilliseconds(50));
+            source.LinesRead += (_, e) =>
+            {
+                foreach (var line in e.Lines)
+                {
+                    events.Enqueue("lines:" + line.Text);
+                }
+            };
+            source.SourceReset += (_, _) => events.Enqueue("reset");
+            source.Start();
+
+            Assert.True(WaitUntil(() => events.Any(e => e == "lines:content a")));
+
+            // The whole watched folder disappears (e.g. a deploy step wiping and recreating a logs dir).
+            Directory.Delete(watchedDir, recursive: true);
+            Assert.True(WaitUntil(() => !Directory.Exists(watchedDir)));
+
+            // It comes back later with a fresh file.
+            Directory.CreateDirectory(watchedDir);
+            var pathAfter = Path.Combine(watchedDir, "after.log");
+            File.WriteAllText(pathAfter, "content after recreate\n");
+
+            Assert.True(WaitUntil(() => events.Any(e => e == "lines:content after recreate"), timeoutMs: 8000),
+                "Expected tailing to resume once the deleted directory was recreated.");
+            Assert.True(events.Count(e => e == "reset") >= 2, "Expected a reset both for the disappearance and for resuming after recreation.");
+        }
+        finally
+        {
+            if (Directory.Exists(parent))
+            {
+                Directory.Delete(parent, recursive: true);
+            }
+        }
+    }
+
     private static string CreateTempDirectory()
     {
         var dir = Path.Combine(Path.GetTempPath(), "LogViewerDirTests_" + Guid.NewGuid().ToString("N"));

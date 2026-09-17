@@ -921,7 +921,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var document = entry.Kind switch
             {
                 TailSourceKind.File when File.Exists(entry.Path) => OpenPath(entry.Path),
-                TailSourceKind.DirectoryWatch when Directory.Exists(entry.Path) =>
+                // Restored even when the directory is currently missing — DirectoryWatchTailSource itself
+                // waits for it to (re)appear and picks up matching files automatically once it does, so a
+                // folder that was deleted between sessions (or gets recreated by e.g. a deploy step after
+                // restore) doesn't need to be re-added by hand.
+                TailSourceKind.DirectoryWatch when !string.IsNullOrWhiteSpace(entry.Path) =>
                     OpenDirectoryWatch(entry.Path, entry.WildcardPattern ?? "*.log", entry.AutoSwitchToLatestFile),
                 TailSourceKind.EventLog when entry.EventLogChannelName is not null =>
                     OpenEventLog(entry.EventLogChannelName, entry.EventLogFilters),
