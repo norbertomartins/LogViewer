@@ -187,7 +187,49 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// at or above this pass the filter (e.g. selecting "Warning" keeps Warning, Error and Fatal).</summary>
     public int? MinLevelRank => IsLevelFilterActive ? LogLevelSeverity.Rank(MinLevel) : null;
 
-    public bool IsFilterActive => ActiveFilterValue is not null || IsLevelFilterActive || IsTextFilterActive;
+    public bool IsFilterActive => ActiveFilterValue is not null || IsLevelFilterActive || IsTextFilterActive || IsHidingPastLines;
+
+    // --- Visual "clean" — hides lines already displayed without touching the file or the ring buffer ---
+
+    /// <summary>Lines with a line number below this are hidden from the view — purely a display-layer
+    /// concern (like the trace/level/text filters), so nothing is evicted from <see cref="Lines"/> or the
+    /// underlying file. Null means nothing is hidden.</summary>
+    [ObservableProperty]
+    private long? _hideBeforeLineNumber;
+
+    public bool IsHidingPastLines => HideBeforeLineNumber is not null;
+
+    partial void OnHideBeforeLineNumberChanged(long? value)
+    {
+        OnPropertyChanged(nameof(IsHidingPastLines));
+        RaiseFilterChanged();
+    }
+
+    /// <summary>"Clean" the view: hides every line currently displayed, purely visually — new lines that
+    /// arrive afterward (from the live tail) still show up normally. Does not modify the log file or evict
+    /// anything from the ring buffer, so <see cref="ShowHiddenLines"/> brings everything straight back.</summary>
+    [RelayCommand]
+    private void ClearView()
+    {
+        if (Lines.Count > 0)
+        {
+            HideBeforeLineNumber = Lines[^1].LineNumber + 1;
+        }
+    }
+
+    /// <summary>Hides every line above (i.e. before) the currently selected line — for cleaning up the view
+    /// up to a specific point of interest rather than the whole visible history.</summary>
+    [RelayCommand]
+    private void HideLinesAboveSelected()
+    {
+        if (SelectedLine is not null)
+        {
+            HideBeforeLineNumber = SelectedLine.LineNumber;
+        }
+    }
+
+    [RelayCommand]
+    private void ShowHiddenLines() => HideBeforeLineNumber = null;
 
     // --- Live display filter over the raw line text (works in plain and structured view) -----------
 
@@ -350,6 +392,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
                 parts.Add(Loc.Format("Vm_Doc_TextFilterPart", TextFilterExclude ? "≠" : "~", TextFilterPattern));
             }
 
+            if (IsHidingPastLines)
+            {
+                parts.Add(Loc.Get("Vm_Doc_HiddenLinesPart"));
+            }
+
             return parts.Count > 0 ? Loc.Get("Vm_Doc_FilteredByPrefix") + string.Join(Loc.Get("Vm_Doc_FilterJoiner"), parts) : null;
         }
     }
@@ -372,6 +419,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         OnPropertyChanged(nameof(IsLevelFilterActive));
         OnPropertyChanged(nameof(MinLevelRank));
         OnPropertyChanged(nameof(IsTextFilterActive));
+        OnPropertyChanged(nameof(IsHidingPastLines));
         FilterChanged?.Invoke();
     }
 
@@ -845,7 +893,26 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public event Action? ScrollToEndRequested;
 
+    public event Action? ScrollToStartRequested;
+
     public event Action<LogLineViewModel>? ScrollToLineRequested;
+
+    /// <summary>Jumps to the first line currently retained in the ring buffer (not necessarily line 1 of
+    /// the file — older lines may already have scrolled out of the buffer). Pauses follow, same as
+    /// scrolling up manually, so the newly-visible top of the buffer doesn't immediately get yanked away
+    /// by the next tailed line.</summary>
+    [RelayCommand]
+    private void GoToStart()
+    {
+        IsFollowingTail = false;
+        ScrollToStartRequested?.Invoke();
+    }
+
+    /// <summary>Jumps to the newest line and resumes follow — same effect as <see cref="ResumeFollow"/>,
+    /// exposed as its own command so a permanent toolbar button works regardless of whether the
+    /// "resume follow" banner is currently shown.</summary>
+    [RelayCommand]
+    private void GoToEnd() => ResumeFollow();
 
     private void OnLinesFlushed(IReadOnlyList<TailLine> lines)
     {

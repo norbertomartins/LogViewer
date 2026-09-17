@@ -128,6 +128,16 @@
   <data name="Status_Performance_ToolTip" xml:space="preserve"><value>Throughput • ring-buffer fill / memory • UI dispatch latency • process RAM</value></data>
 
   <!-- ==== TailDocumentView toolbar ==== -->
+  <data name="Doc_GoToStart_Name" xml:space="preserve"><value>Go to start</value></data>
+  <data name="Doc_GoToStart_ToolTip" xml:space="preserve"><value>Jump to the oldest line still in the buffer</value></data>
+  <data name="Doc_GoToEnd_Name" xml:space="preserve"><value>Go to end</value></data>
+  <data name="Doc_GoToEnd_ToolTip" xml:space="preserve"><value>Jump to the newest line and resume following</value></data>
+  <data name="Doc_ClearView_Name" xml:space="preserve"><value>Clear view</value></data>
+  <data name="Doc_ClearView_ToolTip" xml:space="preserve"><value>Hide every line shown so far (visual only — nothing is deleted from the file). New lines keep appearing normally.</value></data>
+  <data name="Doc_HideAboveSelected_Name" xml:space="preserve"><value>Hide lines above selection</value></data>
+  <data name="Doc_HideAboveSelected_ToolTip" xml:space="preserve"><value>Hide every line above the selected line (visual only — nothing is deleted from the file)</value></data>
+  <data name="Doc_ShowHiddenLines_Name" xml:space="preserve"><value>Show hidden lines</value></data>
+  <data name="Doc_ShowHiddenLines_ToolTip" xml:space="preserve"><value>Show the lines hidden by Clear view / Hide lines above selection</value></data>
   <data name="Doc_FollowTail_Name" xml:space="preserve"><value>Follow Tail</value></data>
   <data name="Doc_FollowTail_ToolTip" xml:space="preserve"><value>Follow the tail (auto-scroll to newest line)</value></data>
   <data name="Doc_StructuredView_Name" xml:space="preserve"><value>Structured View</value></data>
@@ -406,6 +416,7 @@
   <data name="Vm_Doc_FilterJoiner" xml:space="preserve"><value> AND </value></data>
   <data name="Vm_Doc_LevelAtLeast" xml:space="preserve"><value>Level ≥ {0}</value></data>
   <data name="Vm_Doc_TextFilterPart" xml:space="preserve"><value>text {0} "{1}"</value></data>
+  <data name="Vm_Doc_HiddenLinesPart" xml:space="preserve"><value>past lines hidden</value></data>
   <data name="Vm_Doc_Tester_Hidden" xml:space="preserve"><value>hidden</value></data>
   <data name="Vm_Doc_Tester_Shown" xml:space="preserve"><value>shown</value></data>
   <data name="Vm_Doc_Tester_Summary" xml:space="preserve"><value>{0} / {1} lines match ({2} {3})</value></data>

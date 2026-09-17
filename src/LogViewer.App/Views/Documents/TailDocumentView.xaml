@@ -112,6 +112,10 @@
                 </Style>
             </ToolBar.Resources>
 
+            <Button Content="⏮" Style="{StaticResource IconButton}" Command="{Binding GoToStartCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_GoToStart_Name}" ToolTip="{loc:Loc Doc_GoToStart_ToolTip}" />
+            <Button Content="⏭" Style="{StaticResource IconButton}" Command="{Binding GoToEndCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_GoToEnd_Name}" ToolTip="{loc:Loc Doc_GoToEnd_ToolTip}" />
             <ToggleButton Content="⤓" Style="{StaticResource IconButton}" IsChecked="{Binding IsFollowingTail}"
                           AutomationProperties.Name="{loc:Loc Doc_FollowTail_Name}" ToolTip="{loc:Loc Doc_FollowTail_ToolTip}" />
             <ToggleButton Content="🔔" Style="{StaticResource IconButton}" IsChecked="{Binding IsSoundAlertEnabled}"
@@ -136,6 +140,14 @@
                     AutomationProperties.Name="{loc:Loc Doc_PrevBookmark_Name}" ToolTip="{loc:Loc Doc_PrevBookmark_ToolTip}" />
             <Button Content="🔖▼" Style="{StaticResource IconButton}" Command="{Binding NextBookmarkCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_NextBookmark_Name}" ToolTip="{loc:Loc Doc_NextBookmark_ToolTip}" />
+            <Separator />
+            <Button Content="🧹" Style="{StaticResource IconButton}" Command="{Binding ClearViewCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_ClearView_Name}" ToolTip="{loc:Loc Doc_ClearView_ToolTip}" />
+            <Button Content="🧹▲" Style="{StaticResource IconButton}" Command="{Binding HideLinesAboveSelectedCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_HideAboveSelected_Name}" ToolTip="{loc:Loc Doc_HideAboveSelected_ToolTip}" />
+            <Button Content="👁" Style="{StaticResource IconButton}" Command="{Binding ShowHiddenLinesCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_ShowHiddenLines_Name}" ToolTip="{loc:Loc Doc_ShowHiddenLines_ToolTip}"
+                    Visibility="{Binding IsHidingPastLines, Converter={StaticResource BoolToVisibilityConverter}}" />
             <Separator />
             <TextBlock Text="🔍" VerticalAlignment="Center" Margin="2,0,3,0" />
             <TextBox Width="140" VerticalAlignment="Center"

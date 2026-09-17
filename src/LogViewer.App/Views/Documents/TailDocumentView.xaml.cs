@@ -27,6 +27,7 @@ public partial class TailDocumentView : UserControl
         if (_viewModel is not null)
         {
             _viewModel.ScrollToEndRequested -= OnScrollToEndRequested;
+            _viewModel.ScrollToStartRequested -= OnScrollToStartRequested;
             _viewModel.ScrollToLineRequested -= OnScrollToLineRequested;
             _viewModel.FilterChanged -= OnFilterChanged;
             _viewModel.ExportRequested -= OnExportRequested;
@@ -37,6 +38,7 @@ public partial class TailDocumentView : UserControl
         if (_viewModel is not null)
         {
             _viewModel.ScrollToEndRequested += OnScrollToEndRequested;
+            _viewModel.ScrollToStartRequested += OnScrollToStartRequested;
             _viewModel.ScrollToLineRequested += OnScrollToLineRequested;
             _viewModel.FilterChanged += OnFilterChanged;
             _viewModel.ExportRequested += OnExportRequested;
@@ -61,8 +63,9 @@ public partial class TailDocumentView : UserControl
         var value = _viewModel?.ActiveFilterValue;
         var minLevelRank = _viewModel?.MinLevelRank;
         var hasTextFilter = _viewModel?.IsTextFilterActive ?? false;
+        var hideBeforeLineNumber = _viewModel?.HideBeforeLineNumber;
 
-        if (value is null && minLevelRank is null && !hasTextFilter)
+        if (value is null && minLevelRank is null && !hasTextFilter && hideBeforeLineNumber is null)
         {
             view.Filter = null;
             return;
@@ -71,7 +74,8 @@ public partial class TailDocumentView : UserControl
         view.Filter = item => item is LogLineViewModel line
             && (value is null || string.Equals(StructuredFieldResolver.Resolve(line.Structured, field!), value, StringComparison.Ordinal))
             && (minLevelRank is null || ((LogLevelSeverity.Rank(line.Structured?.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(line.Text)) is { } rank && rank >= minLevelRank))
-            && (!hasTextFilter || _viewModel!.PassesTextFilter(line.Text));
+            && (!hasTextFilter || _viewModel!.PassesTextFilter(line.Text))
+            && (hideBeforeLineNumber is null || line.LineNumber >= hideBeforeLineNumber);
     }
 
     /// <summary>Writes the currently visible (post-filter) lines to a user-chosen text file. The filtered
@@ -115,6 +119,17 @@ public partial class TailDocumentView : UserControl
             if (LineListView.Items.Count > 0)
             {
                 LineListView.ScrollIntoView(LineListView.Items[^1]);
+            }
+        }));
+    }
+
+    private void OnScrollToStartRequested()
+    {
+        Dispatcher.BeginInvoke(() => SafeScrollIntoView(() =>
+        {
+            if (LineListView.Items.Count > 0)
+            {
+                LineListView.ScrollIntoView(LineListView.Items[0]);
             }
         }));
     }

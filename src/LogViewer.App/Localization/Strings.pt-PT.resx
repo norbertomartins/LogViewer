@@ -128,6 +128,16 @@
   <data name="Status_Performance_ToolTip" xml:space="preserve"><value>Débito • ocupação/memória do buffer circular • latência de dispatch da UI • RAM do processo</value></data>
 
   <!-- ==== TailDocumentView toolbar ==== -->
+  <data name="Doc_GoToStart_Name" xml:space="preserve"><value>Ir para o início</value></data>
+  <data name="Doc_GoToStart_ToolTip" xml:space="preserve"><value>Ir para a linha mais antiga ainda no buffer</value></data>
+  <data name="Doc_GoToEnd_Name" xml:space="preserve"><value>Ir para o fim</value></data>
+  <data name="Doc_GoToEnd_ToolTip" xml:space="preserve"><value>Ir para a linha mais recente e retomar o seguimento</value></data>
+  <data name="Doc_ClearView_Name" xml:space="preserve"><value>Limpar vista</value></data>
+  <data name="Doc_ClearView_ToolTip" xml:space="preserve"><value>Oculta todas as linhas mostradas até agora (apenas visual — nada é apagado do ficheiro). As novas linhas continuam a aparecer normalmente.</value></data>
+  <data name="Doc_HideAboveSelected_Name" xml:space="preserve"><value>Ocultar linhas acima da seleção</value></data>
+  <data name="Doc_HideAboveSelected_ToolTip" xml:space="preserve"><value>Oculta todas as linhas acima da linha selecionada (apenas visual — nada é apagado do ficheiro)</value></data>
+  <data name="Doc_ShowHiddenLines_Name" xml:space="preserve"><value>Mostrar linhas ocultas</value></data>
+  <data name="Doc_ShowHiddenLines_ToolTip" xml:space="preserve"><value>Mostrar as linhas ocultadas por Limpar vista / Ocultar linhas acima da seleção</value></data>
   <data name="Doc_FollowTail_Name" xml:space="preserve"><value>Seguir o fim</value></data>
   <data name="Doc_FollowTail_ToolTip" xml:space="preserve"><value>Seguir o fim do ficheiro (scroll automático para a linha mais recente)</value></data>
   <data name="Doc_StructuredView_Name" xml:space="preserve"><value>Vista estruturada</value></data>
@@ -406,6 +416,7 @@
   <data name="Vm_Doc_FilterJoiner" xml:space="preserve"><value> E </value></data>
   <data name="Vm_Doc_LevelAtLeast" xml:space="preserve"><value>Nível ≥ {0}</value></data>
   <data name="Vm_Doc_TextFilterPart" xml:space="preserve"><value>texto {0} "{1}"</value></data>
+  <data name="Vm_Doc_HiddenLinesPart" xml:space="preserve"><value>linhas anteriores ocultas</value></data>
   <data name="Vm_Doc_Tester_Hidden" xml:space="preserve"><value>ocultas</value></data>
   <data name="Vm_Doc_Tester_Shown" xml:space="preserve"><value>mostradas</value></data>
   <data name="Vm_Doc_Tester_Summary" xml:space="preserve"><value>{0} / {1} linhas correspondem ({2} {3})</value></data>
