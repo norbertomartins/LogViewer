@@ -180,7 +180,10 @@
   <data name="Doc_Search_Name" xml:space="preserve"><value>Search</value></data>
   <data name="Doc_Search_ToolTip" xml:space="preserve"><value>Search the whole file / channel (Ctrl+Shift+F)</value></data>
   <data name="Doc_Export_Name" xml:space="preserve"><value>Export</value></data>
-  <data name="Doc_Export_ToolTip" xml:space="preserve"><value>Save the currently visible (filtered) lines to a file</value></data>
+  <data name="Doc_Export_ToolTip" xml:space="preserve"><value>Export or copy the selected (or currently visible) lines</value></data>
+  <data name="Doc_ExportFile_Header" xml:space="preserve"><value>Export to File…</value></data>
+  <data name="Doc_CopyVisible_Header" xml:space="preserve"><value>Copy to Clipboard</value></data>
+  <data name="Doc_CopyVisibleJson_Header" xml:space="preserve"><value>Copy as JSON</value></data>
   <data name="Doc_Timeline_Name" xml:space="preserve"><value>Timeline</value></data>
   <data name="Doc_Timeline_ToolTip" xml:space="preserve"><value>Show a volume-over-time histogram of the visible timestamped lines</value></data>
   <data name="Doc_Customize_Name" xml:space="preserve"><value>Customize</value></data>
@@ -377,6 +380,8 @@
   <!-- ==== ViewModel messages ==== -->
   <data name="Vm_Mcp_StartFailed" xml:space="preserve"><value>MCP server failed to start: {0}</value></data>
   <data name="Vm_Export_Done" xml:space="preserve"><value>Exported {0} line(s) to {1}</value></data>
+  <data name="Vm_Export_CopiedDone" xml:space="preserve"><value>Copied {0} line(s) to clipboard</value></data>
+  <data name="Vm_Export_CopiedJsonDone" xml:space="preserve"><value>Copied {0} line(s) to clipboard as JSON</value></data>
   <data name="Vm_Export_Failed" xml:space="preserve"><value>Export failed: {0}</value></data>
   <data name="Vm_Profile_Saved" xml:space="preserve"><value>Saved session profile "{0}".</value></data>
   <data name="Vm_Profile_Loaded" xml:space="preserve"><value>Loaded session profile "{0}" ({1} source(s)).</value></data>
@@ -457,6 +462,8 @@
   <data name="Palette_ToggleTimeline" xml:space="preserve"><value>Toggle Volume Timeline</value></data>
   <data name="Palette_ClearFilters" xml:space="preserve"><value>Clear All Filters</value></data>
   <data name="Palette_ExportVisible" xml:space="preserve"><value>Export Visible Lines…</value></data>
+  <data name="Palette_CopyVisible" xml:space="preserve"><value>Copy Visible Lines to Clipboard</value></data>
+  <data name="Palette_CopyVisibleJson" xml:space="preserve"><value>Copy Visible Lines as JSON</value></data>
   <data name="Palette_SearchInDoc" xml:space="preserve"><value>Search in Document…</value></data>
   <data name="Palette_Customize" xml:space="preserve"><value>Customize Tab Color / Icon…</value></data>
   <data name="Palette_NextHighlight" xml:space="preserve"><value>Next Highlight</value></data>

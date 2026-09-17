@@ -6,6 +6,7 @@ using System.Windows.Media;
 using System.Windows.Threading;
 using LogViewer.App.Localization;
 using LogViewer.App.Models;
+using LogViewer.App.Services;
 using LogViewer.App.ViewModels;
 using LogViewer.Core.Structured;
 
@@ -78,16 +79,37 @@ public partial class TailDocumentView : UserControl
             && (hideBeforeLineNumber is null || line.LineNumber >= hideBeforeLineNumber);
     }
 
-    /// <summary>Writes the currently visible (post-filter) lines to a user-chosen text file. The filtered
-    /// set lives in this view's <see cref="ICollectionView"/>, so export is a view concern.</summary>
-    private void OnExportRequested()
+    /// <summary>Exports or copies the effective line set — the user's <see cref="ListView.SelectedItems"/>
+    /// when non-empty, otherwise every currently visible (post-filter) line. The filtered/selected set
+    /// lives in this view's <see cref="ICollectionView"/>/<c>ListView</c>, so this is a view concern, not
+    /// something the view-model can resolve itself.</summary>
+    private void OnExportRequested(ExportTarget target)
     {
         if (_viewModel is null)
         {
             return;
         }
 
-        var suggested = $"{_viewModel.Title}-{DateTime.Now:yyyyMMdd-HHmmss}.log";
+        var lines = (LineListView.SelectedItems.Count > 0 ? LineListView.SelectedItems : LineListView.Items)
+            .OfType<LogLineViewModel>().ToList();
+
+        switch (target)
+        {
+            case ExportTarget.File:
+                ExportToFile(lines);
+                break;
+            case ExportTarget.Clipboard:
+                CopyToClipboard(lines);
+                break;
+            case ExportTarget.ClipboardJson:
+                CopyToClipboardAsJson(lines);
+                break;
+        }
+    }
+
+    private void ExportToFile(IReadOnlyList<LogLineViewModel> lines)
+    {
+        var suggested = $"{_viewModel!.Title}-{DateTime.Now:yyyyMMdd-HHmmss}.log";
         var dialog = new Microsoft.Win32.SaveFileDialog
         {
             FileName = System.Text.RegularExpressions.Regex.Replace(suggested, "[\\\\/:*?\"<>|]", "_"),
@@ -102,13 +124,38 @@ public partial class TailDocumentView : UserControl
 
         try
         {
-            var lines = LineListView.Items.OfType<LogLineViewModel>().Select(l => l.Text);
-            System.IO.File.WriteAllLines(dialog.FileName, lines);
-            _viewModel.StatusMessage = Loc.Format("Vm_Export_Done", LineListView.Items.Count, System.IO.Path.GetFileName(dialog.FileName));
+            System.IO.File.WriteAllText(dialog.FileName, LogLineExportFormatter.ToPlainText(lines));
+            _viewModel!.StatusMessage = Loc.Format("Vm_Export_Done", lines.Count, System.IO.Path.GetFileName(dialog.FileName));
         }
         catch (Exception ex) when (ex is System.IO.IOException or UnauthorizedAccessException)
         {
-            _viewModel.StatusMessage = Loc.Format("Vm_Export_Failed", ex.Message);
+            _viewModel!.StatusMessage = Loc.Format("Vm_Export_Failed", ex.Message);
+        }
+    }
+
+    private void CopyToClipboard(IReadOnlyList<LogLineViewModel> lines)
+    {
+        try
+        {
+            Clipboard.SetText(LogLineExportFormatter.ToPlainText(lines));
+            _viewModel!.StatusMessage = Loc.Format("Vm_Export_CopiedDone", lines.Count);
+        }
+        catch (System.Runtime.InteropServices.COMException ex)
+        {
+            _viewModel!.StatusMessage = Loc.Format("Vm_Export_Failed", ex.Message);
+        }
+    }
+
+    private void CopyToClipboardAsJson(IReadOnlyList<LogLineViewModel> lines)
+    {
+        try
+        {
+            Clipboard.SetText(LogLineExportFormatter.ToJson(lines));
+            _viewModel!.StatusMessage = Loc.Format("Vm_Export_CopiedJsonDone", lines.Count);
+        }
+        catch (System.Runtime.InteropServices.COMException ex)
+        {
+            _viewModel!.StatusMessage = Loc.Format("Vm_Export_Failed", ex.Message);
         }
     }
 

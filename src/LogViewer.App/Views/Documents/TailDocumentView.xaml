@@ -227,8 +227,16 @@
             </Menu>
             <Button Content="🔎" Style="{StaticResource IconButton}" Command="{Binding SearchCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Search_Name}" ToolTip="{loc:Loc Doc_Search_ToolTip}" />
-            <Button Content="💾" Style="{StaticResource IconButton}" Command="{Binding ExportVisibleCommand}"
-                    AutomationProperties.Name="{loc:Loc Doc_Export_Name}" ToolTip="{loc:Loc Doc_Export_ToolTip}" />
+            <Menu Background="Transparent">
+                <MenuItem Header="💾" FontSize="13" AutomationProperties.Name="{loc:Loc Doc_Export_Name}" ToolTip="{loc:Loc Doc_Export_ToolTip}">
+                    <MenuItem Header="{loc:Loc Doc_ExportFile_Header}" Command="{Binding ExportVisibleCommand}"
+                              AutomationProperties.Name="{loc:Loc Doc_ExportFile_Header}" />
+                    <MenuItem Header="{loc:Loc Doc_CopyVisible_Header}" Command="{Binding CopyVisibleCommand}"
+                              AutomationProperties.Name="{loc:Loc Doc_CopyVisible_Header}" />
+                    <MenuItem Header="{loc:Loc Doc_CopyVisibleJson_Header}" Command="{Binding CopyVisibleAsJsonCommand}"
+                              AutomationProperties.Name="{loc:Loc Doc_CopyVisibleJson_Header}" />
+                </MenuItem>
+            </Menu>
             <ToggleButton Content="📊" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeline}"
                           AutomationProperties.Name="{loc:Loc Doc_Timeline_Name}" ToolTip="{loc:Loc Doc_Timeline_ToolTip}" />
             <Button Content="🖌" Style="{StaticResource IconButton}" Command="{Binding CustomizeCommand}"

@@ -180,7 +180,10 @@
   <data name="Doc_Search_Name" xml:space="preserve"><value>Procurar</value></data>
   <data name="Doc_Search_ToolTip" xml:space="preserve"><value>Procurar em todo o ficheiro / canal (Ctrl+Shift+F)</value></data>
   <data name="Doc_Export_Name" xml:space="preserve"><value>Exportar</value></data>
-  <data name="Doc_Export_ToolTip" xml:space="preserve"><value>Guardar num ficheiro as linhas atualmente visíveis (filtradas)</value></data>
+  <data name="Doc_Export_ToolTip" xml:space="preserve"><value>Exportar ou copiar as linhas selecionadas (ou atualmente visíveis)</value></data>
+  <data name="Doc_ExportFile_Header" xml:space="preserve"><value>Exportar para Ficheiro…</value></data>
+  <data name="Doc_CopyVisible_Header" xml:space="preserve"><value>Copiar para a Área de Transferência</value></data>
+  <data name="Doc_CopyVisibleJson_Header" xml:space="preserve"><value>Copiar como JSON</value></data>
   <data name="Doc_Timeline_Name" xml:space="preserve"><value>Linha temporal</value></data>
   <data name="Doc_Timeline_ToolTip" xml:space="preserve"><value>Mostrar um histograma de volume ao longo do tempo das linhas visíveis com data/hora</value></data>
   <data name="Doc_Customize_Name" xml:space="preserve"><value>Personalizar</value></data>
@@ -377,6 +380,8 @@
   <!-- ==== ViewModel messages ==== -->
   <data name="Vm_Mcp_StartFailed" xml:space="preserve"><value>Falha ao iniciar o servidor MCP: {0}</value></data>
   <data name="Vm_Export_Done" xml:space="preserve"><value>Exportadas {0} linha(s) para {1}</value></data>
+  <data name="Vm_Export_CopiedDone" xml:space="preserve"><value>Copiadas {0} linha(s) para a área de transferência</value></data>
+  <data name="Vm_Export_CopiedJsonDone" xml:space="preserve"><value>Copiadas {0} linha(s) para a área de transferência como JSON</value></data>
   <data name="Vm_Export_Failed" xml:space="preserve"><value>Falha na exportação: {0}</value></data>
   <data name="Vm_Profile_Saved" xml:space="preserve"><value>Perfil de sessão "{0}" guardado.</value></data>
   <data name="Vm_Profile_Loaded" xml:space="preserve"><value>Perfil de sessão "{0}" carregado ({1} fonte(s)).</value></data>
@@ -457,6 +462,8 @@
   <data name="Palette_ToggleTimeline" xml:space="preserve"><value>Alternar linha temporal de volume</value></data>
   <data name="Palette_ClearFilters" xml:space="preserve"><value>Limpar todos os filtros</value></data>
   <data name="Palette_ExportVisible" xml:space="preserve"><value>Exportar linhas visíveis…</value></data>
+  <data name="Palette_CopyVisible" xml:space="preserve"><value>Copiar linhas visíveis para a área de transferência</value></data>
+  <data name="Palette_CopyVisibleJson" xml:space="preserve"><value>Copiar linhas visíveis como JSON</value></data>
   <data name="Palette_SearchInDoc" xml:space="preserve"><value>Procurar no documento…</value></data>
   <data name="Palette_Customize" xml:space="preserve"><value>Personalizar cor / ícone do separador…</value></data>
   <data name="Palette_NextHighlight" xml:space="preserve"><value>Realce seguinte</value></data>

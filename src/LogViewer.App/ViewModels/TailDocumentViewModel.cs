@@ -365,12 +365,20 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [RelayCommand]
     private void ClearTextFilter() => TextFilterPattern = null;
 
-    /// <summary>Raised by <see cref="ExportVisibleCommand"/> — the view handles it because the effective
-    /// (filtered) line set lives in its <c>ICollectionView</c>, not in the view-model.</summary>
-    public event Action? ExportRequested;
+    /// <summary>Raised by <see cref="ExportVisibleCommand"/>/<see cref="CopyVisibleCommand"/>/
+    /// <see cref="CopyVisibleAsJsonCommand"/> — the view handles it because the effective (filtered, and
+    /// possibly user-selected) line set lives in its <c>ICollectionView</c>/<c>ListView</c>, not in the
+    /// view-model.</summary>
+    public event Action<ExportTarget>? ExportRequested;
 
     [RelayCommand]
-    private void ExportVisible() => ExportRequested?.Invoke();
+    private void ExportVisible() => ExportRequested?.Invoke(ExportTarget.File);
+
+    [RelayCommand]
+    private void CopyVisible() => ExportRequested?.Invoke(ExportTarget.Clipboard);
+
+    [RelayCommand]
+    private void CopyVisibleAsJson() => ExportRequested?.Invoke(ExportTarget.ClipboardJson);
 
     public string? FilterStatusText
     {
