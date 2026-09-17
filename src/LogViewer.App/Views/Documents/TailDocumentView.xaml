@@ -239,6 +239,8 @@
             </Menu>
             <ToggleButton Content="📊" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeline}"
                           AutomationProperties.Name="{loc:Loc Doc_Timeline_Name}" ToolTip="{loc:Loc Doc_Timeline_ToolTip}" />
+            <Button Content="📈" Style="{StaticResource IconButton}" Command="{Binding ShowStatsCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_Stats_Name}" ToolTip="{loc:Loc Doc_Stats_ToolTip}" />
             <Button Content="🖌" Style="{StaticResource IconButton}" Command="{Binding CustomizeCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Customize_Name}" ToolTip="{loc:Loc Doc_Customize_ToolTip}" />
             <Separator />

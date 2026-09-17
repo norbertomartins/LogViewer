@@ -1,5 +1,6 @@
 using LogViewer.App.Services;
 using LogViewer.App.ViewModels;
+using LogViewer.Core.Analysis;
 using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
@@ -31,6 +32,7 @@ public static class MainViewModelFactory
             Substitute.For<IFullTextSearchService>(),
             Substitute.For<IEventLogSearchService>(),
             Substitute.For<ISimilarBlockFinder>(),
+            Substitute.For<IPatternFrequencyAnalyzer>(),
             themeService,
             Substitute.For<ISoundAlertPlayer>());
 

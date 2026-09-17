@@ -105,6 +105,7 @@
   <data name="Menu_File_OpenSsh_ToolTip" xml:space="preserve"><value>Executa um comando por SSH num host remoto e segue a sua saída</value></data>
   <data name="Menu_File_OpenEtw" xml:space="preserve"><value>Abrir fornecedor _ETW...</value></data>
   <data name="Menu_File_OpenEtw_ToolTip" xml:space="preserve"><value>Segue um fornecedor Event Tracing for Windows em tempo real (Administrador)</value></data>
+  <data name="Menu_File_CompareFiles" xml:space="preserve"><value>Comparar Ficheiros...</value></data>
   <data name="Menu_File_RecentFiles" xml:space="preserve"><value>Ficheiros recentes</value></data>
   <data name="Menu_File_MinimizeToTray" xml:space="preserve"><value>Mi_nimizar para a área de notificação</value></data>
   <data name="Menu_File_Exit" xml:space="preserve"><value>_Sair</value></data>
@@ -205,6 +206,22 @@
   <data name="Doc_Detail_Properties" xml:space="preserve"><value>Propriedades</value></data>
   <data name="Doc_Detail_Exception" xml:space="preserve"><value>Exceção</value></data>
   <data name="Doc_ClearFilterButton" xml:space="preserve"><value>✕ Limpar filtro</value></data>
+  <data name="Doc_Stats_Name" xml:space="preserve"><value>Estatísticas</value></data>
+  <data name="Doc_Stats_ToolTip" xml:space="preserve"><value>Mostrar contagens de linhas/erros, taxa e padrões mais recorrentes</value></data>
+
+  <!-- ==== Document statistics panel ==== -->
+  <data name="Stats_TitleFmt" xml:space="preserve"><value>Estatísticas — {0}</value></data>
+  <data name="Stats_TotalLines" xml:space="preserve"><value>Total de Linhas</value></data>
+  <data name="Stats_LinesPerSecond" xml:space="preserve"><value>Linhas / seg</value></data>
+  <data name="Stats_ErrorsWarnings" xml:space="preserve"><value>Erros / Avisos</value></data>
+  <data name="Stats_Col_Count" xml:space="preserve"><value>Contagem</value></data>
+  <data name="Stats_Col_Level" xml:space="preserve"><value>Nível</value></data>
+  <data name="Stats_Col_FirstLine" xml:space="preserve"><value>Primeira Linha</value></data>
+  <data name="Stats_Col_Sample" xml:space="preserve"><value>Mensagem de Exemplo</value></data>
+  <data name="Vm_Stats_NoFile" xml:space="preserve"><value>A análise de padrões só está disponível para documentos com ficheiro.</value></data>
+  <data name="Vm_Stats_Analyzing" xml:space="preserve"><value>A analisar…</value></data>
+  <data name="Vm_Stats_NoPatterns" xml:space="preserve"><value>Nenhum padrão recorrente encontrado.</value></data>
+  <data name="Vm_Stats_AnalyzeFailed" xml:space="preserve"><value>Falha na análise: {0}</value></data>
 
   <!-- ==== MDI host ==== -->
   <data name="Mdi_Cascade" xml:space="preserve"><value>Cascata</value></data>
@@ -298,6 +315,19 @@
   <data name="Similar_Legend" xml:space="preserve"><value>  |  Vermelho = só na origem · Verde = só no destino · Amarelo = mesma forma, valores diferentes</value></data>
   <data name="Similar_JumpToSource" xml:space="preserve"><value>Ir para a linha de origem</value></data>
   <data name="Similar_JumpToTarget" xml:space="preserve"><value>Ir para a linha de destino</value></data>
+
+  <!-- ==== Compare Files dialog ==== -->
+  <data name="Compare_Title" xml:space="preserve"><value>Comparar Ficheiros</value></data>
+  <data name="Compare_FileA" xml:space="preserve"><value>Ficheiro A:</value></data>
+  <data name="Compare_FileB" xml:space="preserve"><value>Ficheiro B:</value></data>
+  <data name="Compare_Run" xml:space="preserve"><value>Comparar</value></data>
+  <data name="Compare_Col_FileA" xml:space="preserve"><value>Ficheiro A</value></data>
+  <data name="Compare_Col_FileB" xml:space="preserve"><value>Ficheiro B</value></data>
+  <data name="Vm_Compare_ChooseBoth" xml:space="preserve"><value>Escolha os dois ficheiros a comparar.</value></data>
+  <data name="Vm_Compare_Comparing" xml:space="preserve"><value>A comparar…</value></data>
+  <data name="Vm_Compare_Done" xml:space="preserve"><value>{0} linha(s) alinhadas, {1} diferentes.</value></data>
+  <data name="Vm_Compare_Cancelled" xml:space="preserve"><value>Comparação cancelada.</value></data>
+  <data name="Vm_Compare_Failed" xml:space="preserve"><value>Falha na comparação: {0}</value></data>
 
   <!-- ==== Customize document dialog ==== -->
   <data name="Customize_Title" xml:space="preserve"><value>Personalizar documento</value></data>
@@ -466,6 +496,7 @@
   <data name="Palette_CopyVisibleJson" xml:space="preserve"><value>Copiar linhas visíveis como JSON</value></data>
   <data name="Palette_SearchInDoc" xml:space="preserve"><value>Procurar no documento…</value></data>
   <data name="Palette_Customize" xml:space="preserve"><value>Personalizar cor / ícone do separador…</value></data>
+  <data name="Palette_Stats" xml:space="preserve"><value>Mostrar estatísticas do documento…</value></data>
   <data name="Palette_NextHighlight" xml:space="preserve"><value>Realce seguinte</value></data>
   <data name="Palette_PrevHighlight" xml:space="preserve"><value>Realce anterior</value></data>
   <data name="Palette_ToggleBookmark" xml:space="preserve"><value>Alternar marcador</value></data>

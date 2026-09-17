@@ -105,6 +105,7 @@
   <data name="Menu_File_OpenSsh_ToolTip" xml:space="preserve"><value>Run a command over SSH on a remote host and tail its output</value></data>
   <data name="Menu_File_OpenEtw" xml:space="preserve"><value>Open _ETW Provider...</value></data>
   <data name="Menu_File_OpenEtw_ToolTip" xml:space="preserve"><value>Tail a real-time Event Tracing for Windows provider (Administrator)</value></data>
+  <data name="Menu_File_CompareFiles" xml:space="preserve"><value>Compare Files...</value></data>
   <data name="Menu_File_RecentFiles" xml:space="preserve"><value>Recent Files</value></data>
   <data name="Menu_File_MinimizeToTray" xml:space="preserve"><value>Mi_nimize to Tray</value></data>
   <data name="Menu_File_Exit" xml:space="preserve"><value>E_xit</value></data>
@@ -205,6 +206,22 @@
   <data name="Doc_Detail_Properties" xml:space="preserve"><value>Properties</value></data>
   <data name="Doc_Detail_Exception" xml:space="preserve"><value>Exception</value></data>
   <data name="Doc_ClearFilterButton" xml:space="preserve"><value>✕ Clear filter</value></data>
+  <data name="Doc_Stats_Name" xml:space="preserve"><value>Statistics</value></data>
+  <data name="Doc_Stats_ToolTip" xml:space="preserve"><value>Show line/error counts, throughput, and top recurring patterns</value></data>
+
+  <!-- ==== Document statistics panel ==== -->
+  <data name="Stats_TitleFmt" xml:space="preserve"><value>Statistics — {0}</value></data>
+  <data name="Stats_TotalLines" xml:space="preserve"><value>Total Lines</value></data>
+  <data name="Stats_LinesPerSecond" xml:space="preserve"><value>Lines / sec</value></data>
+  <data name="Stats_ErrorsWarnings" xml:space="preserve"><value>Errors / Warnings</value></data>
+  <data name="Stats_Col_Count" xml:space="preserve"><value>Count</value></data>
+  <data name="Stats_Col_Level" xml:space="preserve"><value>Level</value></data>
+  <data name="Stats_Col_FirstLine" xml:space="preserve"><value>First Line</value></data>
+  <data name="Stats_Col_Sample" xml:space="preserve"><value>Sample Message</value></data>
+  <data name="Vm_Stats_NoFile" xml:space="preserve"><value>Top-pattern analysis is only available for file-backed documents.</value></data>
+  <data name="Vm_Stats_Analyzing" xml:space="preserve"><value>Analyzing…</value></data>
+  <data name="Vm_Stats_NoPatterns" xml:space="preserve"><value>No recurring patterns found.</value></data>
+  <data name="Vm_Stats_AnalyzeFailed" xml:space="preserve"><value>Analysis failed: {0}</value></data>
 
   <!-- ==== MDI host ==== -->
   <data name="Mdi_Cascade" xml:space="preserve"><value>Cascade</value></data>
@@ -298,6 +315,19 @@
   <data name="Similar_Legend" xml:space="preserve"><value>  |  Red = only in source · Green = only in target · Yellow = same shape, different values</value></data>
   <data name="Similar_JumpToSource" xml:space="preserve"><value>Jump to Source Line</value></data>
   <data name="Similar_JumpToTarget" xml:space="preserve"><value>Jump to Target Line</value></data>
+
+  <!-- ==== Compare Files dialog ==== -->
+  <data name="Compare_Title" xml:space="preserve"><value>Compare Files</value></data>
+  <data name="Compare_FileA" xml:space="preserve"><value>File A:</value></data>
+  <data name="Compare_FileB" xml:space="preserve"><value>File B:</value></data>
+  <data name="Compare_Run" xml:space="preserve"><value>Compare</value></data>
+  <data name="Compare_Col_FileA" xml:space="preserve"><value>File A</value></data>
+  <data name="Compare_Col_FileB" xml:space="preserve"><value>File B</value></data>
+  <data name="Vm_Compare_ChooseBoth" xml:space="preserve"><value>Choose both files to compare.</value></data>
+  <data name="Vm_Compare_Comparing" xml:space="preserve"><value>Comparing…</value></data>
+  <data name="Vm_Compare_Done" xml:space="preserve"><value>{0} line(s) aligned, {1} different.</value></data>
+  <data name="Vm_Compare_Cancelled" xml:space="preserve"><value>Comparison cancelled.</value></data>
+  <data name="Vm_Compare_Failed" xml:space="preserve"><value>Comparison failed: {0}</value></data>
 
   <!-- ==== Customize document dialog ==== -->
   <data name="Customize_Title" xml:space="preserve"><value>Customize Document</value></data>
@@ -466,6 +496,7 @@
   <data name="Palette_CopyVisibleJson" xml:space="preserve"><value>Copy Visible Lines as JSON</value></data>
   <data name="Palette_SearchInDoc" xml:space="preserve"><value>Search in Document…</value></data>
   <data name="Palette_Customize" xml:space="preserve"><value>Customize Tab Color / Icon…</value></data>
+  <data name="Palette_Stats" xml:space="preserve"><value>Show Document Statistics…</value></data>
   <data name="Palette_NextHighlight" xml:space="preserve"><value>Next Highlight</value></data>
   <data name="Palette_PrevHighlight" xml:space="preserve"><value>Previous Highlight</value></data>
   <data name="Palette_ToggleBookmark" xml:space="preserve"><value>Toggle Bookmark</value></data>

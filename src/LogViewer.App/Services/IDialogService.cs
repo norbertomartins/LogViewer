@@ -1,5 +1,6 @@
 using LogViewer.App.Models;
 using LogViewer.App.ViewModels;
+using LogViewer.Core.Analysis;
 using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
@@ -85,4 +86,13 @@ public interface IDialogService
         LogLineViewModel anchorLine,
         IReadOnlyList<TailDocumentViewModel> openDocuments,
         ISimilarBlockFinder blockFinder);
+
+    /// <summary>Opens the non-modal per-document statistics panel (counts, lines/sec, top recurring
+    /// message patterns) over <paramref name="document"/>.</summary>
+    void ShowDocumentStatsDialog(TailDocumentViewModel document, IPatternFrequencyAnalyzer patternAnalyzer);
+
+    /// <summary>Opens the non-modal "Compare Files" whole-file side-by-side diff window.
+    /// <paramref name="openPath"/> lets the user jump to a diff line by opening (or focusing) that file
+    /// as a live-tailed document.</summary>
+    void ShowCompareFilesDialog(Action<string, long> openPath);
 }

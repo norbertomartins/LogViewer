@@ -585,11 +585,16 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public event Action? CustomizeRequested;
 
+    public event Action? StatsRequested;
+
     [RelayCommand]
     private void Search() => SearchRequested?.Invoke();
 
     [RelayCommand]
     private void Customize() => CustomizeRequested?.Invoke();
+
+    [RelayCommand]
+    private void ShowStats() => StatsRequested?.Invoke();
 
     /// <summary>Applies an updated external-tool set for the "Run Tool" toolbar menu and auto-trigger matching.</summary>
     public void ApplyExternalTools(IReadOnlyList<ExternalToolDefinition> tools)

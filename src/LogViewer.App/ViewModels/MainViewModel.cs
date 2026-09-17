@@ -6,6 +6,7 @@ using CommunityToolkit.Mvvm.Input;
 using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
+using LogViewer.Core.Analysis;
 using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
@@ -26,6 +27,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IFullTextSearchService _fileSearchService;
     private readonly IEventLogSearchService _eventLogSearchService;
     private readonly ISimilarBlockFinder _blockFinder;
+    private readonly IPatternFrequencyAnalyzer _patternAnalyzer;
     private readonly ThemeService _themeService;
     private readonly ISoundAlertPlayer _soundAlertPlayer;
     private readonly AppSettings _settings;
@@ -55,6 +57,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         IFullTextSearchService fileSearchService,
         IEventLogSearchService eventLogSearchService,
         ISimilarBlockFinder blockFinder,
+        IPatternFrequencyAnalyzer patternAnalyzer,
         ThemeService themeService,
         ISoundAlertPlayer soundAlertPlayer)
     {
@@ -63,6 +66,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _fileSearchService = fileSearchService;
         _eventLogSearchService = eventLogSearchService;
         _blockFinder = blockFinder;
+        _patternAnalyzer = patternAnalyzer;
         _themeService = themeService;
         _soundAlertPlayer = soundAlertPlayer;
         Host = host;
@@ -568,6 +572,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.SearchRequested += () => ShowSearchDialog(document);
         document.CustomizeRequested += () => ShowCustomizeDialog(document);
         document.FindSimilarBlockRequested += line => ShowSimilarBlockDialog(document, line);
+        document.StatsRequested += () => ShowDocumentStatsDialog(document);
 
         Documents.Add(document);
         ActiveDocument = document;
@@ -618,6 +623,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void ShowSimilarBlockDialog(TailDocumentViewModel document, LogLineViewModel anchorLine) =>
         _dialogService.ShowSimilarBlockDialog(document, anchorLine, Documents, _blockFinder);
+
+    private void ShowDocumentStatsDialog(TailDocumentViewModel document) =>
+        _dialogService.ShowDocumentStatsDialog(document, _patternAnalyzer);
+
+    [RelayCommand]
+    private void OpenCompareFiles() =>
+        _dialogService.ShowCompareFilesDialog((path, lineNumber) => OpenPath(path).TryNavigateToLineNumber(lineNumber));
 
     [RelayCommand]
     private void CloseDocument(TailDocumentViewModel? document)
@@ -814,6 +826,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             list.Add(new PaletteCommand(Loc.Get("Palette_CopyVisibleJson"), activeCat, () => active.CopyVisibleAsJsonCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_SearchInDoc"), activeCat, () => active.SearchCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_Customize"), activeCat, () => active.CustomizeCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_Stats"), activeCat, () => active.ShowStatsCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_NextHighlight"), activeCat, () => active.NextHighlightCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_PrevHighlight"), activeCat, () => active.PreviousHighlightCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_ToggleBookmark"), activeCat, () => active.ToggleBookmarkCommand.Execute(null)));
