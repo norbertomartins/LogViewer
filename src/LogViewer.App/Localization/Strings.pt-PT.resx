@@ -185,6 +185,7 @@
   <data name="Doc_ExportFile_Header" xml:space="preserve"><value>Exportar para Ficheiro…</value></data>
   <data name="Doc_CopyVisible_Header" xml:space="preserve"><value>Copiar para a Área de Transferência</value></data>
   <data name="Doc_CopyVisibleJson_Header" xml:space="preserve"><value>Copiar como JSON</value></data>
+  <data name="Doc_CopyVisibleFormatted_Header" xml:space="preserve"><value>Copiar Formatado</value></data>
   <data name="Doc_Timeline_Name" xml:space="preserve"><value>Linha temporal</value></data>
   <data name="Doc_Timeline_ToolTip" xml:space="preserve"><value>Mostrar um histograma de volume ao longo do tempo das linhas visíveis com data/hora</value></data>
   <data name="Doc_Customize_Name" xml:space="preserve"><value>Personalizar</value></data>
@@ -199,6 +200,9 @@
   <data name="Doc_Ctx_FilterBySpanId" xml:space="preserve"><value>Filtrar por SpanId</value></data>
   <data name="Doc_Ctx_FilterByThreadId" xml:space="preserve"><value>Filtrar por ThreadId</value></data>
   <data name="Doc_Ctx_FindSimilarBlock" xml:space="preserve"><value>Encontrar bloco semelhante em...</value></data>
+  <data name="Doc_Ctx_Copy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="Doc_Ctx_CopyFormatted" xml:space="preserve"><value>Copiar Formatado</value></data>
+  <data name="Doc_Ctx_CopyJson" xml:space="preserve"><value>Copiar como JSON</value></data>
   <data name="Doc_Ctx_ClearFilter" xml:space="preserve"><value>Limpar filtro</value></data>
   <data name="Doc_Ctx_FilterByThisValue" xml:space="preserve"><value>Filtrar por este valor</value></data>
   <data name="Doc_Detail_TimestampFormat" xml:space="preserve"><value>Data/hora: {0:yyyy-MM-dd HH:mm:ss.fff zzz}</value></data>
@@ -418,6 +422,7 @@
   <data name="Vm_Export_Done" xml:space="preserve"><value>Exportadas {0} linha(s) para {1}</value></data>
   <data name="Vm_Export_CopiedDone" xml:space="preserve"><value>Copiadas {0} linha(s) para a área de transferência</value></data>
   <data name="Vm_Export_CopiedJsonDone" xml:space="preserve"><value>Copiadas {0} linha(s) para a área de transferência como JSON</value></data>
+  <data name="Vm_Export_CopiedFormattedDone" xml:space="preserve"><value>Copiadas {0} linha(s) formatadas para a área de transferência</value></data>
   <data name="Vm_Export_Failed" xml:space="preserve"><value>Falha na exportação: {0}</value></data>
   <data name="Vm_Profile_Saved" xml:space="preserve"><value>Perfil de sessão "{0}" guardado.</value></data>
   <data name="Vm_Profile_Loaded" xml:space="preserve"><value>Perfil de sessão "{0}" carregado ({1} fonte(s)).</value></data>
@@ -500,6 +505,7 @@
   <data name="Palette_ExportVisible" xml:space="preserve"><value>Exportar linhas visíveis…</value></data>
   <data name="Palette_CopyVisible" xml:space="preserve"><value>Copiar linhas visíveis para a área de transferência</value></data>
   <data name="Palette_CopyVisibleJson" xml:space="preserve"><value>Copiar linhas visíveis como JSON</value></data>
+  <data name="Palette_CopyVisibleFormatted" xml:space="preserve"><value>Copiar linhas visíveis formatadas</value></data>
   <data name="Palette_SearchInDoc" xml:space="preserve"><value>Procurar no documento…</value></data>
   <data name="Palette_Customize" xml:space="preserve"><value>Personalizar cor / ícone do separador…</value></data>
   <data name="Palette_Stats" xml:space="preserve"><value>Mostrar estatísticas do documento…</value></data>

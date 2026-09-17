@@ -185,6 +185,7 @@
   <data name="Doc_ExportFile_Header" xml:space="preserve"><value>Export to File…</value></data>
   <data name="Doc_CopyVisible_Header" xml:space="preserve"><value>Copy to Clipboard</value></data>
   <data name="Doc_CopyVisibleJson_Header" xml:space="preserve"><value>Copy as JSON</value></data>
+  <data name="Doc_CopyVisibleFormatted_Header" xml:space="preserve"><value>Copy Formatted</value></data>
   <data name="Doc_Timeline_Name" xml:space="preserve"><value>Timeline</value></data>
   <data name="Doc_Timeline_ToolTip" xml:space="preserve"><value>Show a volume-over-time histogram of the visible timestamped lines</value></data>
   <data name="Doc_Customize_Name" xml:space="preserve"><value>Customize</value></data>
@@ -199,6 +200,9 @@
   <data name="Doc_Ctx_FilterBySpanId" xml:space="preserve"><value>Filter by SpanId</value></data>
   <data name="Doc_Ctx_FilterByThreadId" xml:space="preserve"><value>Filter by ThreadId</value></data>
   <data name="Doc_Ctx_FindSimilarBlock" xml:space="preserve"><value>Find Similar Block In...</value></data>
+  <data name="Doc_Ctx_Copy" xml:space="preserve"><value>Copy</value></data>
+  <data name="Doc_Ctx_CopyFormatted" xml:space="preserve"><value>Copy Formatted</value></data>
+  <data name="Doc_Ctx_CopyJson" xml:space="preserve"><value>Copy as JSON</value></data>
   <data name="Doc_Ctx_ClearFilter" xml:space="preserve"><value>Clear Filter</value></data>
   <data name="Doc_Ctx_FilterByThisValue" xml:space="preserve"><value>Filter by this value</value></data>
   <data name="Doc_Detail_TimestampFormat" xml:space="preserve"><value>Timestamp: {0:yyyy-MM-dd HH:mm:ss.fff zzz}</value></data>
@@ -418,6 +422,7 @@
   <data name="Vm_Export_Done" xml:space="preserve"><value>Exported {0} line(s) to {1}</value></data>
   <data name="Vm_Export_CopiedDone" xml:space="preserve"><value>Copied {0} line(s) to clipboard</value></data>
   <data name="Vm_Export_CopiedJsonDone" xml:space="preserve"><value>Copied {0} line(s) to clipboard as JSON</value></data>
+  <data name="Vm_Export_CopiedFormattedDone" xml:space="preserve"><value>Copied {0} formatted line(s) to clipboard</value></data>
   <data name="Vm_Export_Failed" xml:space="preserve"><value>Export failed: {0}</value></data>
   <data name="Vm_Profile_Saved" xml:space="preserve"><value>Saved session profile "{0}".</value></data>
   <data name="Vm_Profile_Loaded" xml:space="preserve"><value>Loaded session profile "{0}" ({1} source(s)).</value></data>
@@ -500,6 +505,7 @@
   <data name="Palette_ExportVisible" xml:space="preserve"><value>Export Visible Lines…</value></data>
   <data name="Palette_CopyVisible" xml:space="preserve"><value>Copy Visible Lines to Clipboard</value></data>
   <data name="Palette_CopyVisibleJson" xml:space="preserve"><value>Copy Visible Lines as JSON</value></data>
+  <data name="Palette_CopyVisibleFormatted" xml:space="preserve"><value>Copy Visible Lines Formatted</value></data>
   <data name="Palette_SearchInDoc" xml:space="preserve"><value>Search in Document…</value></data>
   <data name="Palette_Customize" xml:space="preserve"><value>Customize Tab Color / Icon…</value></data>
   <data name="Palette_Stats" xml:space="preserve"><value>Show Document Statistics…</value></data>

@@ -384,6 +384,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [RelayCommand]
     private void CopyVisibleAsJson() => ExportRequested?.Invoke(ExportTarget.ClipboardJson);
 
+    [RelayCommand]
+    private void CopyVisibleFormatted() => ExportRequested?.Invoke(ExportTarget.ClipboardFormatted);
+
     public string? FilterStatusText
     {
         get

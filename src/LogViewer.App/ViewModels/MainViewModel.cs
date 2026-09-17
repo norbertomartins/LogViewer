@@ -829,6 +829,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             list.Add(new PaletteCommand(Loc.Get("Palette_ExportVisible"), activeCat, () => active.ExportVisibleCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_CopyVisible"), activeCat, () => active.CopyVisibleCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_CopyVisibleJson"), activeCat, () => active.CopyVisibleAsJsonCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_CopyVisibleFormatted"), activeCat, () => active.CopyVisibleFormattedCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_SearchInDoc"), activeCat, () => active.SearchCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_Customize"), activeCat, () => active.CustomizeCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_Stats"), activeCat, () => active.ShowStatsCommand.Execute(null)));

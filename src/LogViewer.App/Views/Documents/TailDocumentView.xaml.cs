@@ -104,6 +104,9 @@ public partial class TailDocumentView : UserControl
             case ExportTarget.ClipboardJson:
                 CopyToClipboardAsJson(lines);
                 break;
+            case ExportTarget.ClipboardFormatted:
+                CopyToClipboardFormatted(lines);
+                break;
         }
     }
 
@@ -156,6 +159,31 @@ public partial class TailDocumentView : UserControl
         catch (System.Runtime.InteropServices.COMException ex)
         {
             _viewModel!.StatusMessage = Loc.Format("Vm_Export_Failed", ex.Message);
+        }
+    }
+
+    private void CopyToClipboardFormatted(IReadOnlyList<LogLineViewModel> lines)
+    {
+        try
+        {
+            Clipboard.SetText(LogLineExportFormatter.ToFormattedText(lines));
+            _viewModel!.StatusMessage = Loc.Format("Vm_Export_CopiedFormattedDone", lines.Count);
+        }
+        catch (System.Runtime.InteropServices.COMException ex)
+        {
+            _viewModel!.StatusMessage = Loc.Format("Vm_Export_Failed", ex.Message);
+        }
+    }
+
+    /// <summary>Selects the right-clicked row before its context menu opens, unless it's already part of
+    /// the current multi-selection — see the style comment in the XAML for why this matters for the
+    /// Copy/Copy JSON/Copy Formatted commands.</summary>
+    private void OnLineItemPreviewRightClick(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is ListViewItem { IsSelected: false } item)
+        {
+            LineListView.SelectedItems.Clear();
+            item.IsSelected = true;
         }
     }
 

@@ -11,4 +11,9 @@ public enum ExportTarget
 
     /// <summary>Copy lines to the clipboard as indented, structured JSON.</summary>
     ClipboardJson,
+
+    /// <summary>Copy lines to the clipboard as human-readable formatted text: a structured line renders
+    /// its parsed timestamp/level/message (like the structured-view columns) instead of its raw JSON
+    /// text; a plain line copies unchanged.</summary>
+    ClipboardFormatted,
 }
