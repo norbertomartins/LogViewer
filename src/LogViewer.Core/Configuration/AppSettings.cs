@@ -10,7 +10,7 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 8;
+    public int SchemaVersion { get; set; } = 9;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
 
@@ -68,4 +68,8 @@ public sealed class AppSettings
     /// <summary>Global audible-alert settings for Error/Fatal lines. Each open document independently
     /// opts in or out via <see cref="TailSourceSettings.SoundAlertsEnabled"/>.</summary>
     public SoundAlertSettings SoundAlerts { get; set; } = new();
+
+    /// <summary>Global master switch for highlight-rule threshold/window desktop notifications — see
+    /// <see cref="Highlighting.HighlightRule.AlertEnabled"/>.</summary>
+    public NotificationAlertSettings NotificationAlerts { get; set; } = new();
 }

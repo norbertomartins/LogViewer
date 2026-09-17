@@ -11,6 +11,7 @@ using AvalonDock;
 using AvalonDock.Controls;
 using AvalonDock.Layout;
 using AvalonDock.Layout.Serialization;
+using LogViewer.App.Services;
 using LogViewer.App.ViewModels;
 using LogViewer.Core.Configuration;
 
@@ -19,9 +20,11 @@ namespace LogViewer.App.Views.Shell;
 public partial class MainWindow : Window
 {
     private readonly List<KeyBinding> _externalToolBindings = [];
+    private readonly WindowsNotificationService _notificationService;
 
-    public MainWindow()
+    public MainWindow(WindowsNotificationService notificationService)
     {
+        _notificationService = notificationService;
         InitializeComponent();
     }
 
@@ -39,6 +42,7 @@ public partial class MainWindow : Window
         DockManager.DocumentClosed += OnDocumentClosed;
         DockManager.ActiveContentChanged += OnActiveContentChanged;
         TrayIcon.Icon = new System.Drawing.Icon(Application.GetResourceStream(new Uri("/Resources/AppIcon.ico", UriKind.Relative)).Stream);
+        _notificationService.Attach(TrayIcon);
 
         Dispatcher.BeginInvoke(new Action(SyncActiveDocumentTabBackground), DispatcherPriority.Loaded);
     }

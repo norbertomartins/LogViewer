@@ -253,6 +253,7 @@
   <data name="Settings_SoundAlertFile_ToolTip" xml:space="preserve"><value>Path to a .wav file to play instead of the default system sound</value></data>
   <data name="Settings_SoundAlertBrowse_Name" xml:space="preserve"><value>Browse for sound file</value></data>
   <data name="Settings_SoundAlertClear_Name" xml:space="preserve"><value>Clear custom sound file</value></data>
+  <data name="Settings_NotificationAlertsEnable" xml:space="preserve"><value>Show a desktop notification when a highlight rule's alert threshold is reached</value></data>
 
   <!-- ==== Windows Services dialog ==== -->
   <data name="Services_Title" xml:space="preserve"><value>Windows Services</value></data>
@@ -345,6 +346,9 @@
   <data name="Highlight_PresetName" xml:space="preserve"><value>Preset name</value></data>
   <data name="Highlight_PatternKeywordOrRegex" xml:space="preserve"><value>Pattern (keyword or regex)</value></data>
   <data name="Highlight_TargetProperty" xml:space="preserve"><value>Target property (structured Serilog logs; blank = whole line)</value></data>
+  <data name="Highlight_AlertEnabled" xml:space="preserve"><value>Raise a desktop notification when this rule matches repeatedly</value></data>
+  <data name="Highlight_AlertThreshold" xml:space="preserve"><value>Matches:</value></data>
+  <data name="Highlight_AlertWindow" xml:space="preserve"><value>Within (seconds):</value></data>
   <data name="Highlight_LightColors" xml:space="preserve"><value>Light theme colors</value></data>
   <data name="Highlight_DarkColors" xml:space="preserve"><value>Dark theme colors (blank = same as light)</value></data>
   <data name="Highlight_PatternTester" xml:space="preserve"><value>Pattern tester</value></data>
@@ -409,6 +413,8 @@
 
   <!-- ==== ViewModel messages ==== -->
   <data name="Vm_Mcp_StartFailed" xml:space="preserve"><value>MCP server failed to start: {0}</value></data>
+  <data name="Vm_Alert_Title" xml:space="preserve"><value>LogViewer — {0}</value></data>
+  <data name="Vm_Alert_Message" xml:space="preserve"><value>"{0}" matched {1}+ times in {2}s (line {3})</value></data>
   <data name="Vm_Export_Done" xml:space="preserve"><value>Exported {0} line(s) to {1}</value></data>
   <data name="Vm_Export_CopiedDone" xml:space="preserve"><value>Copied {0} line(s) to clipboard</value></data>
   <data name="Vm_Export_CopiedJsonDone" xml:space="preserve"><value>Copied {0} line(s) to clipboard as JSON</value></data>

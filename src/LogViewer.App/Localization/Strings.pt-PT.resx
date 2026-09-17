@@ -253,6 +253,7 @@
   <data name="Settings_SoundAlertFile_ToolTip" xml:space="preserve"><value>Caminho para um ficheiro .wav a tocar em vez do som padrão do sistema</value></data>
   <data name="Settings_SoundAlertBrowse_Name" xml:space="preserve"><value>Procurar ficheiro de som</value></data>
   <data name="Settings_SoundAlertClear_Name" xml:space="preserve"><value>Limpar ficheiro de som personalizado</value></data>
+  <data name="Settings_NotificationAlertsEnable" xml:space="preserve"><value>Mostrar uma notificação do sistema quando o limiar de alerta de uma regra for atingido</value></data>
 
   <!-- ==== Windows Services dialog ==== -->
   <data name="Services_Title" xml:space="preserve"><value>Serviços do Windows</value></data>
@@ -345,6 +346,9 @@
   <data name="Highlight_PresetName" xml:space="preserve"><value>Nome da predefinição</value></data>
   <data name="Highlight_PatternKeywordOrRegex" xml:space="preserve"><value>Padrão (palavra-chave ou regex)</value></data>
   <data name="Highlight_TargetProperty" xml:space="preserve"><value>Propriedade alvo (logs Serilog estruturados; em branco = linha inteira)</value></data>
+  <data name="Highlight_AlertEnabled" xml:space="preserve"><value>Mostrar uma notificação do sistema quando esta regra ocorrer repetidamente</value></data>
+  <data name="Highlight_AlertThreshold" xml:space="preserve"><value>Ocorrências:</value></data>
+  <data name="Highlight_AlertWindow" xml:space="preserve"><value>Em (segundos):</value></data>
   <data name="Highlight_LightColors" xml:space="preserve"><value>Cores do tema claro</value></data>
   <data name="Highlight_DarkColors" xml:space="preserve"><value>Cores do tema escuro (em branco = iguais às do claro)</value></data>
   <data name="Highlight_PatternTester" xml:space="preserve"><value>Testador de padrão</value></data>
@@ -409,6 +413,8 @@
 
   <!-- ==== ViewModel messages ==== -->
   <data name="Vm_Mcp_StartFailed" xml:space="preserve"><value>Falha ao iniciar o servidor MCP: {0}</value></data>
+  <data name="Vm_Alert_Title" xml:space="preserve"><value>LogViewer — {0}</value></data>
+  <data name="Vm_Alert_Message" xml:space="preserve"><value>"{0}" ocorreu {1}+ vezes em {2}s (linha {3})</value></data>
   <data name="Vm_Export_Done" xml:space="preserve"><value>Exportadas {0} linha(s) para {1}</value></data>
   <data name="Vm_Export_CopiedDone" xml:space="preserve"><value>Copiadas {0} linha(s) para a área de transferência</value></data>
   <data name="Vm_Export_CopiedJsonDone" xml:space="preserve"><value>Copiadas {0} linha(s) para a área de transferência como JSON</value></data>

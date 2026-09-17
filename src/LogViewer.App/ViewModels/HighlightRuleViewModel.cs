@@ -44,6 +44,15 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
     [ObservableProperty]
     private string? _targetProperty;
 
+    [ObservableProperty]
+    private bool _alertEnabled;
+
+    [ObservableProperty]
+    private int _alertThresholdCount = 5;
+
+    [ObservableProperty]
+    private int _alertWindowSeconds = 60;
+
     /// <summary>Free-text sample the user pastes into the embedded tester; each line is matched live
     /// against the current pattern.</summary>
     [ObservableProperty]
@@ -67,6 +76,9 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
         _darkForegroundHex = rule.DarkForegroundHex;
         _darkBackgroundHex = rule.DarkBackgroundHex;
         _targetProperty = rule.TargetProperty;
+        _alertEnabled = rule.AlertEnabled;
+        _alertThresholdCount = rule.AlertThresholdCount;
+        _alertWindowSeconds = rule.AlertWindowSeconds;
     }
 
     public static IReadOnlyList<string> WellKnownTargetProperties => StructuredFieldResolver.WellKnownFields;
@@ -152,5 +164,7 @@ public sealed partial class HighlightRuleViewModel : ObservableObject
         }
     }
 
-    public HighlightRule ToRule() => new(Id, Name, Pattern, IsRegex, IsCaseSensitive, IsEnabled, ForegroundHex, BackgroundHex, DarkForegroundHex, DarkBackgroundHex, TargetProperty);
+    public HighlightRule ToRule() => new(
+        Id, Name, Pattern, IsRegex, IsCaseSensitive, IsEnabled, ForegroundHex, BackgroundHex, DarkForegroundHex, DarkBackgroundHex, TargetProperty,
+        AlertEnabled, AlertThresholdCount, AlertWindowSeconds);
 }

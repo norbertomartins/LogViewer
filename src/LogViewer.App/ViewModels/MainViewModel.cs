@@ -30,6 +30,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private readonly IPatternFrequencyAnalyzer _patternAnalyzer;
     private readonly ThemeService _themeService;
     private readonly ISoundAlertPlayer _soundAlertPlayer;
+    private readonly INotificationService _notificationService;
     private readonly AppSettings _settings;
     private readonly ProcessStatsService _processStats = new();
     private readonly DispatcherTimer _statsTimer;
@@ -59,7 +60,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         ISimilarBlockFinder blockFinder,
         IPatternFrequencyAnalyzer patternAnalyzer,
         ThemeService themeService,
-        ISoundAlertPlayer soundAlertPlayer)
+        ISoundAlertPlayer soundAlertPlayer,
+        INotificationService notificationService)
     {
         _settingsStore = settingsStore;
         _dialogService = dialogService;
@@ -68,6 +70,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _blockFinder = blockFinder;
         _patternAnalyzer = patternAnalyzer;
         _themeService = themeService;
+        _notificationService = notificationService;
         _soundAlertPlayer = soundAlertPlayer;
         Host = host;
 
@@ -553,6 +556,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             _settings.ExternalTools,
             _settings.SoundAlerts,
             _soundAlertPlayer,
+            _settings.NotificationAlerts,
+            _notificationService,
             _settings.RingBufferCapacity,
             EffectiveUiRefreshInterval(),
             title,

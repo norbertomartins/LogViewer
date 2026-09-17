@@ -15,7 +15,8 @@ public static class MainViewModelFactory
 {
     public static (MainViewModel ViewModel, AppSettings Settings) Create(
         AppSettings? settings = null,
-        IDialogService? dialogService = null)
+        IDialogService? dialogService = null,
+        INotificationService? notificationService = null)
     {
         var usedSettings = settings ?? new AppSettings { RestorePreviousSessionOnStartup = false };
 
@@ -34,7 +35,8 @@ public static class MainViewModelFactory
             Substitute.For<ISimilarBlockFinder>(),
             Substitute.For<IPatternFrequencyAnalyzer>(),
             themeService,
-            Substitute.For<ISoundAlertPlayer>());
+            Substitute.For<ISoundAlertPlayer>(),
+            notificationService ?? Substitute.For<INotificationService>());
 
         return (viewModel, usedSettings);
     }
