@@ -52,6 +52,10 @@ public sealed partial class LogLineViewModel : ObservableObject
     /// shown as its own structured-view column.</summary>
     public string? ThreadId => StructuredFieldResolver.Resolve(Structured, "ThreadId");
 
+    /// <summary>Formatted span duration (e.g. "12.3 ms") when this line is a SerilogTracing span-completion
+    /// event, or null otherwise — shown as its own structured-view column badge.</summary>
+    public string? SpanDurationDisplay => Structured is { SpanDuration: { } duration } ? SpanDurationFormatter.Format(duration) : null;
+
     /// <summary>True when this line parsed as a structured event. Used by the structured row template to
     /// keep highlight colors (especially background) off the Bookmark/LineNumber/Timestamp/Level/ThreadId
     /// columns — a highlight background spanning the whole row can make the Level column's own foreground

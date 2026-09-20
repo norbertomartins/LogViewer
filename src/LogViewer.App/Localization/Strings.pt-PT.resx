@@ -200,6 +200,7 @@
   <data name="Doc_Ctx_FilterBySpanId" xml:space="preserve"><value>Filtrar por SpanId</value></data>
   <data name="Doc_Ctx_FilterByThreadId" xml:space="preserve"><value>Filtrar por ThreadId</value></data>
   <data name="Doc_Ctx_FindSimilarBlock" xml:space="preserve"><value>Encontrar bloco semelhante em...</value></data>
+  <data name="Doc_Ctx_ViewTraceTree" xml:space="preserve"><value>Ver árvore do trace</value></data>
   <data name="Doc_Ctx_Copy" xml:space="preserve"><value>Copiar</value></data>
   <data name="Doc_Ctx_CopyFormatted" xml:space="preserve"><value>Copiar Formatado</value></data>
   <data name="Doc_Ctx_CopyJson" xml:space="preserve"><value>Copiar como JSON</value></data>
@@ -212,6 +213,9 @@
   <data name="Doc_ClearFilterButton" xml:space="preserve"><value>✕ Limpar filtro</value></data>
   <data name="Doc_Stats_Name" xml:space="preserve"><value>Estatísticas</value></data>
   <data name="Doc_Stats_ToolTip" xml:space="preserve"><value>Mostrar contagens de linhas/erros, taxa e padrões mais recorrentes</value></data>
+  <data name="Doc_TraceTree_Name" xml:space="preserve"><value>Árvore do Trace</value></data>
+  <data name="Doc_TraceTree_ToolTip" xml:space="preserve"><value>Mostrar os spans do SerilogTracing como uma árvore de trace pai/filho</value></data>
+  <data name="Doc_SpanDuration_ToolTip" xml:space="preserve"><value>Duração do span do SerilogTracing</value></data>
 
   <!-- ==== Document statistics panel ==== -->
   <data name="Stats_TitleFmt" xml:space="preserve"><value>Estatísticas — {0}</value></data>
@@ -225,6 +229,11 @@
   <data name="Vm_Stats_NoFile" xml:space="preserve"><value>A análise de padrões só está disponível para documentos com ficheiro.</value></data>
   <data name="Vm_Stats_Analyzing" xml:space="preserve"><value>A analisar…</value></data>
   <data name="Vm_Stats_NoPatterns" xml:space="preserve"><value>Nenhum padrão recorrente encontrado.</value></data>
+
+  <!-- ==== Trace tree panel (SerilogTracing) ==== -->
+  <data name="TraceTree_TitleFmt" xml:space="preserve"><value>Árvore do Trace — {0}</value></data>
+  <data name="TraceTree_TraceLabel" xml:space="preserve"><value>Trace:</value></data>
+  <data name="Vm_TraceTree_NoTraces" xml:space="preserve"><value>Nenhum span do SerilogTracing encontrado nas linhas em buffer.</value></data>
   <data name="Vm_Stats_AnalyzeFailed" xml:space="preserve"><value>Falha na análise: {0}</value></data>
 
   <!-- ==== MDI host ==== -->
@@ -509,6 +518,7 @@
   <data name="Palette_SearchInDoc" xml:space="preserve"><value>Procurar no documento…</value></data>
   <data name="Palette_Customize" xml:space="preserve"><value>Personalizar cor / ícone do separador…</value></data>
   <data name="Palette_Stats" xml:space="preserve"><value>Mostrar estatísticas do documento…</value></data>
+  <data name="Palette_TraceTree" xml:space="preserve"><value>Mostrar árvore do trace…</value></data>
   <data name="Palette_NextHighlight" xml:space="preserve"><value>Realce seguinte</value></data>
   <data name="Palette_PrevHighlight" xml:space="preserve"><value>Realce anterior</value></data>
   <data name="Palette_ToggleBookmark" xml:space="preserve"><value>Alternar marcador</value></data>

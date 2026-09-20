@@ -40,6 +40,7 @@
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Timestamp" />
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Level" />
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.ThreadId" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.SpanDuration" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" Margin="0,0,4,0" />
@@ -48,13 +49,20 @@
                 <TextBlock Grid.Column="3" Text="{Binding Structured.Level}" FontWeight="Bold" Margin="0,0,8,0"
                            Foreground="{Binding Structured.Level, Converter={StaticResource LevelToBrushConverter}}" />
                 <TextBlock Grid.Column="4" Text="{Binding ThreadId}" Opacity="0.6" Margin="0,0,8,0" />
-                <!-- Column 5: rendered message — colorized when the converter produces inlines,
+                <!-- SerilogTracing span-completion events carry a duration — shown as a small "⏱" badge;
+                     empty (zero-width, since the column is Auto-sized) for ordinary log lines. -->
+                <TextBlock Grid.Column="5" Opacity="0.75" Margin="0,0,8,0"
+                           Visibility="{Binding SpanDurationDisplay, Converter={StaticResource NullOrEmptyToVisibilityConverter}}"
+                           ToolTip="{loc:Loc Doc_SpanDuration_ToolTip}">
+                    <Run Text="⏱ " /><Run Text="{Binding SpanDurationDisplay, Mode=OneWay}" />
+                </TextBlock>
+                <!-- Column 6: rendered message — colorized when the converter produces inlines,
                      plain text otherwise (no template, or colorization disabled). Margin guarantees a
                      visible gap after Level/ThreadId even when their columns are exactly as wide as the text.
                      Highlight Background/Foreground are applied here rather than on the row (see
                      ItemContainerStyle below) so a highlight's background doesn't wash over the Level
                      column's own color-coded foreground. -->
-                <TextBlock Grid.Column="5" Text="{Binding Structured.RenderedMessage}" Margin="4,0,0,0"
+                <TextBlock Grid.Column="6" Text="{Binding Structured.RenderedMessage}" Margin="4,0,0,0"
                            Background="{Binding Background}" Foreground="{Binding Foreground}">
                     <controls:InlinesHelper.Source>
                         <MultiBinding Converter="{StaticResource StructuredInlinesConverter}">
@@ -243,6 +251,8 @@
                           AutomationProperties.Name="{loc:Loc Doc_Timeline_Name}" ToolTip="{loc:Loc Doc_Timeline_ToolTip}" />
             <Button Content="📈" Style="{StaticResource IconButton}" Command="{Binding ShowStatsCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Stats_Name}" ToolTip="{loc:Loc Doc_Stats_ToolTip}" />
+            <Button Content="🕸" Style="{StaticResource IconButton}" Command="{Binding ShowTraceTreeCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_TraceTree_Name}" ToolTip="{loc:Loc Doc_TraceTree_ToolTip}" />
             <Button Content="🖌" Style="{StaticResource IconButton}" Command="{Binding CustomizeCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Customize_Name}" ToolTip="{loc:Loc Doc_Customize_ToolTip}" />
             <Separator />
@@ -358,6 +368,9 @@
                                 <Separator />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_FindSimilarBlock}"
                                           Command="{Binding PlacementTarget.Tag.FindSimilarBlockCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="{loc:Loc Doc_Ctx_ViewTraceTree}"
+                                          Command="{Binding PlacementTarget.Tag.ViewTraceCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 <Separator />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_Copy}"

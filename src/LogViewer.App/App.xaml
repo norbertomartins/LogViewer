@@ -23,6 +23,7 @@
         <converters:RegexTestInlinesConverter x:Key="RegexTestInlinesConverter" />
         <converters:VolumeBinBarHeightConverter x:Key="VolumeBinBarHeightConverter" />
         <converters:DiffEntryBrushConverter x:Key="DiffEntryBrushConverter" />
+        <converters:SpanDurationToStringConverter x:Key="SpanDurationToStringConverter" />
 
         <!-- Global template: every window-mode host (Tabbed/Floating via AvalonDock, MDI via MdiHostView)
              resolves TailDocumentViewModel through this SAME template, so it's structurally guaranteed

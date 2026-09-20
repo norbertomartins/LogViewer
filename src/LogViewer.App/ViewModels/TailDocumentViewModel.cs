@@ -598,6 +598,10 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public event Action? StatsRequested;
 
+    /// <summary>Raised to open the SerilogTracing "Trace Tree" panel — null preselects nothing (toolbar
+    /// button), a non-null value preselects that trace (context-menu "View Trace" on a specific line).</summary>
+    public event Action<string?>? TraceTreeRequested;
+
     [RelayCommand]
     private void Search() => SearchRequested?.Invoke();
 
@@ -606,6 +610,22 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     [RelayCommand]
     private void ShowStats() => StatsRequested?.Invoke();
+
+    [RelayCommand]
+    private void ShowTraceTree() => TraceTreeRequested?.Invoke(null);
+
+    [RelayCommand]
+    private void ViewTrace(LogLineViewModel? line)
+    {
+        var traceId = StructuredFieldResolver.Resolve(line?.Structured, "TraceId");
+        if (string.IsNullOrEmpty(traceId))
+        {
+            StatusMessage = Loc.Format("Vm_Doc_NoProperty", "TraceId");
+            return;
+        }
+
+        TraceTreeRequested?.Invoke(traceId);
+    }
 
     /// <summary>Applies an updated external-tool set for the "Run Tool" toolbar menu and auto-trigger matching.</summary>
     public void ApplyExternalTools(IReadOnlyList<ExternalToolDefinition> tools)

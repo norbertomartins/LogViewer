@@ -200,6 +200,7 @@
   <data name="Doc_Ctx_FilterBySpanId" xml:space="preserve"><value>Filter by SpanId</value></data>
   <data name="Doc_Ctx_FilterByThreadId" xml:space="preserve"><value>Filter by ThreadId</value></data>
   <data name="Doc_Ctx_FindSimilarBlock" xml:space="preserve"><value>Find Similar Block In...</value></data>
+  <data name="Doc_Ctx_ViewTraceTree" xml:space="preserve"><value>View Trace Tree</value></data>
   <data name="Doc_Ctx_Copy" xml:space="preserve"><value>Copy</value></data>
   <data name="Doc_Ctx_CopyFormatted" xml:space="preserve"><value>Copy Formatted</value></data>
   <data name="Doc_Ctx_CopyJson" xml:space="preserve"><value>Copy as JSON</value></data>
@@ -212,6 +213,9 @@
   <data name="Doc_ClearFilterButton" xml:space="preserve"><value>✕ Clear filter</value></data>
   <data name="Doc_Stats_Name" xml:space="preserve"><value>Statistics</value></data>
   <data name="Doc_Stats_ToolTip" xml:space="preserve"><value>Show line/error counts, throughput, and top recurring patterns</value></data>
+  <data name="Doc_TraceTree_Name" xml:space="preserve"><value>Trace Tree</value></data>
+  <data name="Doc_TraceTree_ToolTip" xml:space="preserve"><value>Show SerilogTracing spans as a parent/child trace tree</value></data>
+  <data name="Doc_SpanDuration_ToolTip" xml:space="preserve"><value>SerilogTracing span duration</value></data>
 
   <!-- ==== Document statistics panel ==== -->
   <data name="Stats_TitleFmt" xml:space="preserve"><value>Statistics — {0}</value></data>
@@ -225,6 +229,11 @@
   <data name="Vm_Stats_NoFile" xml:space="preserve"><value>Top-pattern analysis is only available for file-backed documents.</value></data>
   <data name="Vm_Stats_Analyzing" xml:space="preserve"><value>Analyzing…</value></data>
   <data name="Vm_Stats_NoPatterns" xml:space="preserve"><value>No recurring patterns found.</value></data>
+
+  <!-- ==== Trace tree panel (SerilogTracing) ==== -->
+  <data name="TraceTree_TitleFmt" xml:space="preserve"><value>Trace Tree — {0}</value></data>
+  <data name="TraceTree_TraceLabel" xml:space="preserve"><value>Trace:</value></data>
+  <data name="Vm_TraceTree_NoTraces" xml:space="preserve"><value>No SerilogTracing spans found in the buffered lines.</value></data>
   <data name="Vm_Stats_AnalyzeFailed" xml:space="preserve"><value>Analysis failed: {0}</value></data>
 
   <!-- ==== MDI host ==== -->
@@ -509,6 +518,7 @@
   <data name="Palette_SearchInDoc" xml:space="preserve"><value>Search in Document…</value></data>
   <data name="Palette_Customize" xml:space="preserve"><value>Customize Tab Color / Icon…</value></data>
   <data name="Palette_Stats" xml:space="preserve"><value>Show Document Statistics…</value></data>
+  <data name="Palette_TraceTree" xml:space="preserve"><value>Show Trace Tree…</value></data>
   <data name="Palette_NextHighlight" xml:space="preserve"><value>Next Highlight</value></data>
   <data name="Palette_PrevHighlight" xml:space="preserve"><value>Previous Highlight</value></data>
   <data name="Palette_ToggleBookmark" xml:space="preserve"><value>Toggle Bookmark</value></data>

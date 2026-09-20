@@ -578,6 +578,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.CustomizeRequested += () => ShowCustomizeDialog(document);
         document.FindSimilarBlockRequested += line => ShowSimilarBlockDialog(document, line);
         document.StatsRequested += () => ShowDocumentStatsDialog(document);
+        document.TraceTreeRequested += traceId => ShowTraceTreeDialog(document, traceId);
 
         Documents.Add(document);
         ActiveDocument = document;
@@ -631,6 +632,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void ShowDocumentStatsDialog(TailDocumentViewModel document) =>
         _dialogService.ShowDocumentStatsDialog(document, _patternAnalyzer);
+
+    private void ShowTraceTreeDialog(TailDocumentViewModel document, string? initialTraceId) =>
+        _dialogService.ShowTraceTreeDialog(document, initialTraceId);
 
     [RelayCommand]
     private void OpenCompareFiles() =>
@@ -833,6 +837,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             list.Add(new PaletteCommand(Loc.Get("Palette_SearchInDoc"), activeCat, () => active.SearchCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_Customize"), activeCat, () => active.CustomizeCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_Stats"), activeCat, () => active.ShowStatsCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_TraceTree"), activeCat, () => active.ShowTraceTreeCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_NextHighlight"), activeCat, () => active.NextHighlightCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_PrevHighlight"), activeCat, () => active.PreviousHighlightCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_ToggleBookmark"), activeCat, () => active.ToggleBookmarkCommand.Execute(null)));

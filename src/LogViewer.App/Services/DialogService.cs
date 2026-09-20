@@ -289,6 +289,17 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         window.Show();
     }
 
+    public void ShowTraceTreeDialog(TailDocumentViewModel document, string? initialTraceId)
+    {
+        var window = new TraceTreeView
+        {
+            DataContext = new TraceTreeViewModel(document, initialTraceId),
+            Owner = Application.Current?.MainWindow,
+        };
+
+        window.Show();
+    }
+
     public bool ShowCustomizeDialog(TailDocumentViewModel document)
     {
         var viewModel = new DocumentCustomizeViewModel(document.CustomColorHex, document.CustomIconGlyph);

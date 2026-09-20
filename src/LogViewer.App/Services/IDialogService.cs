@@ -95,4 +95,9 @@ public interface IDialogService
     /// <paramref name="openPath"/> lets the user jump to a diff line by opening (or focusing) that file
     /// as a live-tailed document.</summary>
     void ShowCompareFilesDialog(Action<string, long> openPath);
+
+    /// <summary>Opens the non-modal SerilogTracing "Trace Tree" panel over <paramref name="document"/>'s
+    /// currently buffered lines. <paramref name="initialTraceId"/> preselects a trace (e.g. from a
+    /// right-clicked line), or null to default to the most recent one.</summary>
+    void ShowTraceTreeDialog(TailDocumentViewModel document, string? initialTraceId);
 }

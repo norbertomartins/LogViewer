@@ -89,4 +89,48 @@ public sealed class SerilogEventParserTests
         Assert.True(SerilogEventParser.TryParse(line, out var evt));
         Assert.Contains("Id", evt!.RenderedMessage);
     }
+
+    [Fact]
+    public void TryParse_Clef_NativeTraceSpanFields_AreCapturedAsSpan()
+    {
+        var line = @"{""@t"":""2026-01-01T00:00:01Z"",""@mt"":""GET /orders"",""@l"":""Information"","
+            + @"""@tr"":""0af7651916cd43dd8448eb211c80319c"",""@sp"":""b7ad6b7169203331"","
+            + @"""ParentSpanId"":""a1b2c3d4e5f60708"",""SpanKind"":""Server"",""SpanStartTimestamp"":""2026-01-01T00:00:00Z""}";
+
+        Assert.True(SerilogEventParser.TryParse(line, out var evt));
+        Assert.Equal("0af7651916cd43dd8448eb211c80319c", evt!.TraceId);
+        Assert.Equal("b7ad6b7169203331", evt.SpanId);
+        Assert.Equal("a1b2c3d4e5f60708", evt.ParentSpanId);
+        Assert.Equal("Server", evt.SpanKind);
+        Assert.True(evt.IsSpan);
+        Assert.Equal(TimeSpan.FromSeconds(1), evt.SpanDuration);
+        // Also reachable as ordinary properties, so existing filter-by-property/correlation/export code keeps working.
+        Assert.Equal("0af7651916cd43dd8448eb211c80319c", evt.Properties["TraceId"]);
+        Assert.Equal("b7ad6b7169203331", evt.Properties["SpanId"]);
+    }
+
+    [Fact]
+    public void TryParse_Clef_TraceIdWithoutSpanStart_IsNotASpan()
+    {
+        var line = @"{""@t"":""2026-01-01T00:00:00Z"",""@mt"":""processing"",""@tr"":""trace1"",""@sp"":""span1""}";
+
+        Assert.True(SerilogEventParser.TryParse(line, out var evt));
+        Assert.Equal("trace1", evt!.TraceId);
+        Assert.False(evt.IsSpan);
+        Assert.Null(evt.SpanDuration);
+    }
+
+    [Fact]
+    public void TryParse_StandardJsonFormatter_TopLevelTraceSpanFields_AreCaptured()
+    {
+        var line = @"{""Timestamp"":""2026-01-01T00:00:02Z"",""Level"":""Information"",""MessageTemplate"":""Check {Host}"","
+            + @"""TraceId"":""0af7651916cd43dd8448eb211c80319c"",""SpanId"":""b7ad6b7169203331"","
+            + @"""Properties"":{""Host"":""example.com"",""SpanStartTimestamp"":""2026-01-01T00:00:00Z""}}";
+
+        Assert.True(SerilogEventParser.TryParse(line, out var evt));
+        Assert.Equal("0af7651916cd43dd8448eb211c80319c", evt!.TraceId);
+        Assert.Equal("b7ad6b7169203331", evt.SpanId);
+        Assert.True(evt.IsSpan);
+        Assert.Equal(TimeSpan.FromSeconds(2), evt.SpanDuration);
+    }
 }

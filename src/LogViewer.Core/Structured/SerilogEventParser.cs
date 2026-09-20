@@ -83,7 +83,11 @@ public static class SerilogEventParser
             rendered = string.Empty;
         }
 
-        return new StructuredLogEvent(timestamp, level, template, rendered, exception, properties);
+        var traceId = root.TryGetProperty("@tr", out var trProp) ? trProp.GetString() : null;
+        var spanId = root.TryGetProperty("@sp", out var spProp) ? spProp.GetString() : null;
+        PromoteTraceFields(properties, ref traceId, ref spanId);
+
+        return new StructuredLogEvent(timestamp, level, template, rendered, exception, properties, traceId, spanId);
     }
 
     private static StructuredLogEvent? ParseStandard(JsonElement root)
@@ -111,7 +115,40 @@ public static class SerilogEventParser
             ? renderedProp.GetString()!
             : RenderTemplate(template, properties);
 
-        return new StructuredLogEvent(timestamp, level, template, rendered, exception, properties);
+        var traceId = root.TryGetProperty("TraceId", out var trProp) && trProp.ValueKind == JsonValueKind.String ? trProp.GetString() : null;
+        var spanId = root.TryGetProperty("SpanId", out var spProp) && spProp.ValueKind == JsonValueKind.String ? spProp.GetString() : null;
+        PromoteTraceFields(properties, ref traceId, ref spanId);
+
+        return new StructuredLogEvent(timestamp, level, template, rendered, exception, properties, traceId, spanId);
+    }
+
+    /// <summary>Resolves the event's trace/span id: prefers Serilog's native <c>Activity</c>-based fields
+    /// (<c>@tr</c>/<c>@sp</c>, or the standard formatter's top-level <c>TraceId</c>/<c>SpanId</c>), falling back
+    /// to a plain <c>TraceId</c>/<c>SpanId</c> property (e.g. from an enricher) when native ones are absent — then
+    /// makes sure the resolved values are also reachable as ordinary properties, so the existing property-filter,
+    /// correlation-key, search, and export machinery (all of which only look at <see cref="StructuredLogEvent.Properties"/>)
+    /// keeps working uniformly regardless of which form produced them.</summary>
+    private static void PromoteTraceFields(Dictionary<string, string> properties, ref string? traceId, ref string? spanId)
+    {
+        if (traceId is null && properties.TryGetValue("TraceId", out var propTraceId))
+        {
+            traceId = propTraceId;
+        }
+
+        if (spanId is null && properties.TryGetValue("SpanId", out var propSpanId))
+        {
+            spanId = propSpanId;
+        }
+
+        if (traceId is not null)
+        {
+            properties["TraceId"] = traceId;
+        }
+
+        if (spanId is not null)
+        {
+            properties["SpanId"] = spanId;
+        }
     }
 
     private static DateTimeOffset? ReadTimestamp(JsonElement root, string propertyName)
