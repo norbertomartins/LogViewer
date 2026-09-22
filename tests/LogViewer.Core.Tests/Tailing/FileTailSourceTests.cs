@@ -87,6 +87,25 @@ public sealed class FileTailSourceTests
     }
 
     [Fact]
+    public void Start_OnFileLargerThanInitialTailWindow_NumbersLinesAbsolutely()
+    {
+        using var fixture = new TempFileFixture();
+        var options = new TailSourceOptions { PollInterval = TimeSpan.FromMilliseconds(30), InitialTailLineCount = 5 };
+        fixture.WriteAllText(string.Concat(Enumerable.Range(1, 20).Select(i => $"line{i}\n")));
+
+        var received = new ConcurrentQueue<TailLine>();
+        using var source = new FileTailSource(fixture.FilePath, options);
+        source.LinesRead += (_, e) => Enqueue(received, e.Lines);
+
+        source.Start();
+
+        Assert.True(WaitUntil(() => received.Count >= 5), "Expected the initial tail lines to be delivered.");
+        var lines = received.ToArray();
+        Assert.Equal(["line16", "line17", "line18", "line19", "line20"], lines.Select(l => l.Text).ToArray());
+        Assert.Equal([16, 17, 18, 19, 20], lines.Select(l => l.LineNumber).ToArray());
+    }
+
+    [Fact]
     public void Start_OnMissingFile_WaitsThenReadsOnceCreated()
     {
         using var fixture = new TempFileFixture();
@@ -107,6 +126,14 @@ public sealed class FileTailSourceTests
         foreach (var line in lines)
         {
             queue.Enqueue(line.Text);
+        }
+    }
+
+    private static void Enqueue(ConcurrentQueue<TailLine> queue, IReadOnlyList<TailLine> lines)
+    {
+        foreach (var line in lines)
+        {
+            queue.Enqueue(line);
         }
     }
 

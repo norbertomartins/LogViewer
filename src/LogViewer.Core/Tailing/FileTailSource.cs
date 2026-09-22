@@ -173,6 +173,14 @@ public sealed class FileTailSource : ITailSource
                 ? ComputeInitialOffset(stream, preambleLength)
                 : preambleLength;
 
+            // Line numbers must stay absolute (matching what IFullTextSearchService reports when it
+            // scans the whole file from line 1) even though we skipped straight to the tail — otherwise
+            // a search-result line number can collide with an unrelated line renumbered from 1 here,
+            // and double-clicking the result silently jumps to the wrong row instead of failing gracefully.
+            _lineNumber = resetReason is null
+                ? CountLines(stream, preambleLength, _readOffset)
+                : 0;
+
             if (resetReason is { } reason)
             {
                 SourceReset?.Invoke(this, new TailSourceResetEventArgs(reason));
@@ -274,6 +282,44 @@ public sealed class FileTailSource : ITailSource
         var relative = offset - preambleLength;
         relative -= relative % unitSize;
         return preambleLength + relative;
+    }
+
+    /// <summary>Counts complete lines in <c>[start, end)</c> so the first line read from <paramref name="end"/>
+    /// can be numbered as if the whole file had been read from the start, without materializing them.</summary>
+    private long CountLines(FileStream stream, long start, long end)
+    {
+        if (end <= start)
+        {
+            return 0;
+        }
+
+        stream.Position = start;
+        var pool = ArrayPool<byte>.Shared;
+        var buffer = pool.Rent(_options.ReadBufferSize);
+        try
+        {
+            var splitter = new LineSplitter(_encoding!);
+            var remaining = end - start;
+            long count = 0;
+            while (remaining > 0)
+            {
+                var toRead = (int)Math.Min(buffer.Length, remaining);
+                var read = stream.Read(buffer, 0, toRead);
+                if (read <= 0)
+                {
+                    break;
+                }
+
+                count += splitter.Append(buffer.AsSpan(0, read)).Count;
+                remaining -= read;
+            }
+
+            return count;
+        }
+        finally
+        {
+            pool.Return(buffer);
+        }
     }
 
     private static int ReadFully(Stream stream, Span<byte> buffer)
