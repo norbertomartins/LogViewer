@@ -27,8 +27,10 @@ public sealed class DocumentUITests : IDisposable
 
         _automation = new UIA3Automation();
         _app = Application.Launch(AppExeLocator.Find());
-        return _app.GetMainWindow(_automation, UiHelpers.Timeout)
+        var window = _app.GetMainWindow(_automation, UiHelpers.Timeout)
             ?? throw new TimeoutException("Main window did not appear.");
+        UiHelpers.MaximizeWindow(window);
+        return window;
     }
 
     [Fact]
@@ -48,10 +50,13 @@ public sealed class DocumentUITests : IDisposable
     {
         var window = LaunchRestoring("payments-service.log");
 
-        foreach (var name in new[] { "Follow Tail", "Structured View", "Timeline", "Search", "Export" })
+        foreach (var name in new[] { "Follow Tail", "Structured View", "Timeline", "Search" })
         {
             Assert.NotNull(window.TryByName(name, ControlType.Button) ?? window.TryByName(name, ControlType.CheckBox));
         }
+
+        // Export is a Menu's MenuItem header (a dropdown of export options), not a plain Button/ToggleButton.
+        Assert.NotNull(window.TryByName("Export", ControlType.MenuItem));
     }
 
     [Fact]

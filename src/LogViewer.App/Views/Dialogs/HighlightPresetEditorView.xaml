@@ -24,9 +24,9 @@
             <TextBlock DockPanel.Dock="Top" Text="{loc:Loc Highlight_Presets}" FontWeight="Bold" Margin="0,0,0,4" />
             <StackPanel DockPanel.Dock="Bottom" Margin="0,6,0,0">
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                    <Button Content="➕" Margin="0,0,4,0" Command="{Binding AddPresetCommand}" />
+                    <Button x:Name="AddPresetButton" Content="➕" Margin="0,0,4,0" Command="{Binding AddPresetCommand}" />
                     <Button Content="⧉" Margin="0,0,4,0" Command="{Binding DuplicatePresetCommand}" />
-                    <Button Content="🗑" Command="{Binding RemovePresetCommand}" CommandParameter="{Binding SelectedPreset}" />
+                    <Button x:Name="RemovePresetButton" Content="🗑" Command="{Binding RemovePresetCommand}" CommandParameter="{Binding SelectedPreset}" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
                     <Button Content="▲" Margin="0,0,4,0" Command="{Binding MovePresetUpCommand}" />
@@ -38,7 +38,7 @@
                 </StackPanel>
                 <Button Content="{loc:Loc Highlight_Import}" HorizontalAlignment="Left" Width="86" Margin="0,4,0,0" Click="OnImportClick" />
             </StackPanel>
-            <ListBox ItemsSource="{Binding Presets}"
+            <ListBox x:Name="PresetsList" ItemsSource="{Binding Presets}"
                      SelectedItem="{Binding SelectedPreset, Mode=TwoWay}"
                      DisplayMemberPath="Name" />
         </DockPanel>
@@ -66,7 +66,7 @@
                 <Button Content="▲" Margin="0,0,4,0" Command="{Binding MoveRuleUpCommand}" ToolTip="{loc:Loc Highlight_MoveUp}" />
                 <Button Content="▼" Command="{Binding MoveRuleDownCommand}" ToolTip="{loc:Loc Highlight_MoveDown}" />
             </StackPanel>
-            <ListBox ItemsSource="{Binding Rules}"
+            <ListBox x:Name="RulesList" ItemsSource="{Binding Rules}"
                      SelectedItem="{Binding SelectedRule, Mode=TwoWay}"
                      DisplayMemberPath="Name" />
         </DockPanel>
@@ -90,7 +90,7 @@
             <TextBox Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,8" />
 
             <TextBlock Text="{loc:Loc Highlight_PatternKeywordOrRegex}" />
-            <TextBox Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,2"
+            <TextBox x:Name="RulePatternBox" Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" Margin="0,0,0,2"
                       BorderBrush="{Binding IsPatternValid, Converter={StaticResource ValidityToBrushConverter}}" BorderThickness="1" />
             <TextBlock Text="{loc:Loc Common_InvalidRegex}" Foreground="Red" FontSize="11"
                        Visibility="{Binding IsPatternValid, Converter={StaticResource InverseBoolToVisibilityConverter}}" Margin="0,0,0,8" />
@@ -129,7 +129,7 @@
                     <DockPanel>
                         <controls:ColorPickerButton DockPanel.Dock="Right" Margin="4,0,0,0"
                                                      SelectedHex="{Binding ForegroundHex, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBox Text="{Binding ForegroundHex, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox x:Name="LightForegroundBox" Text="{Binding ForegroundHex, UpdateSourceTrigger=PropertyChanged}" />
                     </DockPanel>
                 </StackPanel>
                 <StackPanel Grid.Column="2">
@@ -137,7 +137,7 @@
                     <DockPanel>
                         <controls:ColorPickerButton DockPanel.Dock="Right" Margin="4,0,0,0"
                                                      SelectedHex="{Binding BackgroundHex, UpdateSourceTrigger=PropertyChanged}" />
-                        <TextBox Text="{Binding BackgroundHex, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox x:Name="LightBackgroundBox" Text="{Binding BackgroundHex, UpdateSourceTrigger=PropertyChanged}" />
                     </DockPanel>
                 </StackPanel>
             </Grid>

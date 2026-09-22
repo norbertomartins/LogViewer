@@ -1092,6 +1092,35 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         SelectedLine.IsBookmarked = _bookmarks.IsBookmarked(SelectedLine.LineNumber);
     }
 
+    /// <summary>Toggles the bookmark on an arbitrary line number — used by the Search dialog, which
+    /// operates on <see cref="LogViewer.Core.Search.SearchResult"/> line numbers rather than the
+    /// currently selected <see cref="LogLineViewModel"/>. Syncs the displayed row's glyph when that line
+    /// is still present in the ring buffer; the bookmark itself is tracked by line number regardless.</summary>
+    public bool ToggleBookmarkAt(long lineNumber)
+    {
+        _bookmarks.Toggle(lineNumber);
+        var isBookmarked = _bookmarks.IsBookmarked(lineNumber);
+        var line = Lines.FindByLineNumber(lineNumber);
+        if (line is not null)
+        {
+            line.IsBookmarked = isBookmarked;
+        }
+
+        return isBookmarked;
+    }
+
+    /// <summary>Bookmarks an arbitrary line number if it isn't already — used by the Search dialog's
+    /// "bookmark all results" action, which should never accidentally remove an existing bookmark.</summary>
+    public void EnsureBookmarked(long lineNumber)
+    {
+        if (_bookmarks.IsBookmarked(lineNumber))
+        {
+            return;
+        }
+
+        ToggleBookmarkAt(lineNumber);
+    }
+
     [RelayCommand]
     private void FilterByTraceId(LogLineViewModel? line) => ApplyPropertyFilter(line, "TraceId");
 

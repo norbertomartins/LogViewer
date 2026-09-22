@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Conditions;
 using FlaUI.Core.Definitions;
@@ -13,6 +14,19 @@ namespace LogViewer.UITests.TestUtilities;
 public static class UiHelpers
 {
     public static readonly TimeSpan Timeout = TimeSpan.FromSeconds(20);
+
+    [DllImport("user32.dll")]
+    private static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
+
+    private const int SwMaximize = 3;
+
+    /// <summary>Maximizes the window via its native handle (plain Win32, not a UIA pattern — the document
+    /// toolbar has ~30 buttons and silently overflows past the window's visible edge with no overflow
+    /// chevron to expand at the default 1100x700 size, so anything past roughly the "Search" button, e.g.
+    /// Timeline/Stats/TraceTree/Customize, is simply absent from the automation tree until there's more
+    /// room). Call right after the window is found, before looking up any toolbar control.</summary>
+    public static void MaximizeWindow(Window window) =>
+        ShowWindow(window.Properties.NativeWindowHandle.Value, SwMaximize);
 
     public static AutomationElement WaitFor(Func<AutomationElement?> find, string what)
     {

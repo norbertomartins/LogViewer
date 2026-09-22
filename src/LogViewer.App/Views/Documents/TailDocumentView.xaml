@@ -324,6 +324,15 @@
             </Grid>
         </Border>
 
+        <!-- VirtualizationMode="Standard", not "Recycling": DisplayLineCollection fires a full Reset on
+             every AppendRange (see its own doc comment), which happens continuously while a large file
+             is being tailed. Under Recycling mode, WPF reuses existing containers across those rapid
+             Resets, and their ItemContainerStyle DataTrigger-driven Background (the highlight color) can
+             go stale on a reused container even though its bound Text updates correctly — visible as an
+             older highlighted line silently losing its color while a newer match nearby keeps its own.
+             Confirmed via LogViewer.UITests.BufferAndHighlightUITests before this fix (only the single
+             newest match of a rule stayed colored once several ring-buffer rotations had happened);
+             Standard mode always creates a fresh container per realized item, which doesn't have this bug. -->
         <ListView Grid.Row="2" x:Name="LineListView"
                   ItemsSource="{Binding Lines}"
                   SelectedItem="{Binding SelectedLine, Mode=TwoWay}"
@@ -331,7 +340,7 @@
                   Padding="0,0,0,16"
                   Grid.IsSharedSizeScope="True"
                   VirtualizingPanel.IsVirtualizing="True"
-                  VirtualizingPanel.VirtualizationMode="Recycling"
+                  VirtualizingPanel.VirtualizationMode="Standard"
                   VirtualizingPanel.ScrollUnit="Pixel"
                   Style="{StaticResource LogListViewStyle}"
                   FontFamily="Consolas" FontSize="{Binding LogFontSize}"

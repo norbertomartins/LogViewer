@@ -143,4 +143,40 @@ public sealed partial class SearchViewModel : ObservableObject
             StatusMessage = Loc.Get("Vm_Search_LineEvicted");
         }
     }
+
+    /// <summary>Toggles the bookmark on the selected result's line — the glyph shows up in the log list
+    /// at that line number, same as bookmarking from the document itself.</summary>
+    [RelayCommand]
+    private void BookmarkSelected()
+    {
+        if (SelectedResult is null)
+        {
+            return;
+        }
+
+        var isBookmarked = _document.ToggleBookmarkAt(SelectedResult.LineNumber);
+        StatusMessage = isBookmarked
+            ? Loc.Format("Vm_Search_Bookmarked", SelectedResult.LineNumber)
+            : Loc.Format("Vm_Search_Unbookmarked", SelectedResult.LineNumber);
+    }
+
+    /// <summary>Bookmarks every current result's line — additive only, so it never removes a bookmark a
+    /// prior search or manual toggle already placed.</summary>
+    [RelayCommand]
+    private void BookmarkAll()
+    {
+        if (Results.Count == 0)
+        {
+            return;
+        }
+
+        foreach (var result in Results)
+        {
+            _document.EnsureBookmarked(result.LineNumber);
+        }
+
+        StatusMessage = Results.Count == 1
+            ? Loc.Get("Vm_Search_BookmarkedAllOne")
+            : Loc.Format("Vm_Search_BookmarkedAllMany", Results.Count);
+    }
 }

@@ -314,6 +314,10 @@
   <data name="Search_PropertyLabel" xml:space="preserve"><value>Propriedade (em branco = linha inteira):</value></data>
   <data name="Search_Col_Line" xml:space="preserve"><value>Linha</value></data>
   <data name="Search_Col_Text" xml:space="preserve"><value>Texto</value></data>
+  <data name="Search_BookmarkSelected" xml:space="preserve"><value>Marcador</value></data>
+  <data name="Search_BookmarkSelected_ToolTip" xml:space="preserve"><value>Alternar marcador na linha do resultado selecionado, no log</value></data>
+  <data name="Search_BookmarkAll" xml:space="preserve"><value>Marcar Tudo</value></data>
+  <data name="Search_BookmarkAll_ToolTip" xml:space="preserve"><value>Adicionar marcador à linha de cada resultado, no log</value></data>
 
   <!-- ==== Similar block dialog ==== -->
   <data name="Similar_Title" xml:space="preserve"><value>Encontrar bloco semelhante</value></data>
@@ -445,6 +449,10 @@
   <data name="Vm_Search_CancelledMany" xml:space="preserve"><value>Cancelado — {0} correspondências encontradas até agora.</value></data>
   <data name="Vm_Search_Failed" xml:space="preserve"><value>Falha na pesquisa: {0}</value></data>
   <data name="Vm_Search_LineEvicted" xml:space="preserve"><value>Essa linha já não está na vista ao vivo (removida do buffer) — a mostrar apenas o texto acima.</value></data>
+  <data name="Vm_Search_Bookmarked" xml:space="preserve"><value>Marcador adicionado à linha {0}.</value></data>
+  <data name="Vm_Search_Unbookmarked" xml:space="preserve"><value>Marcador removido da linha {0}.</value></data>
+  <data name="Vm_Search_BookmarkedAllOne" xml:space="preserve"><value>1 resultado marcado.</value></data>
+  <data name="Vm_Search_BookmarkedAllMany" xml:space="preserve"><value>{0} resultados marcados.</value></data>
   <data name="Vm_Services_Listed" xml:space="preserve"><value>{0} serviços listados.</value></data>
   <data name="Vm_Services_Starting" xml:space="preserve"><value>A iniciar '{0}'...</value></data>
   <data name="Vm_Services_Stopping" xml:space="preserve"><value>A parar '{0}'...</value></data>

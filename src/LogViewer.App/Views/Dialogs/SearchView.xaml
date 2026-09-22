@@ -35,14 +35,14 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <TextBox Grid.Column="0" Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" />
+            <TextBox x:Name="PatternBox" Grid.Column="0" Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" />
             <CheckBox Grid.Column="1" Content="{loc:Loc Common_Regex}" IsChecked="{Binding IsRegex}" VerticalAlignment="Center" Margin="8,0,0,0" />
             <CheckBox Grid.Column="2" Content="{loc:Loc Common_CaseSensitive}" IsChecked="{Binding IsCaseSensitive}" VerticalAlignment="Center" Margin="8,0,0,0" />
             <Button Grid.Column="3" Content="{loc:Loc Common_Search}" Width="80" Margin="8,0,0,0" Command="{Binding SearchCommand}" />
             <Button Grid.Column="4" Content="{loc:Loc Common_Cancel}" Width="80" Margin="6,0,0,0" Command="{Binding CancelSearchCommand}" IsEnabled="{Binding IsSearching}" />
         </Grid>
 
-        <ListView Grid.Row="3" ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
+        <ListView x:Name="ResultsList" Grid.Row="3" ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                   Style="{StaticResource LogListViewStyle}"
                   FontFamily="Consolas" FontSize="12" MouseDoubleClick="OnResultsDoubleClick">
             <ListView.View>
@@ -53,10 +53,20 @@
             </ListView.View>
         </ListView>
 
-        <TextBlock Grid.Row="4" Text="{Binding StatusMessage}" TextWrapping="Wrap" Margin="0,6,0,0" />
+        <TextBlock x:Name="StatusText" Grid.Row="4" Text="{Binding StatusMessage}" TextWrapping="Wrap" Margin="0,6,0,0" />
 
-        <StackPanel Grid.Row="5" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
-            <Button Content="{loc:Loc Common_Close}" Width="80" Click="OnCloseClick" IsCancel="True" />
-        </StackPanel>
+        <Grid Grid.Row="5" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Button Grid.Column="0" Content="{loc:Loc Search_BookmarkSelected}" ToolTip="{loc:Loc Search_BookmarkSelected_ToolTip}"
+                    Padding="8,0" Command="{Binding BookmarkSelectedCommand}" />
+            <Button Grid.Column="1" Content="{loc:Loc Search_BookmarkAll}" ToolTip="{loc:Loc Search_BookmarkAll_ToolTip}"
+                    Padding="8,0" Margin="6,0,0,0" Command="{Binding BookmarkAllCommand}" />
+            <Button Grid.Column="3" Content="{loc:Loc Common_Close}" Width="80" Click="OnCloseClick" IsCancel="True" />
+        </Grid>
     </Grid>
 </Window>

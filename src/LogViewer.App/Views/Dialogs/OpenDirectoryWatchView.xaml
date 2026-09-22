@@ -20,12 +20,12 @@
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <TextBox Grid.Column="0" Text="{Binding DirectoryPath, UpdateSourceTrigger=PropertyChanged}" />
+                <TextBox x:Name="DirectoryPathBox" Grid.Column="0" Text="{Binding DirectoryPath, UpdateSourceTrigger=PropertyChanged}" />
                 <Button Grid.Column="1" Content="{loc:Loc Common_Browse}" Margin="6,0,0,0" Command="{Binding BrowseCommand}" />
             </Grid>
 
             <TextBlock Text="{loc:Loc DirWatch_Pattern}" />
-            <TextBox Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
+            <TextBox x:Name="PatternBox" Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
 
             <CheckBox Content="{loc:Loc DirWatch_AutoSwitch}"
                       IsChecked="{Binding AutoSwitchToLatestFile}" />

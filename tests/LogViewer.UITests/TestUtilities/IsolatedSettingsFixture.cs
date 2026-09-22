@@ -42,6 +42,51 @@ public sealed class IsolatedSettingsFixture : IDisposable
         }
         """;
 
+    /// <summary>Same as <see cref="RestoringFile"/>, but with a small <c>RingBufferCapacity</c> — so a UI
+    /// test that appends far more lines than the capacity can exercise ring-buffer eviction without
+    /// having to write an unreasonably large file — plus an "ERROR"/"WARN" keyword highlight preset (the
+    /// same colors the app seeds a brand-new install with), so highlight-under-eviction tests have real
+    /// rules to match against.</summary>
+    public static string RestoringFileWithSmallBufferAndHighlights(string absoluteFilePath, int ringBufferCapacity) =>
+        $$"""
+        {
+          "SchemaVersion": 7,
+          "RestorePreviousSessionOnStartup": true,
+          "Mcp": { "Enabled": false },
+          "RingBufferCapacity": {{ringBufferCapacity}},
+          "RecentSources": [ { "Kind": 0, "Path": {{System.Text.Json.JsonSerializer.Serialize(absoluteFilePath)}} } ],
+          "HighlightPresets": [
+            {
+              "Id": "8f4a2f2a-1b1a-4b3a-9b1a-000000000001",
+              "Name": "Errors & Exceptions",
+              "IsEnabled": true,
+              "Rules": [
+                {
+                  "Id": "8f4a2f2a-1b1a-4b3a-9b1a-000000000002",
+                  "Name": "Error",
+                  "Pattern": "ERROR",
+                  "IsRegex": false,
+                  "IsCaseSensitive": false,
+                  "IsEnabled": true,
+                  "ForegroundHex": "#FFFFFF",
+                  "BackgroundHex": "#C0392B"
+                },
+                {
+                  "Id": "8f4a2f2a-1b1a-4b3a-9b1a-000000000003",
+                  "Name": "Warning",
+                  "Pattern": "WARN",
+                  "IsRegex": false,
+                  "IsCaseSensitive": false,
+                  "IsEnabled": true,
+                  "ForegroundHex": "#000000",
+                  "BackgroundHex": "#F1C40F"
+                }
+              ]
+            }
+          ]
+        }
+        """;
+
     public void Dispose()
     {
         if (File.Exists(_settingsPath))
