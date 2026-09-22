@@ -35,7 +35,10 @@ public sealed class FileChangeDetector
     {
         if (!File.Exists(path))
         {
-            _lastIdentity = null;
+            // Keep the last known identity rather than clearing it: a delete-and-recreate rotation can
+            // momentarily show the path as missing between the delete and the recreate (a poll tick or
+            // FileSystemWatcher event landing in that window), and clearing identity here would make the
+            // recreated file look like a first observation (None) instead of a distinct file (Rotated).
             return FileChangeKind.Deleted;
         }
 
