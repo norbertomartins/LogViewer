@@ -32,6 +32,11 @@ jobs:
       - name: Test Mcp
         run: dotnet test tests/LogViewer.Mcp.Tests/LogViewer.Mcp.Tests.csproj --configuration Release --no-restore
 
+      # ViewModel tests only need WPF assemblies and a dispatcher, not an interactive desktop, so they run fine
+      # on the hosted runner. The FlaUI suite (LogViewer.UITests) drives a real window and stays local-only.
+      - name: Test App (ViewModels)
+        run: dotnet test tests/LogViewer.App.Tests/LogViewer.App.Tests.csproj --configuration Release --no-restore
+
       - name: Publish
         run: dotnet publish src/LogViewer.App/LogViewer.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
 
