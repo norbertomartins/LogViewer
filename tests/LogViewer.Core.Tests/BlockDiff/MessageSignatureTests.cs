@@ -51,6 +51,12 @@ public sealed class MessageSignatureTests
     }
 
     [Fact]
+    public void Mask_DigitsAfterAnUnderscore_AreReplaced()
+    {
+        Assert.Equal("payment pay_<num> for req_<num>", MessageSignature.Mask("payment pay_632084 for req_17"));
+    }
+
+    [Fact]
     public void Mask_IpAddress_IsReplaced()
     {
         Assert.Equal("client <ip> connected", MessageSignature.Mask("client 192.168.1.100 connected"));
