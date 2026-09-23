@@ -40,6 +40,10 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     private readonly NotificationAlertSettings _notificationAlertSettings;
     private readonly INotificationService _notificationService;
     private readonly AlertWindowTracker _alertWindowTracker = new();
+
+    /// <summary>Alerts this document raised (threshold hits, new error patterns), for the MCP <c>logs_get_alerts</c>
+    /// tool — recorded even when desktop notifications are off.</summary>
+    public AlertHistory Alerts { get; } = new();
     private readonly NewPatternDetector _newPatternDetector = new();
     private readonly SortedSet<long> _newPatternLineNumbers = new();
     private bool _initialLoadSeen;
@@ -774,15 +778,13 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _soundAlertPlayer.PlayAlert(_soundAlertSettings.CustomSoundFilePath);
     }
 
-    /// <summary>Raises a desktop notification once the matched rule has hit <c>AlertThresholdCount</c>
-    /// times within its <c>AlertWindowSeconds</c> window (see <see cref="AlertWindowTracker"/>) — a burst
-    /// of matching lines notifies exactly once, not once per line, since the tracker clears itself the
-    /// moment the threshold is reached.</summary>
+    /// <summary>Records an alert (and raises a desktop notification when notifications are on) once the matched
+    /// rule has hit <c>AlertThresholdCount</c> times within its <c>AlertWindowSeconds</c> window (see
+    /// <see cref="AlertWindowTracker"/>) — a burst of matching lines alerts exactly once, not once per line, since
+    /// the tracker clears itself the moment the threshold is reached.</summary>
     private void TryRaiseThresholdAlert(Guid ruleId, TailLine line)
     {
-        if (!_notificationAlertSettings.Enabled
-            || !_rulesById.TryGetValue(ruleId, out var rule)
-            || !rule.AlertEnabled)
+        if (!_rulesById.TryGetValue(ruleId, out var rule) || !rule.AlertEnabled)
         {
             return;
         }
@@ -790,6 +792,12 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var hit = _alertWindowTracker.RecordHit(
             ruleId, DateTime.UtcNow, rule.AlertThresholdCount, TimeSpan.FromSeconds(rule.AlertWindowSeconds));
         if (!hit)
+        {
+            return;
+        }
+
+        Alerts.Record(new AlertRecord(DateTimeOffset.Now, AlertKind.Threshold, rule.Name, line.LineNumber, line.Text));
+        if (!_notificationAlertSettings.Enabled)
         {
             return;
         }
@@ -825,6 +833,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         line.IsNewPattern = true;
         _newPatternLineNumbers.Add(line.LineNumber);
         NewPatternCount++;
+
+        if (_initialLoadSeen)
+        {
+            Alerts.Record(new AlertRecord(DateTimeOffset.Now, AlertKind.NewPattern, null, line.LineNumber, raw));
+        }
 
         var now = DateTime.UtcNow;
         if (_initialLoadSeen

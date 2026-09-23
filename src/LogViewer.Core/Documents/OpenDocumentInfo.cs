@@ -1,10 +1,12 @@
 using LogViewer.Core.Configuration;
+using LogViewer.Core.Highlighting;
 
 namespace LogViewer.Core.Documents;
 
 /// <summary>Describes one currently open/tailed document in the running app, projected from the WPF
 /// layer's document collection so MCP tools can discover what's available without a WPF dependency.
-/// <paramref name="BookmarkedLineNumbers"/> are the user's bookmarks (absolute line numbers, ascending).</summary>
+/// <paramref name="BookmarkedLineNumbers"/> are the user's bookmarks (absolute line numbers, ascending);
+/// <paramref name="RecentAlerts"/> the alerts the document raised, oldest first.</summary>
 public sealed record OpenDocumentInfo(
     string SourcePath,
     string? SearchableFilePath,
@@ -12,4 +14,5 @@ public sealed record OpenDocumentInfo(
     TailSourceKind Kind,
     bool IsActive,
     bool IsStructuredView,
-    IReadOnlyList<long>? BookmarkedLineNumbers = null);
+    IReadOnlyList<long>? BookmarkedLineNumbers = null,
+    IReadOnlyList<AlertRecord>? RecentAlerts = null);

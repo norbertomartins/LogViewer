@@ -46,7 +46,8 @@ public sealed class McpServerHost : IAsyncDisposable
             .WithTools<LogPatternTools>()
             .WithTools<LogBlockTools>()
             .WithTools<LogExceptionTools>()
-            .WithTools<LogNavigationTools>();
+            .WithTools<LogNavigationTools>()
+            .WithTools<LogAlertTools>();
 
         _app = builder.Build();
 
