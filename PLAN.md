@@ -323,6 +323,35 @@
   interaction aren't reachable through UIA patterns in the RDP test session), multi-GB files beyond the
   synthetic fixtures, and the pt-PT strings' layout fit.
 
+- **Phase 10 — first ROADMAP.md batch (all P1 items).** One commit per item on the Phase 9 branch.
+  - **CI (1.1):** `build.yml` now also runs `LogViewer.App.Tests` (headless on `windows-latest`); FlaUI
+    tests stay local. The parser-registry App test runs in a `DisableParallelization` collection, since
+    every `MainViewModel` resets the process-wide `LogLineParsers` custom formats.
+  - **Browser search (2.2):** `FileLineIndex.FindNext` (forward/backward over checkpoint-aligned pages) and
+    `CountMatches`; Core `LineMatcher` (compiled regex/substring predicate with match timeout). Browser
+    toolbar: search box, regex/case toggles, next/previous (Enter/F3, Shift+Enter/Shift+F3) wrapping once,
+    count, progress + cancel; background thread, a new search cancels the previous one.
+  - **Scroll markers (3.1):** `ScrollMarkerStrip` (Controls) beside the log list — bookmarks, new patterns,
+    errors, warnings, highlight colors at their relative position among the *visible* lines, bucketed per
+    pixel row by priority; click to jump; throttled refresh (400ms) on collection/filter changes and a new
+    `ScrollMarkersInvalidated` event. `LogLineViewModel.SeverityRank` (cached) and `HighlightMarkerBrush`.
+  - **Anomalies (4.1):** Core `NewPatternDetector` (first occurrence of a Warning+ message shape =
+    severity + `MessageSignature.Mask`, 200-line warm-up, 50k-shape cap, lines below the threshold skip
+    masking) and `VolumeSpikeDetector` (bin total/errors > mean + 3σ of the previous 30 bins, with floors
+    and minimums; `VolumeBin.IsVolumeSpike/IsErrorSpike`). UI: 🆕 badge + next/previous navigation,
+    magenta marks on the strip, magenta cap + tooltip on spiking timeline bins, optional throttled desktop
+    notification for live new patterns (`NotificationAlerts.NotifyOnNewErrorPatterns`, off by default,
+    schema **v11→v12**, no-op migration).
+  - **MCP (6.1):** `logs_query_time_range` (binary search over a cached index — `FileLineIndexCache`, 16-file
+    LRU, incremental; `TimeRangeReader`; absolute/time-of-day/relative input) and `logs_get_bookmarks`
+    (`OpenDocumentInfo.BookmarkedLineNumbers`; `WpfOpenDocumentCatalog` now snapshots on the dispatcher).
+  - **Verification (1.2, partial):** new FlaUI tests open the 🕐 popup via its Toggle pattern and the row
+    context menu via Shift+F10 (keyboard input works in the RDP session where synthetic mouse doesn't) —
+    which found a real bug, fixed: `_` in a correlation id name was eaten as a MenuItem access key. New
+    fixture `samples/correlation/checkout-service.log` (+ `generate.py`). pt-PT layout checked from
+    screenshots. Two pre-existing layout issues seen along the way are logged as ROADMAP 3.6/3.7.
+  Tests: 311 Core / 25 Mcp / 202 App / 7 Phase-9 FlaUI, all green.
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was
