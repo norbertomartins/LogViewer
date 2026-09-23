@@ -621,4 +621,14 @@
   <data name="Vm_Formats_CopyName" xml:space="preserve"><value>{0} Copy</value></data>
   <data name="Vm_Formats_NewName" xml:space="preserve"><value>New format</value></data>
   <data name="Vm_Formats_SampleSummary" xml:space="preserve"><value>{0} of {1} sample lines matched.</value></data>
+  <data name="Browser_SearchName" xml:space="preserve"><value>Search the whole file</value></data>
+  <data name="Browser_Search_ToolTip" xml:space="preserve"><value>Search the whole file — Enter / F3: next, Shift+Enter / Shift+F3: previous</value></data>
+  <data name="Browser_FindNext" xml:space="preserve"><value>Next match (F3)</value></data>
+  <data name="Browser_FindPrevious" xml:space="preserve"><value>Previous match (Shift+F3)</value></data>
+  <data name="Browser_CountMatches" xml:space="preserve"><value>Count all matches in the file</value></data>
+  <data name="Browser_CancelSearch" xml:space="preserve"><value>Cancel search</value></data>
+  <data name="Vm_Browser_NoMatch" xml:space="preserve"><value>No line matches "{0}".</value></data>
+  <data name="Vm_Browser_WrappedToStart" xml:space="preserve"><value>Reached the end of the file — continued from the start.</value></data>
+  <data name="Vm_Browser_WrappedToEnd" xml:space="preserve"><value>Reached the start of the file — continued from the end.</value></data>
+  <data name="Vm_Browser_MatchCount" xml:space="preserve"><value>{0:N0} matching lines</value></data>
 </root>

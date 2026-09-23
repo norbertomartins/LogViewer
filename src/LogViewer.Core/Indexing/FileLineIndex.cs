@@ -422,6 +422,101 @@ public sealed class FileLineIndex
         return null;
     }
 
+    /// <summary>
+    /// Scans from the line after (<paramref name="forward"/>) or before <paramref name="fromLine"/> for the first line
+    /// satisfying <paramref name="isMatch"/>, reading whole checkpoint-aligned pages so each page costs one seek.
+    /// Returns null when the scan reaches the start/end of the file without a match (callers decide whether to wrap).
+    /// <paramref name="progress"/> reports the fraction of the remaining range scanned so far.
+    /// </summary>
+    public IndexedLine? FindNext(
+        long fromLine, bool forward, Func<string, bool> isMatch, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        var total = LineCount;
+        if (total == 0)
+        {
+            return null;
+        }
+
+        if (forward)
+        {
+            var next = Math.Max(1, fromLine + 1);
+            var span = Math.Max(1, total - next + 1);
+            while (next <= total)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var page = ReadLines(next, Stride);
+                if (page.Count == 0)
+                {
+                    break;
+                }
+
+                foreach (var line in page)
+                {
+                    if (isMatch(line.Text))
+                    {
+                        return line;
+                    }
+                }
+
+                next = page[^1].LineNumber + 1;
+                progress?.Report(Math.Min(1, (double)(next - fromLine) / span));
+            }
+
+            return null;
+        }
+
+        var end = Math.Min(fromLine - 1, total); // last line still to check, scanning downwards
+        var range = Math.Max(1, end);
+        while (end >= 1)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var start = Math.Max(1, end - Stride + 1);
+            var page = ReadLines(start, (int)(end - start + 1));
+            for (var i = page.Count - 1; i >= 0; i--)
+            {
+                if (isMatch(page[i].Text))
+                {
+                    return page[i];
+                }
+            }
+
+            end = start - 1;
+            progress?.Report(Math.Min(1, (double)(range - end) / range));
+        }
+
+        return null;
+    }
+
+    /// <summary>Counts every line satisfying <paramref name="isMatch"/> in one sequential pass.</summary>
+    public long CountMatches(Func<string, bool> isMatch, IProgress<double>? progress = null, CancellationToken cancellationToken = default)
+    {
+        var total = LineCount;
+        long count = 0;
+        var next = 1L;
+        while (next <= total)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var page = ReadLines(next, Stride * 4);
+            if (page.Count == 0)
+            {
+                break;
+            }
+
+            foreach (var line in page)
+            {
+                if (isMatch(line.Text))
+                {
+                    count++;
+                }
+            }
+
+            next = page[^1].LineNumber + 1;
+            progress?.Report((double)(next - 1) / total);
+        }
+
+        return count;
+    }
+
     private string Decode(Encoding encoding, ReadOnlySpan<byte> bytes, bool stripNewline)
     {
         if (stripNewline && bytes.Length >= _newline.Length)

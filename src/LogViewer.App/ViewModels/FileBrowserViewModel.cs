@@ -8,6 +8,7 @@ using LogViewer.App.Models;
 using LogViewer.Core.Analysis;
 using LogViewer.Core.Highlighting;
 using LogViewer.Core.Indexing;
+using LogViewer.Core.Search;
 using LogViewer.Core.Structured;
 using LogViewer.Core.Tailing;
 using LogViewer.Core.Theming;
@@ -31,6 +32,7 @@ public sealed partial class FileBrowserViewModel : ObservableObject, IDisposable
     private readonly DispatcherTimer _refreshTimer;
     private readonly string? _formatId;
     private FileBrowserTarget? _pendingTarget;
+    private CancellationTokenSource? _searchCts;
 
     public FileBrowserViewModel(
         string filePath,
@@ -247,6 +249,138 @@ public sealed partial class FileBrowserViewModel : ObservableObject, IDisposable
             : MergedTimestampExtractor.TryExtract(text);
     }
 
+    // --- Search within the whole file -------------------------------------------------------------
+
+    [ObservableProperty]
+    private string? _searchText;
+
+    [ObservableProperty]
+    private bool _searchIsRegex;
+
+    [ObservableProperty]
+    private bool _searchCaseSensitive;
+
+    [ObservableProperty]
+    private bool _isSearching;
+
+    [ObservableProperty]
+    private double _searchProgress;
+
+    /// <summary>"N matches" after a full count, cleared whenever the search text/options change.</summary>
+    [ObservableProperty]
+    private string? _matchCountText;
+
+    partial void OnSearchTextChanged(string? value) => MatchCountText = null;
+
+    partial void OnSearchIsRegexChanged(bool value) => MatchCountText = null;
+
+    partial void OnSearchCaseSensitiveChanged(bool value) => MatchCountText = null;
+
+    [RelayCommand]
+    private Task FindNextAsync() => FindAsync(forward: true);
+
+    [RelayCommand]
+    private Task FindPreviousAsync() => FindAsync(forward: false);
+
+    /// <summary>Scans from the selected line (or the start/end) to the next/previous match, wrapping around the
+    /// file once. Runs on a background thread over index pages so a miss in a multi-GB file stays responsive and
+    /// cancellable; starting another search cancels the running one.</summary>
+    private async Task FindAsync(bool forward)
+    {
+        if (!TryCreateMatcher(out var isMatch))
+        {
+            return;
+        }
+
+        var cts = RestartSearch();
+        var from = SelectedLine?.LineNumber ?? (forward ? 0 : TotalLines + 1);
+        var progress = new Progress<double>(p => SearchProgress = p);
+        IsSearching = true;
+        StatusMessage = Loc.Get("Vm_Browser_Searching");
+        try
+        {
+            var hit = await Task.Run(() => _index.FindNext(from, forward, isMatch, progress, cts.Token), cts.Token);
+            var wrapped = false;
+            if (hit is null)
+            {
+                wrapped = true;
+                var restart = forward ? 0 : TotalLines + 1;
+                hit = await Task.Run(() => _index.FindNext(restart, forward, isMatch, progress, cts.Token), cts.Token);
+            }
+
+            if (hit is not { } found)
+            {
+                StatusMessage = Loc.Format("Vm_Browser_NoMatch", SearchText ?? string.Empty);
+                return;
+            }
+
+            FollowEnd = false;
+            NavigateToLine(found.LineNumber);
+            StatusMessage = wrapped ? Loc.Get(forward ? "Vm_Browser_WrappedToStart" : "Vm_Browser_WrappedToEnd") : null;
+        }
+        catch (OperationCanceledException)
+        {
+            StatusMessage = null;
+        }
+        finally
+        {
+            if (ReferenceEquals(_searchCts, cts))
+            {
+                IsSearching = false;
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task CountMatchesAsync()
+    {
+        if (!TryCreateMatcher(out var isMatch))
+        {
+            return;
+        }
+
+        var cts = RestartSearch();
+        var progress = new Progress<double>(p => SearchProgress = p);
+        IsSearching = true;
+        try
+        {
+            var count = await Task.Run(() => _index.CountMatches(isMatch, progress, cts.Token), cts.Token);
+            MatchCountText = Loc.Format("Vm_Browser_MatchCount", count);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            if (ReferenceEquals(_searchCts, cts))
+            {
+                IsSearching = false;
+            }
+        }
+    }
+
+    [RelayCommand]
+    private void CancelSearch() => _searchCts?.Cancel();
+
+    private bool TryCreateMatcher(out Func<string, bool> isMatch)
+    {
+        if (LineMatcher.TryCreate(SearchText, SearchIsRegex, SearchCaseSensitive, out isMatch, out var error))
+        {
+            return true;
+        }
+
+        StatusMessage = string.IsNullOrEmpty(SearchText) ? null : Loc.Format("Vm_Doc_InvalidFilterRegex", error ?? string.Empty);
+        return false;
+    }
+
+    private CancellationTokenSource RestartSearch()
+    {
+        _searchCts?.Cancel();
+        _searchCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token);
+        SearchProgress = 0;
+        return _searchCts;
+    }
+
     /// <summary>Jumps the live document to the selected line when it's still inside the document's ring buffer.</summary>
     [RelayCommand]
     private void ShowInDocument()
@@ -280,6 +414,7 @@ public sealed partial class FileBrowserViewModel : ObservableObject, IDisposable
     public void Dispose()
     {
         _refreshTimer.Stop();
+        _searchCts?.Cancel();
         _cts.Cancel();
     }
 }
