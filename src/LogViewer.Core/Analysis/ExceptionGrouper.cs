@@ -145,6 +145,18 @@ public sealed partial class ExceptionGrouper
         }, cancellationToken).ConfigureAwait(false);
     }
 
+    // The same line shapes, for MultiLineEntryTracker (which groups the lines in the view rather than the exceptions).
+    internal static bool IsFrameLine(string text) => DotNetOrJavaFramePattern().IsMatch(text);
+
+    internal static bool IsPythonFrameLine(string text) => PythonFramePattern().IsMatch(text);
+
+    internal static bool IsTraceContinuationLine(string text) => TraceContinuationPattern().IsMatch(text);
+
+    internal static bool IsPythonTracebackStart(string text) => PythonTracebackStartPattern().IsMatch(text);
+
+    /// <summary>True for a line that starts with an exception header ("System.IO.IOException: …", "ValueError: …").</summary>
+    internal static bool IsHeaderAtStart(string text) => HeaderPattern().Match(text) is { Success: true, Index: 0 };
+
     private void AddStructured(ExceptionScanLine line, string exceptionText)
     {
         var exceptionLines = exceptionText.Replace("\r\n", "\n").Split('\n');

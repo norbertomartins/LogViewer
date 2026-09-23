@@ -1003,6 +1003,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             var isStructuredView = IsStructuredView;
             var selectedLineNumber = SelectedLine?.LineNumber;
             _continuationOwner = null;
+            _entryTracker.Reset();
             var snapshot = Lines.ToList();
             var rebuilt = new List<LogLineViewModel>(snapshot.Count);
             var highlighted = new SortedSet<long>();
@@ -1112,10 +1113,79 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
     }
 
-    // --- Multi-line entries (custom formats with "join continuation lines") ------------------------
+    // --- Multi-line entries (stack traces; custom formats with "join continuation lines") ------------
 
     /// <summary>The last structured entry seen, in ingestion order — owner of any following unmatched lines.</summary>
-    private (long LineNumber, string? Level)? _continuationOwner;
+    private (LogLineViewModel Line, string? Level)? _continuationOwner;
+
+    /// <summary>Groups stack-trace lines with the entry above them, in ingestion order.</summary>
+    private readonly MultiLineEntryTracker<LogLineViewModel> _entryTracker = new();
+
+    /// <summary>Hides the continuation lines of every multi-line entry (stack traces …), leaving its first line with a
+    /// "▸ +N" button; each entry can still be expanded on its own.</summary>
+    [ObservableProperty]
+    private bool _collapseMultiLineEntries;
+
+    partial void OnCollapseMultiLineEntriesChanged(bool value)
+    {
+        foreach (var line in Lines)
+        {
+            line.IsGroupCollapsed = value;
+        }
+
+        RaiseFilterChanged();
+    }
+
+    /// <summary>True while any entry is collapsed, so the view knows it needs a filter.</summary>
+    public bool HasCollapsedEntries => CollapseMultiLineEntries || Lines.Any(l => l is { IsGroupHead: true, IsGroupCollapsed: true });
+
+    /// <summary>True when <paramref name="line"/> continues a collapsed entry whose first line is still loaded (a
+    /// continuation whose head was evicted from the buffer stays visible — there'd be nothing to expand).</summary>
+    public bool IsHiddenByCollapse(LogLineViewModel line) =>
+        line.GroupHead is { IsGroupCollapsed: true } head && Lines.Count > 0 && head.LineNumber >= Lines[0].LineNumber;
+
+    /// <summary>Collapses or expands the entry <paramref name="line"/> belongs to.</summary>
+    [RelayCommand]
+    private void ToggleEntryCollapsed(LogLineViewModel? line)
+    {
+        if ((line?.GroupHead ?? line) is not { IsGroupHead: true } head)
+        {
+            return;
+        }
+
+        head.IsGroupCollapsed = !head.IsGroupCollapsed;
+        RaiseFilterChanged();
+        if (head.IsGroupCollapsed && SelectedLine?.GroupHead == head)
+        {
+            SelectedLine = head;
+        }
+    }
+
+    /// <summary>Adds the hidden lines of collapsed entries to <paramref name="lines"/> (in document order), so copying or
+    /// exporting a collapsed stack trace's first line takes the whole trace.</summary>
+    public IReadOnlyList<LogLineViewModel> WithCollapsedContinuations(IReadOnlyList<LogLineViewModel> lines)
+    {
+        if (!HasCollapsedEntries)
+        {
+            return lines;
+        }
+
+        var chosen = lines.ToHashSet();
+        return [.. Lines.Where(l => chosen.Contains(l) || (IsHiddenByCollapse(l) && chosen.Contains(l.GroupHead!)))];
+    }
+
+    /// <summary>Selects and scrolls to <paramref name="line"/>, expanding its entry first if it is collapsed.</summary>
+    private void RevealAndScrollTo(LogLineViewModel line)
+    {
+        if (IsHiddenByCollapse(line))
+        {
+            line.GroupHead!.IsGroupCollapsed = false;
+            RaiseFilterChanged();
+            SelectedLine = line;
+        }
+
+        ScrollToLineRequested?.Invoke(line);
+    }
 
     private bool JoinsContinuationLines => IsStructuredView && _lineParser is RegexLogLineParser { JoinsContinuationLines: true };
 
@@ -1126,24 +1196,43 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         LogLineViewModel line;
         if (structured is not null)
         {
-            _continuationOwner = (lineNumber, structured.Level);
             line = new LogLineViewModel(lineNumber, text, structured, match, isBookmarked);
+            _continuationOwner = (line, structured.Level);
+            _entryTracker.StartEntry(line, text);
         }
         else if (JoinsContinuationLines && _continuationOwner is { } owner && text.Length > 0)
         {
             line = new LogLineViewModel(lineNumber, text, structured, match, isBookmarked)
             {
-                ContinuationOf = owner.LineNumber,
+                ContinuationOf = owner.Line.LineNumber,
                 InheritedLevel = owner.Level,
             };
+            AddToEntry(line, owner.Line);
         }
         else
         {
             line = new LogLineViewModel(lineNumber, text, structured, match, isBookmarked);
+            var placement = _entryTracker.Add(line, text);
+            if (placement.AdoptedHeader is { } adopted)
+            {
+                AddToEntry(adopted, placement.Head!);
+            }
+
+            if (placement.Head is { } head)
+            {
+                AddToEntry(line, head);
+            }
         }
 
+        line.IsGroupCollapsed = CollapseMultiLineEntries;
         ApplyNote(line);
         return line;
+    }
+
+    private static void AddToEntry(LogLineViewModel line, LogLineViewModel head)
+    {
+        line.GroupHead = head;
+        head.GroupedLineCount++;
     }
 
     // --- Line notes (annotations) -------------------------------------------------------------------
@@ -1418,6 +1507,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _newPatternLineNumbers.Clear();
         NewPatternCount = 0;
         _continuationOwner = null;
+        _entryTracker.Reset();
 
         var markerText = switchedFilePath is not null && _notifyOnFileSwitch
             ? $"── {Loc.Format("Vm_Doc_SwitchedToFile", Path.GetFileName(switchedFilePath))} ──"
@@ -1661,7 +1751,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         {
             SelectedLine = target;
             IsFollowingTail = false;
-            ScrollToLineRequested?.Invoke(target);
+            RevealAndScrollTo(target);
         }
     }
 
@@ -1760,7 +1850,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
 
         SelectedLine = target;
-        ScrollToLineRequested?.Invoke(target);
+        RevealAndScrollTo(target);
         return true;
     }
 
@@ -1949,7 +2039,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
         IsFollowingTail = false;
         SelectedLine = match;
-        ScrollToLineRequested?.Invoke(match);
+        RevealAndScrollTo(match);
         StatusMessage = null;
     }
 

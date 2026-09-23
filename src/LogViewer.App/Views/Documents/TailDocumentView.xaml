@@ -22,6 +22,14 @@
                     <TextBlock Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
                     <TextBlock Text="📝" ToolTip="{Binding Note}" AutomationProperties.Name="{loc:Loc Doc_Note_Name}"
                                Visibility="{Binding HasNote, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <!-- First line of a multi-line entry (stack trace …): collapses/expands the lines under it. -->
+                    <Button Content="{Binding GroupToggleText}" Padding="2,0" Margin="2,0,0,0" MinWidth="0" BorderThickness="0"
+                            Background="Transparent" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListViewItem}}"
+                            Focusable="False" Cursor="Hand" Opacity="0.8"
+                            AutomationProperties.Name="{loc:Loc Doc_ToggleEntry_Name}" ToolTip="{loc:Loc Doc_ToggleEntry_ToolTip}"
+                            Command="{Binding DataContext.ToggleEntryCollapsedCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}"
+                            Visibility="{Binding IsGroupHead, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
                 <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" Margin="0,0,8,0" />
                 <!-- Δ column: empty and collapsed (zero width via the shared Auto group) unless the document's
@@ -57,6 +65,14 @@
                     <TextBlock Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
                     <TextBlock Text="📝" ToolTip="{Binding Note}" AutomationProperties.Name="{loc:Loc Doc_Note_Name}"
                                Visibility="{Binding HasNote, Converter={StaticResource BoolToVisibilityConverter}}" />
+                    <!-- First line of a multi-line entry (stack trace …): collapses/expands the lines under it. -->
+                    <Button Content="{Binding GroupToggleText}" Padding="2,0" Margin="2,0,0,0" MinWidth="0" BorderThickness="0"
+                            Background="Transparent" Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=ListViewItem}}"
+                            Focusable="False" Cursor="Hand" Opacity="0.8"
+                            AutomationProperties.Name="{loc:Loc Doc_ToggleEntry_Name}" ToolTip="{loc:Loc Doc_ToggleEntry_ToolTip}"
+                            Command="{Binding DataContext.ToggleEntryCollapsedCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                            CommandParameter="{Binding}"
+                            Visibility="{Binding IsGroupHead, Converter={StaticResource BoolToVisibilityConverter}}" />
                 </StackPanel>
                 <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" Margin="0,0,8,0" />
                 <TextBlock Grid.Column="2" Text="{Binding DeltaDisplay}" Opacity="0.7" Margin="0,0,8,0"
@@ -293,6 +309,8 @@
                               AutomationProperties.Name="{loc:Loc Doc_IncidentReport_Header}" ToolTip="{loc:Loc Doc_IncidentReport_ToolTip}" />
                 </MenuItem>
             </Menu>
+            <ToggleButton Content="⊟" Style="{StaticResource IconButton}" IsChecked="{Binding CollapseMultiLineEntries}"
+                          AutomationProperties.Name="{loc:Loc Doc_CollapseEntries_Name}" ToolTip="{loc:Loc Doc_CollapseEntries_ToolTip}" />
             <ToggleButton Content="📊" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeline}"
                           AutomationProperties.Name="{loc:Loc Doc_Timeline_Name}" ToolTip="{loc:Loc Doc_Timeline_ToolTip}" />
             <ToggleButton Content="Δ" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeDelta}"
@@ -530,6 +548,10 @@
                                           Command="{Binding PlacementTarget.Tag.RemoveNoteCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           Visibility="{Binding PlacementTarget.DataContext.HasNote, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <MenuItem Header="{loc:Loc Doc_Ctx_ToggleEntry}"
+                                          Command="{Binding PlacementTarget.Tag.ToggleEntryCollapsedCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          Visibility="{Binding PlacementTarget.DataContext.IsInGroup, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_SetTimeReference}"
                                           Command="{Binding PlacementTarget.Tag.SetTimeReferenceCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />

@@ -155,6 +155,27 @@ public sealed class Phase9UITests : IDisposable
     }
 
     [Fact]
+    public void CollapseStackTraces_HidesTheFrames_AndTheRowButtonExpandsOneEntry()
+    {
+        var window = LaunchRestoring("checkout-service.log", "correlation");
+        var list = UiHelpers.WaitFor(() => window.TryByAutomationId("LineListView"), "log list view");
+        bool FramesShown() => list.FindAllDescendants(cf => cf.ByControlType(ControlType.Text))
+            .Any(t => t.Name?.TrimStart().StartsWith("at Shop.", StringComparison.Ordinal) == true);
+
+        Assert.True(UiHelpers.WaitUntil(FramesShown), "No stack frame was shown before collapsing.");
+
+        ToolbarButton(window, "Collapse stack traces").AsToggleButton().Toggle();
+
+        Assert.True(UiHelpers.WaitUntil(() => !FramesShown()), "Stack frames were still shown after collapsing.");
+        var expand = UiHelpers.WaitFor(
+            () => list.FindFirstDescendant(cf => cf.ByControlType(ControlType.Button).And(cf.ByName("Expand or collapse entry"))),
+            "entry expand button").AsButton();
+        expand.Invoke();
+
+        Assert.True(UiHelpers.WaitUntil(FramesShown), "Expanding the entry did not show its stack frames.");
+    }
+
+    [Fact]
     public void RowContextMenu_FilterByCorrelationId_FiltersToThatRequest()
     {
         var window = LaunchRestoring("checkout-service.log", "correlation");

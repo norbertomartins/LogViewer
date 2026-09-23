@@ -708,4 +708,9 @@
   <data name="Report_FirstSeen" xml:space="preserve"><value>Primeira ocorrência</value></data>
   <data name="Report_LastSeen" xml:space="preserve"><value>Última ocorrência</value></data>
   <data name="Report_TopFrame" xml:space="preserve"><value>Frame de topo</value></data>
+  <data name="Doc_CollapseEntries_Name" xml:space="preserve"><value>Colapsar stack traces</value></data>
+  <data name="Doc_CollapseEntries_ToolTip" xml:space="preserve"><value>Mostrar cada entrada multi-linha (uma linha e o seu stack trace) numa só linha; ▸ expande-a</value></data>
+  <data name="Doc_ToggleEntry_Name" xml:space="preserve"><value>Expandir ou colapsar entrada</value></data>
+  <data name="Doc_ToggleEntry_ToolTip" xml:space="preserve"><value>Mostrar ou esconder as linhas desta entrada (o seu stack trace)</value></data>
+  <data name="Doc_Ctx_ToggleEntry" xml:space="preserve"><value>Expandir/Colapsar Entrada</value></data>
 </root>
