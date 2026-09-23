@@ -29,6 +29,11 @@ public sealed class TailDocumentAlertTests : IDisposable
         SpinUntil(() => doc.Lines.Count >= 2);
 
         notificationService.Received(1).Notify(Arg.Any<string>(), Arg.Any<string>());
+        var alert = Assert.Single(doc.Alerts.Snapshot());
+        Assert.Equal(AlertKind.Threshold, alert.Kind);
+        Assert.Equal("Errors", alert.RuleName);
+        Assert.Equal(2, alert.LineNumber);
+        Assert.Equal("ERROR two", alert.LineText);
 
         viewModel.Dispose();
     }
@@ -57,7 +62,7 @@ public sealed class TailDocumentAlertTests : IDisposable
     }
 
     [Fact]
-    public void AlertDisabledGlobally_NeverNotifies_EvenWithMatchingRule()
+    public void AlertDisabledGlobally_NeverNotifies_ButStillRecordsTheAlertForMcp()
     {
         var rule = HighlightRule.CreateDefault("Errors", "ERROR") with
         {
@@ -76,6 +81,7 @@ public sealed class TailDocumentAlertTests : IDisposable
         SpinUntil(() => doc.Lines.Count >= 1);
 
         notificationService.DidNotReceive().Notify(Arg.Any<string>(), Arg.Any<string>());
+        Assert.Single(doc.Alerts.Snapshot());
 
         viewModel.Dispose();
     }
