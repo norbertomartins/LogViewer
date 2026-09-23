@@ -864,6 +864,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// are <c>ObservableProperty</c>s, so this repaints in place without a collection reset.</summary>
     private void ReapplyHighlighting()
     {
+        ScrollMarkersInvalidated?.Invoke();
         _highlightedLineNumbers.Clear();
         foreach (var line in Lines)
         {
@@ -1035,6 +1036,10 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
     }
 
+    /// <summary>Raised when something the scroll-marker strip draws changed without a collection change on
+    /// <see cref="Lines"/> (bookmark toggled, highlight rules/theme re-applied), so the view refreshes the strip.</summary>
+    public event Action? ScrollMarkersInvalidated;
+
     public event Action? ScrollToEndRequested;
 
     public event Action? ScrollToStartRequested;
@@ -1166,6 +1171,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
         _bookmarks.Toggle(SelectedLine.LineNumber);
         SelectedLine.IsBookmarked = _bookmarks.IsBookmarked(SelectedLine.LineNumber);
+        ScrollMarkersInvalidated?.Invoke();
     }
 
     /// <summary>Toggles the bookmark on an arbitrary line number — used by the Search dialog, which
@@ -1182,6 +1188,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             line.IsBookmarked = isBookmarked;
         }
 
+        ScrollMarkersInvalidated?.Invoke();
         return isBookmarked;
     }
 

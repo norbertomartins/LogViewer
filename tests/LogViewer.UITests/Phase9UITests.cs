@@ -93,6 +93,43 @@ public sealed class Phase9UITests : IDisposable
         editor.Close();
     }
 
+    [Fact]
+    public void ScrollMarkerStrip_RendersErrorMarks()
+    {
+        var window = LaunchRestoring("payments-service.log"); // contains [ERROR] lines
+
+        var strip = UiHelpers.WaitFor(() => window.TryByAutomationId("ScrollMarkerStrip"), "scroll marker strip");
+        if (PixelColorHelpers.ScreenCaptureIsUnavailable(window))
+        {
+            return; // disconnected RDP session: nothing is composited, so pixels can't be asserted
+        }
+
+        Assert.True(UiHelpers.WaitUntil(() => StripHasColor(window, strip, c => c.R > 200 && c.G < 90 && c.B < 90)),
+            "No red (error) mark was drawn on the scroll-marker strip.");
+    }
+
+    private static bool StripHasColor(Window window, AutomationElement strip, Func<System.Drawing.Color, bool> predicate)
+    {
+        using var image = FlaUI.Core.Capturing.Capture.Element(window);
+        var bitmap = image.Bitmap;
+        var windowRect = window.Properties.BoundingRectangle.Value;
+        var rect = strip.Properties.BoundingRectangle.Value;
+        var scaleX = bitmap.Width / windowRect.Width;
+        var scaleY = bitmap.Height / windowRect.Height;
+        var x = Math.Clamp((int)((rect.Left + (rect.Width / 2.0) - windowRect.Left) * scaleX), 0, bitmap.Width - 1);
+        var top = Math.Clamp((int)((rect.Top - windowRect.Top) * scaleY), 0, bitmap.Height - 1);
+        var bottom = Math.Clamp((int)((rect.Bottom - windowRect.Top) * scaleY), 0, bitmap.Height - 1);
+        for (var y = top; y <= bottom; y++)
+        {
+            if (predicate(bitmap.GetPixel(x, y)))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public void Dispose()
     {
         try

@@ -73,6 +73,30 @@ public sealed partial class LogLineViewModel : ObservableObject
     /// the timestamp of the closest timestamped line above it, so time filters keep multi-line entries whole.</summary>
     public DateTimeOffset? EffectiveTimestamp { get; private set; }
 
+    private int? _severityRank;
+    private bool _severityResolved;
+
+    /// <summary>Severity rank (see <see cref="LogLevelSeverity"/>) from the structured level, else guessed from a
+    /// level word in the text; null when neither yields one. Cached — a line's text never changes — because the
+    /// scroll-marker strip asks for it on every refresh.</summary>
+    public int? SeverityRank
+    {
+        get
+        {
+            if (!_severityResolved)
+            {
+                _severityRank = LogLevelSeverity.Rank(Structured?.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(Text);
+                _severityResolved = true;
+            }
+
+            return _severityRank;
+        }
+    }
+
+    /// <summary>The winning highlight rule's color for the scroll-marker strip (its background, or its foreground
+    /// when the rule leaves the background at the default), or null when no rule matched.</summary>
+    public Brush? HighlightMarkerBrush { get; private set; }
+
     public void SetResolvedTimestamp(DateTimeOffset? own, DateTimeOffset? effective)
     {
         Timestamp = own;
@@ -101,6 +125,7 @@ public sealed partial class LogLineViewModel : ObservableObject
         Foreground = match is null ? DefaultForeground : ResolveBrush(match.ForegroundHex, DefaultForeground);
         Background = match is null ? DefaultBackground : ResolveBrush(match.BackgroundHex, DefaultBackground);
         HighlightSpans = match?.Spans ?? [];
+        HighlightMarkerBrush = match is null ? null : !ReferenceEquals(Background, DefaultBackground) ? Background : Foreground;
         OnPropertyChanged(nameof(HighlightSpans));
     }
 

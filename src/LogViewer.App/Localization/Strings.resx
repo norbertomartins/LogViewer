@@ -631,4 +631,6 @@
   <data name="Vm_Browser_WrappedToStart" xml:space="preserve"><value>Reached the end of the file — continued from the start.</value></data>
   <data name="Vm_Browser_WrappedToEnd" xml:space="preserve"><value>Reached the start of the file — continued from the end.</value></data>
   <data name="Vm_Browser_MatchCount" xml:space="preserve"><value>{0:N0} matching lines</value></data>
+  <data name="Doc_ScrollMarkers_Name" xml:space="preserve"><value>Overview of errors, warnings, bookmarks and highlights</value></data>
+  <data name="Doc_ScrollMarkers_ToolTip" xml:space="preserve"><value>Red: error · amber: warning · blue: bookmark · other colors: highlight rules. Click to jump.</value></data>
 </root>

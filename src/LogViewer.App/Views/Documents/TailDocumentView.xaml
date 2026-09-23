@@ -415,7 +415,18 @@
              Confirmed via LogViewer.UITests.BufferAndHighlightUITests before this fix (only the single
              newest match of a rule stayed colored once several ring-buffer rotations had happened);
              Standard mode always creates a fresh container per realized item, which doesn't have this bug. -->
-        <ListView Grid.Row="2" x:Name="LineListView"
+        <!-- Column 1: overview strip of errors / warnings / bookmarks / highlight matches over the visible lines
+             (like an editor's scrollbar annotations) — click to jump. Refreshed by code-behind, throttled. -->
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <controls:ScrollMarkerStrip Grid.Column="1" x:Name="MarkerStrip" Width="8" Margin="1,0,0,16"
+                                        AutomationProperties.AutomationId="ScrollMarkerStrip"
+                                        AutomationProperties.Name="{loc:Loc Doc_ScrollMarkers_Name}"
+                                        ToolTip="{loc:Loc Doc_ScrollMarkers_ToolTip}" />
+        <ListView Grid.Column="0" x:Name="LineListView"
                   ItemsSource="{Binding Lines}"
                   SelectedItem="{Binding SelectedLine, Mode=TwoWay}"
                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
@@ -502,6 +513,7 @@
                 <StaticResource ResourceKey="LineTemplateSelector" />
             </ListView.ItemTemplateSelector>
         </ListView>
+        </Grid>
 
         <!-- Drag to resize the detail panel below; hidden together with it (via the shared style) when the
              selected line has no structured detail. DragCompleted (code-behind) persists the resulting
