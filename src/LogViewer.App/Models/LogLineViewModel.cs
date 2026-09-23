@@ -56,6 +56,29 @@ public sealed partial class LogLineViewModel : ObservableObject
     /// event, or null otherwise — shown as its own structured-view column badge.</summary>
     public string? SpanDurationDisplay => Structured is { SpanDuration: { } duration } ? SpanDurationFormatter.Format(duration) : null;
 
+    /// <summary>Formatted time since the previous timestamped line (or since the document's time reference
+    /// line) for the optional "Δ" column; null when the column is off or this line carries no timestamp of its own.</summary>
+    [ObservableProperty]
+    private string? _deltaDisplay;
+
+    /// <summary>True once <see cref="Timestamp"/>/<see cref="EffectiveTimestamp"/> have been resolved by the
+    /// document — resolution is lazy (only while a time feature is in use) because it costs a regex per line.</summary>
+    public bool IsTimestampResolved { get; private set; }
+
+    /// <summary>This line's own timestamp (structured, or extracted from the raw text), if any.</summary>
+    public DateTimeOffset? Timestamp { get; private set; }
+
+    /// <summary><see cref="Timestamp"/>, or — for an untimestamped continuation line such as a stack-trace frame —
+    /// the timestamp of the closest timestamped line above it, so time filters keep multi-line entries whole.</summary>
+    public DateTimeOffset? EffectiveTimestamp { get; private set; }
+
+    public void SetResolvedTimestamp(DateTimeOffset? own, DateTimeOffset? effective)
+    {
+        Timestamp = own;
+        EffectiveTimestamp = effective;
+        IsTimestampResolved = true;
+    }
+
     /// <summary>True when this line parsed as a structured event. Used by the structured row template to
     /// keep highlight colors (especially background) off the Bookmark/LineNumber/Timestamp/Level/ThreadId
     /// columns — a highlight background spanning the whole row can make the Level column's own foreground

@@ -889,6 +889,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             list.Add(new PaletteCommand(Loc.Get("Palette_Stats"), activeCat, () => active.ShowStatsCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_TraceTree"), activeCat, () => active.ShowTraceTreeCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_BrowseFile"), activeCat, () => active.BrowseWholeFileCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ToggleTimeDelta"), activeCat, () => active.ToggleTimeDeltaCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_NextHighlight"), activeCat, () => active.NextHighlightCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_PrevHighlight"), activeCat, () => active.PreviousHighlightCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_ToggleBookmark"), activeCat, () => active.ToggleBookmarkCommand.Execute(null)));

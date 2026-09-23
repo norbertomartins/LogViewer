@@ -65,8 +65,9 @@ public partial class TailDocumentView : UserControl
         var minLevelRank = _viewModel?.MinLevelRank;
         var hasTextFilter = _viewModel?.IsTextFilterActive ?? false;
         var hideBeforeLineNumber = _viewModel?.HideBeforeLineNumber;
+        var hasTimeFilter = _viewModel?.IsTimeFilterActive ?? false;
 
-        if (value is null && minLevelRank is null && !hasTextFilter && hideBeforeLineNumber is null)
+        if (value is null && minLevelRank is null && !hasTextFilter && hideBeforeLineNumber is null && !hasTimeFilter)
         {
             view.Filter = null;
             return;
@@ -76,7 +77,8 @@ public partial class TailDocumentView : UserControl
             && (value is null || string.Equals(StructuredFieldResolver.Resolve(line.Structured, field!), value, StringComparison.Ordinal))
             && (minLevelRank is null || ((LogLevelSeverity.Rank(line.Structured?.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(line.Text)) is { } rank && rank >= minLevelRank))
             && (!hasTextFilter || _viewModel!.PassesTextFilter(line.Text))
-            && (hideBeforeLineNumber is null || line.LineNumber >= hideBeforeLineNumber);
+            && (hideBeforeLineNumber is null || line.LineNumber >= hideBeforeLineNumber)
+            && (!hasTimeFilter || _viewModel!.PassesTimeFilter(line));
     }
 
     /// <summary>Exports or copies the effective line set — the user's <see cref="ListView.SelectedItems"/>
