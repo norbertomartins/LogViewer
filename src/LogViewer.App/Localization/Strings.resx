@@ -545,8 +545,24 @@
   <data name="Doc_BrowseFile_Name" xml:space="preserve"><value>Browse whole file</value></data>
   <data name="Doc_BrowseFile_ToolTip" xml:space="preserve"><value>Browse the entire file, including lines no longer in the live buffer (indexed, works with multi-GB files)</value></data>
   <data name="Doc_Ctx_BrowseFileHere" xml:space="preserve"><value>Open in Whole-File View Here</value></data>
+  <data name="Doc_Ctx_SetTimeReference" xml:space="preserve"><value>Set as Time Reference (Δ)</value></data>
+  <data name="Doc_TimeDelta_Name" xml:space="preserve"><value>Time delta column</value></data>
+  <data name="Doc_TimeDelta_ToolTip" xml:space="preserve"><value>Show the time elapsed since the previous line (or since the reference line)</value></data>
+  <data name="Doc_TimeNav_Name" xml:space="preserve"><value>Time navigation</value></data>
+  <data name="Doc_TimeNav_ToolTip" xml:space="preserve"><value>Go to a time, or filter by time range</value></data>
+  <data name="Doc_Time_ApplyRange" xml:space="preserve"><value>Apply</value></data>
+  <data name="Doc_Time_ClearRange" xml:space="preserve"><value>Clear Time Range</value></data>
+  <data name="Doc_Time_ClearReference" xml:space="preserve"><value>Clear Δ reference line</value></data>
+  <data name="Doc_Time_From" xml:space="preserve"><value>From</value></data>
+  <data name="Doc_Time_FromName" xml:space="preserve"><value>Time range start</value></data>
   <data name="Doc_Time_Go" xml:space="preserve"><value>Go</value></data>
+  <data name="Doc_Time_GoToHeader" xml:space="preserve"><value>Go to time</value></data>
+  <data name="Doc_Time_GoToName" xml:space="preserve"><value>Time to go to</value></data>
   <data name="Doc_Time_Hint" xml:space="preserve"><value>Accepts 2026-09-23 14:05, 14:05:30, or relative to the newest line: -5m, -1h30m, +30s. Times are read as written in the log.</value></data>
+  <data name="Doc_Time_RangeHeader" xml:space="preserve"><value>Filter by time range</value></data>
+  <data name="Doc_Time_To" xml:space="preserve"><value>To</value></data>
+  <data name="Doc_Time_ToName" xml:space="preserve"><value>Time range end</value></data>
+  <data name="Doc_Timeline_FilterToBin" xml:space="preserve"><value>Filter to This Interval</value></data>
   <data name="Formats_Add" xml:space="preserve"><value>Add</value></data>
   <data name="Formats_Col_Properties" xml:space="preserve"><value>Properties</value></data>
   <data name="Formats_Col_Timestamp" xml:space="preserve"><value>Timestamp</value></data>
@@ -566,15 +582,20 @@
   <data name="Menu_Tools_CustomFormats" xml:space="preserve"><value>Custom Log _Formats...</value></data>
   <data name="Palette_BrowseFile" xml:space="preserve"><value>Browse Whole File…</value></data>
   <data name="Palette_CustomFormats" xml:space="preserve"><value>Custom Log Formats…</value></data>
+  <data name="Palette_ToggleTimeDelta" xml:space="preserve"><value>Toggle Time Delta Column</value></data>
   <data name="Vm_Browser_Failed" xml:space="preserve"><value>Could not read the file: {0}</value></data>
   <data name="Vm_Browser_Indexing" xml:space="preserve"><value>Indexing file…</value></data>
   <data name="Vm_Browser_InvalidLine" xml:space="preserve"><value>"{0}" is not a line number.</value></data>
   <data name="Vm_Browser_LineClamped" xml:space="preserve"><value>The file has only {0:N0} lines — showing the last one.</value></data>
   <data name="Vm_Browser_NotInBuffer" xml:space="preserve"><value>That line is no longer in the live view's buffer.</value></data>
   <data name="Vm_Browser_Searching" xml:space="preserve"><value>Searching…</value></data>
+  <data name="Vm_Doc_NoTimestamp" xml:space="preserve"><value>This line has no timestamp.</value></data>
   <data name="Vm_Doc_NotFileBacked" xml:space="preserve"><value>Only available for file-based documents.</value></data>
+  <data name="Vm_Doc_TimeFilterPart" xml:space="preserve"><value>time {0} → {1}</value></data>
   <data name="Vm_Doc_TimeInvalid" xml:space="preserve"><value>Could not read "{0}" as a time — try 2026-09-23 14:05, 14:05:30 or -5m.</value></data>
   <data name="Vm_Doc_TimeNotFound" xml:space="preserve"><value>No line at or after {0}.</value></data>
+  <data name="Vm_Doc_TimeOutsideBuffer" xml:space="preserve"><value>That time is older than the live buffer — opened the whole-file view.</value></data>
+  <data name="Vm_Doc_TimeReferenceSet" xml:space="preserve"><value>Δ now measures from line {0}.</value></data>
   <data name="Vm_Browser_OpenedAtLine" xml:space="preserve"><value>That line has left the live buffer — opened it in the whole-file view.</value></data>
   <data name="Vm_Formats_CopyName" xml:space="preserve"><value>{0} Copy</value></data>
   <data name="Vm_Formats_NewName" xml:space="preserve"><value>New format</value></data>

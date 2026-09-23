@@ -545,8 +545,24 @@
   <data name="Doc_BrowseFile_Name" xml:space="preserve"><value>Ver ficheiro completo</value></data>
   <data name="Doc_BrowseFile_ToolTip" xml:space="preserve"><value>Percorrer o ficheiro inteiro, incluindo linhas que já saíram do buffer ao vivo (indexado, funciona com ficheiros de vários GB)</value></data>
   <data name="Doc_Ctx_BrowseFileHere" xml:space="preserve"><value>Abrir no ficheiro completo aqui</value></data>
+  <data name="Doc_Ctx_SetTimeReference" xml:space="preserve"><value>Definir como referência de tempo (Δ)</value></data>
+  <data name="Doc_TimeDelta_Name" xml:space="preserve"><value>Coluna de diferença de tempo</value></data>
+  <data name="Doc_TimeDelta_ToolTip" xml:space="preserve"><value>Mostrar o tempo decorrido desde a linha anterior (ou desde a linha de referência)</value></data>
+  <data name="Doc_TimeNav_Name" xml:space="preserve"><value>Navegação temporal</value></data>
+  <data name="Doc_TimeNav_ToolTip" xml:space="preserve"><value>Ir para uma hora ou filtrar por intervalo de tempo</value></data>
+  <data name="Doc_Time_ApplyRange" xml:space="preserve"><value>Aplicar</value></data>
+  <data name="Doc_Time_ClearRange" xml:space="preserve"><value>Limpar intervalo</value></data>
+  <data name="Doc_Time_ClearReference" xml:space="preserve"><value>Limpar linha de referência Δ</value></data>
+  <data name="Doc_Time_From" xml:space="preserve"><value>De</value></data>
+  <data name="Doc_Time_FromName" xml:space="preserve"><value>Início do intervalo</value></data>
   <data name="Doc_Time_Go" xml:space="preserve"><value>Ir</value></data>
+  <data name="Doc_Time_GoToHeader" xml:space="preserve"><value>Ir para a hora</value></data>
+  <data name="Doc_Time_GoToName" xml:space="preserve"><value>Hora de destino</value></data>
   <data name="Doc_Time_Hint" xml:space="preserve"><value>Aceita 2026-09-23 14:05, 14:05:30, ou relativo à linha mais recente: -5m, -1h30m, +30s. As horas são lidas tal como estão escritas no log.</value></data>
+  <data name="Doc_Time_RangeHeader" xml:space="preserve"><value>Filtrar por intervalo de tempo</value></data>
+  <data name="Doc_Time_To" xml:space="preserve"><value>Até</value></data>
+  <data name="Doc_Time_ToName" xml:space="preserve"><value>Fim do intervalo</value></data>
+  <data name="Doc_Timeline_FilterToBin" xml:space="preserve"><value>Filtrar por este intervalo</value></data>
   <data name="Formats_Add" xml:space="preserve"><value>Adicionar</value></data>
   <data name="Formats_Col_Properties" xml:space="preserve"><value>Propriedades</value></data>
   <data name="Formats_Col_Timestamp" xml:space="preserve"><value>Data/hora</value></data>
@@ -566,15 +582,20 @@
   <data name="Menu_Tools_CustomFormats" xml:space="preserve"><value>_Formatos de log personalizados...</value></data>
   <data name="Palette_BrowseFile" xml:space="preserve"><value>Ver ficheiro completo…</value></data>
   <data name="Palette_CustomFormats" xml:space="preserve"><value>Formatos de log personalizados…</value></data>
+  <data name="Palette_ToggleTimeDelta" xml:space="preserve"><value>Alternar coluna de diferença de tempo</value></data>
   <data name="Vm_Browser_Failed" xml:space="preserve"><value>Não foi possível ler o ficheiro: {0}</value></data>
   <data name="Vm_Browser_Indexing" xml:space="preserve"><value>A indexar o ficheiro…</value></data>
   <data name="Vm_Browser_InvalidLine" xml:space="preserve"><value>"{0}" não é um número de linha.</value></data>
   <data name="Vm_Browser_LineClamped" xml:space="preserve"><value>O ficheiro tem apenas {0:N0} linhas — a mostrar a última.</value></data>
   <data name="Vm_Browser_NotInBuffer" xml:space="preserve"><value>Essa linha já não está no buffer da vista ao vivo.</value></data>
   <data name="Vm_Browser_Searching" xml:space="preserve"><value>A pesquisar…</value></data>
+  <data name="Vm_Doc_NoTimestamp" xml:space="preserve"><value>Esta linha não tem data/hora.</value></data>
   <data name="Vm_Doc_NotFileBacked" xml:space="preserve"><value>Disponível apenas para documentos baseados em ficheiros.</value></data>
+  <data name="Vm_Doc_TimeFilterPart" xml:space="preserve"><value>tempo {0} → {1}</value></data>
   <data name="Vm_Doc_TimeInvalid" xml:space="preserve"><value>Não foi possível ler "{0}" como hora — experimente 2026-09-23 14:05, 14:05:30 ou -5m.</value></data>
   <data name="Vm_Doc_TimeNotFound" xml:space="preserve"><value>Nenhuma linha em ou depois de {0}.</value></data>
+  <data name="Vm_Doc_TimeOutsideBuffer" xml:space="preserve"><value>Essa hora é anterior ao buffer ao vivo — foi aberta a vista do ficheiro completo.</value></data>
+  <data name="Vm_Doc_TimeReferenceSet" xml:space="preserve"><value>Δ passa a medir a partir da linha {0}.</value></data>
   <data name="Vm_Browser_OpenedAtLine" xml:space="preserve"><value>Essa linha já saiu do buffer ao vivo — foi aberta na vista do ficheiro completo.</value></data>
   <data name="Vm_Formats_CopyName" xml:space="preserve"><value>{0} (cópia)</value></data>
   <data name="Vm_Formats_NewName" xml:space="preserve"><value>Novo formato</value></data>

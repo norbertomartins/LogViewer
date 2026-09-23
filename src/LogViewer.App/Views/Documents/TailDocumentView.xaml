@@ -15,11 +15,16 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Bookmark" />
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.LineNumber" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Delta" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" Margin="0,0,4,0" />
                 <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" Margin="0,0,8,0" />
-                <TextBlock Grid.Column="2" Text="{Binding Text}">
+                <!-- Δ column: empty and collapsed (zero width via the shared Auto group) unless the document's
+                     "time delta" toggle is on and this line has its own timestamp. -->
+                <TextBlock Grid.Column="2" Text="{Binding DeltaDisplay}" Opacity="0.7" Margin="0,0,8,0"
+                           Visibility="{Binding DeltaDisplay, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                <TextBlock Grid.Column="3" Text="{Binding Text}">
                     <controls:InlinesHelper.Source>
                         <MultiBinding Converter="{StaticResource HighlightSpanInlinesConverter}">
                             <Binding Path="Text" />
@@ -37,6 +42,7 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Bookmark" />
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.LineNumber" />
+                    <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Delta" />
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Timestamp" />
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Level" />
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.ThreadId" />
@@ -45,24 +51,26 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" Margin="0,0,4,0" />
                 <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" Margin="0,0,8,0" />
-                <TextBlock Grid.Column="2" Text="{Binding Structured.Timestamp, Converter={StaticResource TimestampToLocalTimeConverter}}" Opacity="0.8" Margin="0,0,8,0" />
-                <TextBlock Grid.Column="3" Text="{Binding Structured.Level}" FontWeight="Bold" Margin="0,0,8,0"
+                <TextBlock Grid.Column="2" Text="{Binding DeltaDisplay}" Opacity="0.7" Margin="0,0,8,0"
+                           Visibility="{Binding DeltaDisplay, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                <TextBlock Grid.Column="3" Text="{Binding Structured.Timestamp, Converter={StaticResource TimestampToLocalTimeConverter}}" Opacity="0.8" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="4" Text="{Binding Structured.Level}" FontWeight="Bold" Margin="0,0,8,0"
                            Foreground="{Binding Structured.Level, Converter={StaticResource LevelToBrushConverter}}" />
-                <TextBlock Grid.Column="4" Text="{Binding ThreadId}" Opacity="0.6" Margin="0,0,8,0" />
+                <TextBlock Grid.Column="5" Text="{Binding ThreadId}" Opacity="0.6" Margin="0,0,8,0" />
                 <!-- SerilogTracing span-completion events carry a duration — shown as a small "⏱" badge;
                      empty (zero-width, since the column is Auto-sized) for ordinary log lines. -->
-                <TextBlock Grid.Column="5" Opacity="0.75" Margin="0,0,8,0"
+                <TextBlock Grid.Column="6" Opacity="0.75" Margin="0,0,8,0"
                            Visibility="{Binding SpanDurationDisplay, Converter={StaticResource NullOrEmptyToVisibilityConverter}}"
                            ToolTip="{loc:Loc Doc_SpanDuration_ToolTip}">
                     <Run Text="⏱ " /><Run Text="{Binding SpanDurationDisplay, Mode=OneWay}" />
                 </TextBlock>
-                <!-- Column 6: rendered message — colorized when the converter produces inlines,
+                <!-- Column 7: rendered message — colorized when the converter produces inlines,
                      plain text otherwise (no template, or colorization disabled). Margin guarantees a
                      visible gap after Level/ThreadId even when their columns are exactly as wide as the text.
                      Highlight Background/Foreground are applied here rather than on the row (see
                      ItemContainerStyle below) so a highlight's background doesn't wash over the Level
                      column's own color-coded foreground. -->
-                <TextBlock Grid.Column="6" Text="{Binding Structured.RenderedMessage}" Margin="4,0,0,0"
+                <TextBlock Grid.Column="7" Text="{Binding Structured.RenderedMessage}" Margin="4,0,0,0"
                            Background="{Binding Background}" Foreground="{Binding Foreground}">
                     <controls:InlinesHelper.Source>
                         <MultiBinding Converter="{StaticResource StructuredInlinesConverter}">
@@ -250,6 +258,65 @@
             </Menu>
             <ToggleButton Content="📊" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeline}"
                           AutomationProperties.Name="{loc:Loc Doc_Timeline_Name}" ToolTip="{loc:Loc Doc_Timeline_ToolTip}" />
+            <ToggleButton Content="Δ" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeDelta}"
+                          AutomationProperties.Name="{loc:Loc Doc_TimeDelta_Name}" ToolTip="{loc:Loc Doc_TimeDelta_ToolTip}" />
+            <ToggleButton x:Name="TimeNavToggle" Content="🕐" Style="{StaticResource IconButton}"
+                          AutomationProperties.Name="{loc:Loc Doc_TimeNav_Name}" ToolTip="{loc:Loc Doc_TimeNav_ToolTip}" />
+            <Popup PlacementTarget="{Binding ElementName=TimeNavToggle}" Placement="Bottom"
+                   StaysOpen="False" AllowsTransparency="True"
+                   IsOpen="{Binding IsChecked, ElementName=TimeNavToggle}">
+                <Border Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}"
+                        BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}" BorderThickness="1"
+                        Padding="8" Width="380">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <TextBlock Grid.Row="0" Grid.ColumnSpan="3" Text="{loc:Loc Doc_Time_GoToHeader}" FontWeight="Bold" Margin="0,0,0,4" />
+                        <TextBox Grid.Row="1" Grid.ColumnSpan="2" Margin="0,0,6,0" FontFamily="Consolas"
+                                 Text="{Binding GoToTimeText, UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.Name="{loc:Loc Doc_Time_GoToName}">
+                            <TextBox.InputBindings>
+                                <KeyBinding Key="Return" Command="{Binding GoToTimeCommand}" />
+                            </TextBox.InputBindings>
+                        </TextBox>
+                        <Button Grid.Row="1" Grid.Column="2" Content="{loc:Loc Doc_Time_Go}" MinWidth="60" Command="{Binding GoToTimeCommand}" />
+
+                        <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Text="{loc:Loc Doc_Time_RangeHeader}" FontWeight="Bold" Margin="0,10,0,4" />
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="{loc:Loc Doc_Time_From}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBox Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" FontFamily="Consolas" Margin="0,0,0,4"
+                                 Text="{Binding TimeFilterFromText, UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.Name="{loc:Loc Doc_Time_FromName}" />
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="{loc:Loc Doc_Time_To}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBox Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" FontFamily="Consolas" Margin="0,0,0,4"
+                                 Text="{Binding TimeFilterToText, UpdateSourceTrigger=PropertyChanged}"
+                                 AutomationProperties.Name="{loc:Loc Doc_Time_ToName}" />
+                        <StackPanel Grid.Row="5" Grid.ColumnSpan="3" Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Content="{loc:Loc Doc_Time_ApplyRange}" MinWidth="70" Margin="0,0,6,0" Command="{Binding ApplyTimeFilterCommand}" />
+                            <Button Content="{loc:Loc Doc_Time_ClearRange}" MinWidth="70" Command="{Binding ClearTimeFilterCommand}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="6" Grid.ColumnSpan="3" Margin="0,10,0,0">
+                            <TextBlock Text="{loc:Loc Doc_Time_Hint}" FontSize="11" Opacity="0.7" TextWrapping="Wrap" />
+                            <Button Content="{loc:Loc Doc_Time_ClearReference}" HorizontalAlignment="Left" Margin="0,6,0,0"
+                                    Command="{Binding ClearTimeReferenceCommand}"
+                                    Visibility="{Binding HasTimeReference, Converter={StaticResource BoolToVisibilityConverter}}" />
+                        </StackPanel>
+                    </Grid>
+                </Border>
+            </Popup>
             <Button Content="📜" Style="{StaticResource IconButton}" Command="{Binding BrowseWholeFileCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_BrowseFile_Name}" ToolTip="{loc:Loc Doc_BrowseFile_ToolTip}" />
             <Button Content="📈" Style="{StaticResource IconButton}" Command="{Binding ShowStatsCommand}"
@@ -285,7 +352,17 @@
                             <Button Command="{Binding DataContext.SelectBinCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                     CommandParameter="{Binding}"
                                     Background="Transparent" BorderThickness="0" Padding="0" Margin="0,0,1,0"
-                                    VerticalContentAlignment="Bottom" Cursor="Hand">
+                                    VerticalContentAlignment="Bottom" Cursor="Hand"
+                                    Tag="{Binding DataContext, RelativeSource={RelativeSource AncestorType=ItemsControl}}">
+                                <Button.ContextMenu>
+                                    <ContextMenu>
+                                        <MenuItem Header="{loc:Loc Doc_Timeline_FilterToBin}"
+                                                  Command="{Binding PlacementTarget.Tag.FilterToBinCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                                  CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                        <MenuItem Header="{loc:Loc Doc_Time_ClearRange}"
+                                                  Command="{Binding PlacementTarget.Tag.ClearTimeFilterCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                    </ContextMenu>
+                                </Button.ContextMenu>
                                 <Button.ToolTip>
                                     <TextBlock>
                                         <Run Text="{Binding Start, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}', Mode=OneWay}" /><LineBreak />
@@ -376,6 +453,10 @@
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_FilterByThreadId}"
                                           Command="{Binding PlacementTarget.Tag.FilterByThreadIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <Separator />
+                                <MenuItem Header="{loc:Loc Doc_Ctx_SetTimeReference}"
+                                          Command="{Binding PlacementTarget.Tag.SetTimeReferenceCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_BrowseFileHere}"
                                           Command="{Binding PlacementTarget.Tag.BrowseWholeFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />

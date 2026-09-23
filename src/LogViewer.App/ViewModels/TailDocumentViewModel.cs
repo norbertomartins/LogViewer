@@ -195,7 +195,8 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// at or above this pass the filter (e.g. selecting "Warning" keeps Warning, Error and Fatal).</summary>
     public int? MinLevelRank => IsLevelFilterActive ? LogLevelSeverity.Rank(MinLevel) : null;
 
-    public bool IsFilterActive => ActiveFilterValue is not null || IsLevelFilterActive || IsTextFilterActive || IsHidingPastLines;
+    public bool IsFilterActive => ActiveFilterValue is not null || IsLevelFilterActive || IsTextFilterActive || IsHidingPastLines
+        || IsTimeFilterActive;
 
     // --- Visual "clean" — hides lines already displayed without touching the file or the ring buffer ---
 
@@ -416,6 +417,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
                 parts.Add(Loc.Get("Vm_Doc_HiddenLinesPart"));
             }
 
+            if (IsTimeFilterActive)
+            {
+                parts.Add(Loc.Format("Vm_Doc_TimeFilterPart", FormatFilterTime(TimeFilterFrom) ?? "…", FormatFilterTime(TimeFilterTo) ?? "…"));
+            }
+
             return parts.Count > 0 ? Loc.Get("Vm_Doc_FilteredByPrefix") + string.Join(Loc.Get("Vm_Doc_FilterJoiner"), parts) : null;
         }
     }
@@ -439,6 +445,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         OnPropertyChanged(nameof(MinLevelRank));
         OnPropertyChanged(nameof(IsTextFilterActive));
         OnPropertyChanged(nameof(IsHidingPastLines));
+        OnPropertyChanged(nameof(IsTimeFilterActive));
         FilterChanged?.Invoke();
     }
 
@@ -955,10 +962,20 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
                 _highlightedLineNumbers.Add(lineNumber);
             }
 
+            if (NeedsTimestamps)
+            {
+                ResolveTimestamps(rebuilt, recomputeDeltas: true);
+            }
+
             Lines.Clear();
             Lines.AppendRange(rebuilt);
             if (_pendingDuringReprocess.Count > 0)
             {
+                if (NeedsTimestamps)
+                {
+                    ResolveNewLines(_pendingDuringReprocess);
+                }
+
                 Lines.AppendRange(_pendingDuringReprocess);
                 _pendingDuringReprocess.Clear();
             }
@@ -1063,6 +1080,12 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             // reprocess appends this queue onto its rebuilt list once it finishes.
             _pendingDuringReprocess.AddRange(displayItems);
             return;
+        }
+
+        if (NeedsTimestamps)
+        {
+            // Before AppendRange: its Reset re-runs the view's time filter synchronously over these lines.
+            ResolveNewLines(displayItems);
         }
 
         Lines.AppendRange(displayItems);
@@ -1344,6 +1367,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         ActiveFilterField = null;
         ActiveFilterValue = null;
         MinLevel = AnyLevel;
+        ClearTimeFilter();
     }
 
     private void ApplyPropertyFilter(LogLineViewModel? line, string field)
@@ -1415,6 +1439,287 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         SelectedLine = target;
         ScrollToLineRequested?.Invoke(target);
         return true;
+    }
+
+    // --- Time navigation: Δ column, go to time, time-range filter ---------------------------------
+
+    /// <summary>Shows the "Δ" column: time since the previous timestamped line, or since
+    /// <see cref="TimeReferenceLineNumber"/> when a reference line is set.</summary>
+    [ObservableProperty]
+    private bool _showTimeDelta;
+
+    /// <summary>Line the Δ column measures from ("set as time reference"), or null to measure line-to-line.</summary>
+    [ObservableProperty]
+    private long? _timeReferenceLineNumber;
+
+    private DateTimeOffset? _timeReferenceTimestamp;
+
+    [ObservableProperty]
+    private string? _goToTimeText;
+
+    [ObservableProperty]
+    private string? _timeFilterFromText;
+
+    [ObservableProperty]
+    private string? _timeFilterToText;
+
+    /// <summary>Inclusive lower bound of the time-range filter, or null for unbounded.</summary>
+    [ObservableProperty]
+    private DateTimeOffset? _timeFilterFrom;
+
+    /// <summary>Inclusive upper bound of the time-range filter, or null for unbounded.</summary>
+    [ObservableProperty]
+    private DateTimeOffset? _timeFilterTo;
+
+    public bool IsTimeFilterActive => TimeFilterFrom is not null || TimeFilterTo is not null;
+
+    public bool HasTimeReference => TimeReferenceLineNumber is not null;
+
+    /// <summary>Timestamps are resolved lazily (a regex per line), only while a feature that needs them is on.</summary>
+    private bool NeedsTimestamps => ShowTimeDelta || IsTimeFilterActive;
+
+    partial void OnShowTimeDeltaChanged(bool value)
+    {
+        if (value)
+        {
+            ResolveTimestamps(Lines, recomputeDeltas: true);
+            return;
+        }
+
+        foreach (var line in Lines)
+        {
+            line.DeltaDisplay = null;
+        }
+    }
+
+    partial void OnTimeReferenceLineNumberChanged(long? value)
+    {
+        OnPropertyChanged(nameof(HasTimeReference));
+        if (ShowTimeDelta)
+        {
+            ResolveTimestamps(Lines, recomputeDeltas: true);
+        }
+    }
+
+    partial void OnTimeFilterFromChanged(DateTimeOffset? value) => OnTimeFilterChanged();
+
+    partial void OnTimeFilterToChanged(DateTimeOffset? value) => OnTimeFilterChanged();
+
+    private void OnTimeFilterChanged()
+    {
+        if (IsTimeFilterActive)
+        {
+            ResolveTimestamps(Lines, recomputeDeltas: false);
+        }
+
+        RaiseFilterChanged();
+    }
+
+    /// <summary>Resolves timestamps (and, when the Δ column is on, deltas) for lines about to be appended after
+    /// the current last line, carrying the last known timestamp over for continuation lines.</summary>
+    private void ResolveNewLines(IReadOnlyList<LogLineViewModel> items)
+    {
+        var previous = Lines.Count > 0 && Lines[^1].IsTimestampResolved ? Lines[^1].EffectiveTimestamp : null;
+        ResolveTimestamps(items, recomputeDeltas: false, previous);
+    }
+
+    /// <summary>Walks <paramref name="items"/> in display order, resolving each unresolved line's own timestamp and
+    /// its effective one (own, else inherited from the closest timestamped line above), and fills the Δ column.
+    /// <paramref name="previousTimestamp"/> seeds the walk with the timestamp in effect just before the first item.</summary>
+    private void ResolveTimestamps(IEnumerable<LogLineViewModel> items, bool recomputeDeltas, DateTimeOffset? previousTimestamp = null)
+    {
+        var reference = TimeReferenceLineNumber is not null ? _timeReferenceTimestamp : null;
+        foreach (var line in items)
+        {
+            var wasResolved = line.IsTimestampResolved;
+            if (!wasResolved)
+            {
+                var own = ResolveOwnTimestamp(line);
+                line.SetResolvedTimestamp(own, own ?? previousTimestamp);
+            }
+
+            if (ShowTimeDelta && (!wasResolved || recomputeDeltas))
+            {
+                var anchor = reference ?? previousTimestamp;
+                line.DeltaDisplay = line.Timestamp is { } ts && anchor is { } from ? TimeDeltaFormatter.Format(ts - from) : null;
+            }
+
+            previousTimestamp = line.EffectiveTimestamp;
+        }
+    }
+
+    /// <summary>Structured timestamp when the line parsed; else the document's custom regex format (cheap, and it
+    /// may know a date layout the generic extractor doesn't); else a timestamp pulled out of the raw text.</summary>
+    private DateTimeOffset? ResolveOwnTimestamp(LogLineViewModel line)
+    {
+        if (line.Structured?.Timestamp is { } structured)
+        {
+            return structured;
+        }
+
+        var raw = TextForParsing(line.Text);
+        if (!IsStructuredView && _lineParser is RegexLogLineParser && _lineParser.TryParse(raw, out var parsed) && parsed?.Timestamp is { } custom)
+        {
+            return custom;
+        }
+
+        return MergedTimestampExtractor.TryExtract(raw);
+    }
+
+    /// <summary>Newest own timestamp among the displayed lines — the reference for relative ("-5m") and
+    /// time-of-day ("14:05") input.</summary>
+    private DateTimeOffset? LatestTimestamp()
+    {
+        for (var i = Lines.Count - 1; i >= 0; i--)
+        {
+            if (Lines[i].Timestamp is { } ts)
+            {
+                return ts;
+            }
+        }
+
+        return null;
+    }
+
+    private static string? FormatFilterTime(DateTimeOffset? value) =>
+        value?.ToString("yyyy-MM-dd HH:mm:ss.fff", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <summary>Whether a line passes the time-range filter — true when no range is set. A line with no
+    /// timestamp at all (not even an inherited one) can't be placed in time and is hidden while a range is active.</summary>
+    public bool PassesTimeFilter(LogLineViewModel line)
+    {
+        if (!IsTimeFilterActive || !line.IsTimestampResolved)
+        {
+            return true;
+        }
+
+        return line.EffectiveTimestamp is { } ts
+            && (TimeFilterFrom is not { } from || ts >= from)
+            && (TimeFilterTo is not { } to || ts <= to);
+    }
+
+    /// <summary>Jumps to the first displayed line at or after the time typed in <see cref="GoToTimeText"/>. When the
+    /// time is older than anything still in the ring buffer, hands off to the whole-file browser instead.</summary>
+    [RelayCommand]
+    private void GoToTime()
+    {
+        ResolveTimestamps(Lines, recomputeDeltas: false);
+        if (!TimestampQuery.TryParse(GoToTimeText, LatestTimestamp(), out var target))
+        {
+            StatusMessage = Loc.Format("Vm_Doc_TimeInvalid", GoToTimeText ?? string.Empty);
+            return;
+        }
+
+        var oldest = Lines.FirstOrDefault(l => l.Timestamp is not null)?.Timestamp;
+        if (oldest is { } first && target < first && RequestFileBrowser(new FileBrowserTarget(null, target)))
+        {
+            StatusMessage = Loc.Get("Vm_Doc_TimeOutsideBuffer");
+            return;
+        }
+
+        var match = Lines.FirstOrDefault(l => l.Timestamp is { } ts && ts >= target);
+        if (match is null)
+        {
+            StatusMessage = Loc.Format("Vm_Doc_TimeNotFound", FormatFilterTime(target)!);
+            return;
+        }
+
+        IsFollowingTail = false;
+        SelectedLine = match;
+        ScrollToLineRequested?.Invoke(match);
+        StatusMessage = null;
+    }
+
+    [RelayCommand]
+    private void ApplyTimeFilter()
+    {
+        ResolveTimestamps(Lines, recomputeDeltas: false);
+        var reference = LatestTimestamp();
+
+        DateTimeOffset? from = null;
+        DateTimeOffset? to = null;
+        if (!string.IsNullOrWhiteSpace(TimeFilterFromText))
+        {
+            if (!TimestampQuery.TryParse(TimeFilterFromText, reference, out var parsed))
+            {
+                StatusMessage = Loc.Format("Vm_Doc_TimeInvalid", TimeFilterFromText);
+                return;
+            }
+
+            from = parsed;
+        }
+
+        if (!string.IsNullOrWhiteSpace(TimeFilterToText))
+        {
+            if (!TimestampQuery.TryParse(TimeFilterToText, reference, out var parsed))
+            {
+                StatusMessage = Loc.Format("Vm_Doc_TimeInvalid", TimeFilterToText);
+                return;
+            }
+
+            to = parsed;
+        }
+
+        StatusMessage = null;
+        TimeFilterFrom = from;
+        TimeFilterTo = to;
+    }
+
+    [RelayCommand]
+    private void ClearTimeFilter()
+    {
+        TimeFilterFromText = null;
+        TimeFilterToText = null;
+        TimeFilterFrom = null;
+        TimeFilterTo = null;
+    }
+
+    /// <summary>Narrows the view to one timeline bucket (right-click on a timeline bar).</summary>
+    [RelayCommand]
+    private void FilterToBin(VolumeBin? bin)
+    {
+        if (bin is null)
+        {
+            return;
+        }
+
+        var to = bin.End - TimeSpan.FromTicks(1);
+        TimeFilterFromText = FormatFilterTime(bin.Start);
+        TimeFilterToText = FormatFilterTime(to);
+        TimeFilterFrom = bin.Start;
+        TimeFilterTo = to;
+    }
+
+    [RelayCommand]
+    private void ToggleTimeDelta() => ShowTimeDelta = !ShowTimeDelta;
+
+    /// <summary>Makes the Δ column measure from <paramref name="line"/> ("how long after this did X happen").</summary>
+    [RelayCommand]
+    private void SetTimeReference(LogLineViewModel? line)
+    {
+        if (line is null)
+        {
+            return;
+        }
+
+        ResolveTimestamps(Lines, recomputeDeltas: false);
+        if ((line.Timestamp ?? line.EffectiveTimestamp) is not { } ts)
+        {
+            StatusMessage = Loc.Get("Vm_Doc_NoTimestamp");
+            return;
+        }
+
+        _timeReferenceTimestamp = ts;
+        TimeReferenceLineNumber = line.LineNumber;
+        ShowTimeDelta = true;
+        StatusMessage = Loc.Format("Vm_Doc_TimeReferenceSet", line.LineNumber);
+    }
+
+    [RelayCommand]
+    private void ClearTimeReference()
+    {
+        _timeReferenceTimestamp = null;
+        TimeReferenceLineNumber = null;
     }
 
     // --- Whole-file browser --------------------------------------------------------------------
