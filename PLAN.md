@@ -352,6 +352,26 @@
     screenshots. Two pre-existing layout issues seen along the way are logged as ROADMAP 3.6/3.7.
   Tests: 311 Core / 25 Mcp / 202 App / 7 Phase-9 FlaUI, all green.
 
+- **Phase 11 — second ROADMAP.md batch.** One commit per item on `phase-11-roadmap`.
+  - **Layout fixes (3.6, 3.7):** `DetailPanelRowHeightConverter` treated `DependencyProperty.UnsetValue` (what the
+    `SelectedLine.Structured` binding yields with no selection) as "has detail" and reserved ~220px of empty space
+    under every document; toolbar text boxes (document filter, browser boxes) now use an explicit
+    `ToolbarTextBoxStyle`, since `ToolBar` forces its borderless style on children without one. Checked in light
+    and dark themes; UI regression test asserts the list fills most of the window.
+  - **Filter views (3.2, 3.3):** `FilterView` (Core) = named text/level/property/correlation/time-range filter set in
+    `AppSettings.FilterViews`, applied to any document via a "Filter views" toolbar menu or the palette; time bounds
+    keep the typed text so relative ranges stay relative. `TailSourceSettings` now persists the time-range and
+    correlation filters (session restore + profiles); a restored time range applies once lines arrive. Schema
+    **v12→v13** (no-op).
+  - **Persisted index (2.1):** `FileLineIndex.Persistence.cs` saves checkpoints/encoding/offsets for files ≥ 64 MB to
+    `%LOCALAPPDATA%\LogViewer\index-cache` (atomic write, 32-entry cap) and reuses an entry only when the file's first
+    4 KB and the 4 KB before the last indexed offset still hash the same and it hasn't shrunk — then only appended
+    bytes are scanned.
+  - **Cross-document correlation (4.2):** "Filter All Documents by Correlation ID" on the row context menu applies the
+    id to every open document and reports how many have matches.
+  - **MCP (6.2):** `logs_get_new_lines_since` — cursor-based tailing over the cached index, with `fileWasReset`.
+  Tests: 314 Core / 26 Mcp / 207 App / 9 Phase-9 FlaUI, all green.
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was
