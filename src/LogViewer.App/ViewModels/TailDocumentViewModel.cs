@@ -1836,6 +1836,19 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [RelayCommand]
     private void ClearCorrelationFilter() => CorrelationFilter = null;
 
+    /// <summary>Raised to apply a correlation filter to every open document (MainViewModel fans it out), for
+    /// following one request/trace across the logs of several services at once.</summary>
+    public event Action<CorrelationId>? CorrelationFilterAllRequested;
+
+    [RelayCommand]
+    private void FilterAllByCorrelation(CorrelationId? id)
+    {
+        if (id is not null)
+        {
+            CorrelationFilterAllRequested?.Invoke(id);
+        }
+    }
+
     public bool PassesCorrelationFilter(LogLineViewModel line) =>
         CorrelationFilter is not { } id || line.Text.Contains(id.Value, StringComparison.OrdinalIgnoreCase);
 

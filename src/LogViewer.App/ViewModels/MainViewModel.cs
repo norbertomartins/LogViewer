@@ -588,6 +588,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.ApplyFilterViews(_settings.FilterViews);
         document.SaveFilterViewRequested += () => SaveFilterView(document);
         document.DeleteFilterViewRequested += DeleteFilterView;
+        document.CorrelationFilterAllRequested += FilterAllDocumentsByCorrelation;
 
         Documents.Add(document);
         ActiveDocument = document;
@@ -691,6 +692,23 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _settings.FilterViews.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
         PublishFilterViews();
         document.StatusMessage = Loc.Format("Vm_FilterView_Saved", name);
+    }
+
+    /// <summary>Applies one correlation id filter to every open document and reports, per document, whether any
+    /// currently buffered line matched — so the user sees at a glance which services touched the request.</summary>
+    private void FilterAllDocumentsByCorrelation(Core.Analysis.CorrelationId id)
+    {
+        var withMatches = 0;
+        foreach (var document in Documents)
+        {
+            document.CorrelationFilter = id;
+            if (document.Lines.Any(document.PassesCorrelationFilter))
+            {
+                withMatches++;
+            }
+        }
+
+        StatusMessage = Loc.Format("Vm_Correlation_AllDocuments", id.Value, withMatches, Documents.Count);
     }
 
     private void DeleteFilterView(FilterView view)

@@ -509,6 +509,7 @@
                                      LogLineViewModel.CorrelationIds — extracted lazily, only when the menu opens. Works on
                                      plain-text and merged documents too: the filter is a substring match on the raw line. -->
                                 <MenuItem Header="{loc:Loc Doc_Ctx_FilterByCorrelation}" Tag="CorrelationMenu" />
+                                <MenuItem Header="{loc:Loc Doc_Ctx_FilterAllByCorrelation}" Tag="CorrelationAllMenu" />
                                 <Separator />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_SetTimeReference}"
                                           Command="{Binding PlacementTarget.Tag.SetTimeReferenceCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"

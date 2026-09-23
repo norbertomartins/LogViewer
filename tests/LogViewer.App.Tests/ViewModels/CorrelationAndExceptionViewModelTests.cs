@@ -57,5 +57,22 @@ public sealed class CorrelationAndExceptionViewModelTests : IDisposable
         main.Dispose();
     }
 
+    [Fact]
+    public void FilterAllByCorrelation_AppliesTheIdToEveryDocument()
+    {
+        var (main, _) = MainViewModelFactory.Create();
+        var api = main.OpenPath(_tempDir.CreateFile("api.log", "INFO start request_id=req-42\nINFO other request_id=req-7\n"));
+        var db = main.OpenPath(_tempDir.CreateFile("db.log", "DEBUG query for req-42 took 5ms\n"));
+        var mail = main.OpenPath(_tempDir.CreateFile("mail.log", "INFO nothing related\n"));
+        TestDispatcher.SpinUntil(() => api.Lines.Count >= 2 && db.Lines.Count >= 1 && mail.Lines.Count >= 1);
+
+        api.FilterAllByCorrelationCommand.Execute(api.Lines[0].CorrelationIds[0]);
+
+        Assert.All([api, db, mail], d => Assert.Equal("req-42", d.CorrelationFilter?.Value));
+        Assert.Single(db.Lines, db.PassesCorrelationFilter);
+        Assert.Contains("2", main.StatusMessage); // 2 of 3 documents have matching lines
+        main.Dispose();
+    }
+
     public void Dispose() => _tempDir.Dispose();
 }

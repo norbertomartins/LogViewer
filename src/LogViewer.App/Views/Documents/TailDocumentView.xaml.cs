@@ -306,7 +306,13 @@ public partial class TailDocumentView : UserControl
             return;
         }
 
-        var correlationMenu = menu.Items.OfType<MenuItem>().FirstOrDefault(m => Equals(m.Tag, "CorrelationMenu"));
+        FillCorrelationMenu(menu, "CorrelationMenu", line, _viewModel.FilterByCorrelationCommand);
+        FillCorrelationMenu(menu, "CorrelationAllMenu", line, _viewModel.FilterAllByCorrelationCommand);
+    }
+
+    private static void FillCorrelationMenu(ContextMenu menu, string tag, LogLineViewModel line, System.Windows.Input.ICommand command)
+    {
+        var correlationMenu = menu.Items.OfType<MenuItem>().FirstOrDefault(m => Equals(m.Tag, tag));
         if (correlationMenu is null)
         {
             return;
@@ -319,7 +325,7 @@ public partial class TailDocumentView : UserControl
             {
                 // "_" marks an access key in a MenuItem header — double it so "request_id" isn't shown as "requestid".
                 Header = $"{id.Name} = {id.Value}".Replace("_", "__", StringComparison.Ordinal),
-                Command = _viewModel.FilterByCorrelationCommand,
+                Command = command,
                 CommandParameter = id,
             });
         }

@@ -654,4 +654,6 @@
   <data name="Vm_FilterView_NothingToSave" xml:space="preserve"><value>No filter is active — nothing to save.</value></data>
   <data name="Palette_SaveFilterView" xml:space="preserve"><value>Save Current Filters as View…</value></data>
   <data name="Palette_ApplyFilterViewFmt" xml:space="preserve"><value>Apply Filter View: {0}</value></data>
+  <data name="Doc_Ctx_FilterAllByCorrelation" xml:space="preserve"><value>Filter All Documents by Correlation ID</value></data>
+  <data name="Vm_Correlation_AllDocuments" xml:space="preserve"><value>Filtered every document by "{0}" — {1} of {2} have matching lines.</value></data>
 </root>
