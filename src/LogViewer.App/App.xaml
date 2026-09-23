@@ -54,6 +54,18 @@
              below the last row no matter how Background was set. This minimal template takes that one
              layer back under our control — Fluent's scrollbar/selection chrome elsewhere is unaffected,
              only this control's own fill. -->
+        <!-- Text boxes hosted in a ToolBar get the toolbar's own flat style (no border, transparent fill), which
+             leaves e.g. the document filter box invisible until clicked. ToolBar forces that style onto any child
+             without an explicit Style, so this is applied explicitly (not implicitly) to toolbar text boxes. -->
+        <Style x:Key="ToolbarTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource {x:Static ToolBar.TextBoxStyleKey}}">
+            <Setter Property="Background" Value="{DynamicResource Theme.LogBackground}" />
+            <Setter Property="Foreground" Value="{DynamicResource Theme.LogForeground}" />
+            <Setter Property="CaretBrush" Value="{DynamicResource Theme.LogForeground}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Theme.BorderColor}" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="3,1" />
+        </Style>
+
         <Style x:Key="LogListViewStyle" TargetType="ListView">
             <Setter Property="Background" Value="{DynamicResource Theme.LogBackground}" />
             <Setter Property="Foreground" Value="{DynamicResource Theme.LogForeground}" />

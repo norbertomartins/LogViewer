@@ -21,7 +21,7 @@
 
         <ToolBar Grid.Row="0" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
             <TextBlock Text="{loc:Loc Browser_Line}" VerticalAlignment="Center" Margin="2,0,4,0" />
-            <TextBox Width="110" VerticalAlignment="Center" FontFamily="Consolas"
+            <TextBox Width="110" VerticalAlignment="Center" FontFamily="Consolas" Style="{StaticResource ToolbarTextBoxStyle}"
                      Text="{Binding GoToLineText, UpdateSourceTrigger=PropertyChanged}"
                      AutomationProperties.Name="{loc:Loc Browser_LineName}">
                 <TextBox.InputBindings>
@@ -31,7 +31,7 @@
             <Button Content="{loc:Loc Doc_Time_Go}" Command="{Binding GoToLineCommand}" MinWidth="40" />
             <Separator />
             <TextBlock Text="{loc:Loc Browser_Time}" VerticalAlignment="Center" Margin="2,0,4,0" />
-            <TextBox Width="170" VerticalAlignment="Center" FontFamily="Consolas"
+            <TextBox Width="170" VerticalAlignment="Center" FontFamily="Consolas" Style="{StaticResource ToolbarTextBoxStyle}"
                      Text="{Binding GoToTimeText, UpdateSourceTrigger=PropertyChanged}"
                      ToolTip="{loc:Loc Doc_Time_Hint}"
                      AutomationProperties.Name="{loc:Loc Browser_TimeName}">
@@ -48,7 +48,7 @@
             <Button Content="{loc:Loc Doc_Ctx_Copy}" Command="{Binding CopySelectedCommand}" />
             <Separator />
             <TextBlock Text="🔍" VerticalAlignment="Center" Margin="2,0,3,0" />
-            <TextBox Width="180" VerticalAlignment="Center" FontFamily="Consolas"
+            <TextBox Width="180" VerticalAlignment="Center" FontFamily="Consolas" Style="{StaticResource ToolbarTextBoxStyle}"
                      Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
                      AutomationProperties.Name="{loc:Loc Browser_SearchName}" ToolTip="{loc:Loc Browser_Search_ToolTip}">
                 <TextBox.InputBindings>
