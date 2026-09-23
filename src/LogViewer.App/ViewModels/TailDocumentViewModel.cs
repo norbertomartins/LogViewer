@@ -543,6 +543,17 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public string SourcePath { get; }
 
+    /// <summary>The key that identifies this document in the recent-sources/session list. Usually the same as
+    /// <see cref="SourcePath"/>; differs for a compressed file, whose <see cref="SourcePath"/> is the decompressed
+    /// temp copy while the session remembers the original archive (and zip entry).</summary>
+    public string SessionKey
+    {
+        get => _sessionKey ?? SourcePath;
+        set => _sessionKey = value;
+    }
+
+    private string? _sessionKey;
+
     private string _structuredFormatId;
 
     /// <summary>The <see cref="ILogLineParser.FormatId"/> used when <see cref="IsStructuredView"/> is on —

@@ -92,7 +92,9 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
         // behavior (no new-pattern notifications), so no field-level migration is needed.
         // v12 -> v13: FilterViews is new, and TailSourceSettings gained persisted time-range and correlation
         // filters; initializers give pre-v13 files no views and inactive filters, so no field-level migration.
-        settings.SchemaVersion = 13;
+        // v13 -> v14: TailSourceSettings.ArchiveEntry is new (zip entry of a File source); null keeps pre-v14
+        // behavior (open the file itself), so no field-level migration is needed.
+        settings.SchemaVersion = 14;
         return settings;
     }
 

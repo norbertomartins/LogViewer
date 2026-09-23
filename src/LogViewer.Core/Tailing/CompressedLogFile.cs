@@ -1,64 +1,100 @@
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
+using SharpCompress.Compressors.BZip2;
+using SharpCompress.Compressors.ZStandard;
 
 namespace LogViewer.Core.Tailing;
 
+/// <summary>Compression container detected from a file's leading magic bytes (never from its extension).</summary>
+public enum CompressionKind
+{
+    None,
+    Gzip,
+    Zip,
+    BZip2,
+    Zstandard,
+}
+
+/// <summary>One file inside a <c>.zip</c> archive.</summary>
+public sealed record ArchiveEntry(string FullName, long Length);
+
 /// <summary>
-/// Transparent read access to gzip-compressed log files (<c>.gz</c>). A compressed archive can't be
-/// incrementally tailed, so the file is decompressed once into a stable per-source temp file that the
-/// normal <see cref="FileTailSource"/>/search/structured pipeline then opens unchanged.
+/// Transparent read access to compressed log files — gzip (<c>.gz</c>), bzip2 (<c>.bz2</c>), Zstandard (<c>.zst</c>)
+/// and zip (<c>.zip</c>, one entry at a time). A compressed file can't be incrementally tailed, so it is decompressed
+/// once into a stable temp file that the normal <see cref="FileTailSource"/>/search/structured pipeline then opens
+/// unchanged. The temp copy is reused (not rewritten) while the source's path, size and last-write time are unchanged.
 /// </summary>
 public static class CompressedLogFile
 {
-    private static readonly byte[] GzipMagic = [0x1F, 0x8B];
-
-    /// <summary>True when <paramref name="path"/> begins with the gzip magic bytes (extension-independent).</summary>
-    public static bool IsGzip(string path)
+    public static CompressionKind Detect(string path)
     {
         try
         {
             using var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete);
-            Span<byte> header = stackalloc byte[2];
-            return stream.ReadAtLeast(header, 2, throwOnEndOfStream: false) == 2
-                && header[0] == GzipMagic[0] && header[1] == GzipMagic[1];
+            Span<byte> header = stackalloc byte[4];
+            var read = stream.ReadAtLeast(header, 4, throwOnEndOfStream: false);
+            return header[..read] switch
+            {
+                [0x1F, 0x8B, ..] => CompressionKind.Gzip,
+                [0x50, 0x4B, 0x03, 0x04] => CompressionKind.Zip,
+                [0x42, 0x5A, 0x68, ..] => CompressionKind.BZip2, // "BZh"
+                [0x28, 0xB5, 0x2F, 0xFD] => CompressionKind.Zstandard,
+                _ => CompressionKind.None,
+            };
         }
-        catch (IOException)
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
-            return false;
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return false;
+            return CompressionKind.None;
         }
     }
 
-    /// <summary>
-    /// If <paramref name="path"/> is gzip-compressed, decompresses it into a temp file and returns that
-    /// path; otherwise returns <paramref name="path"/> unchanged. The temp file is reused (not rewritten)
-    /// while the source's path, size and last-write time are unchanged, so reopening is cheap.
-    /// </summary>
-    public static string Materialize(string path)
+    /// <summary>True when <paramref name="path"/> begins with the gzip magic bytes (extension-independent).</summary>
+    public static bool IsGzip(string path) => Detect(path) == CompressionKind.Gzip;
+
+    /// <summary>The file entries of a zip archive (directories skipped), largest first.</summary>
+    public static IReadOnlyList<ArchiveEntry> ListZipEntries(string path)
     {
-        if (!IsGzip(path))
+        using var archive = ZipFile.OpenRead(path);
+        return [.. archive.Entries
+            .Where(e => !e.FullName.EndsWith('/') && e.Length > 0)
+            .Select(e => new ArchiveEntry(e.FullName, e.Length))
+            .OrderByDescending(e => e.Length)];
+    }
+
+    /// <summary>
+    /// If <paramref name="path"/> is compressed, decompresses it into a temp file and returns that path; otherwise
+    /// returns <paramref name="path"/> unchanged. For a zip, <paramref name="zipEntry"/> picks the entry (default: the
+    /// largest one).
+    /// </summary>
+    public static string Materialize(string path, string? zipEntry = null)
+    {
+        var kind = Detect(path);
+        if (kind == CompressionKind.None)
         {
             return path;
         }
 
+        if (kind == CompressionKind.Zip)
+        {
+            zipEntry ??= ListZipEntries(path).FirstOrDefault()?.FullName
+                ?? throw new InvalidDataException("The zip archive contains no files.");
+        }
+
         var info = new FileInfo(path);
-        var stamp = $"{path}|{info.Length}|{info.LastWriteTimeUtc.Ticks}";
+        var stamp = $"{path}|{zipEntry}|{info.Length}|{info.LastWriteTimeUtc.Ticks}";
         var hash = Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(stamp)))[..16];
 
-        var dir = Path.Combine(Path.GetTempPath(), "LogViewer", "gz");
+        var dir = Path.Combine(Path.GetTempPath(), "LogViewer", "decompressed");
         Directory.CreateDirectory(dir);
 
-        var name = Path.GetFileNameWithoutExtension(path);
+        var name = kind == CompressionKind.Zip ? Path.GetFileName(zipEntry!) : Path.GetFileNameWithoutExtension(path);
         if (Path.GetExtension(name).Length == 0)
         {
             name += ".log";
         }
 
-        var target = Path.Combine(dir, $"{name}.{hash}{Path.GetExtension(name)}");
+        var target = Path.Combine(dir, $"{Path.GetFileNameWithoutExtension(name)}.{hash}{Path.GetExtension(name)}");
         if (File.Exists(target) && new FileInfo(target).Length > 0)
         {
             return target;
@@ -66,13 +102,31 @@ public static class CompressedLogFile
 
         var tmp = target + ".partial";
         using (var source = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
-        using (var gzip = new GZipStream(source, CompressionMode.Decompress))
         using (var output = new FileStream(tmp, FileMode.Create, FileAccess.Write, FileShare.None))
         {
-            gzip.CopyTo(output);
+            if (kind == CompressionKind.Zip)
+            {
+                using var archive = new ZipArchive(source, ZipArchiveMode.Read);
+                var entry = archive.GetEntry(zipEntry!) ?? throw new InvalidDataException($"No entry '{zipEntry}' in the archive.");
+                using var entryStream = entry.Open();
+                entryStream.CopyTo(output);
+            }
+            else
+            {
+                using var decompressed = OpenDecompressor(kind, source);
+                decompressed.CopyTo(output);
+            }
         }
 
         File.Move(tmp, target, overwrite: true);
         return target;
     }
+
+    private static Stream OpenDecompressor(CompressionKind kind, Stream source) => kind switch
+    {
+        CompressionKind.Gzip => new GZipStream(source, CompressionMode.Decompress),
+        CompressionKind.BZip2 => BZip2Stream.Create(source, SharpCompress.Compressors.CompressionMode.Decompress, true),
+        CompressionKind.Zstandard => new DecompressionStream(source),
+        _ => throw new ArgumentOutOfRangeException(nameof(kind)),
+    };
 }
