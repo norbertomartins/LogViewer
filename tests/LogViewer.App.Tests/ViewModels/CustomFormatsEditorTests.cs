@@ -6,6 +6,7 @@ using NSubstitute;
 
 namespace LogViewer.App.Tests.ViewModels;
 
+[Collection(ParserRegistryCollection.Name)]
 public sealed class CustomFormatsEditorTests
 {
     [Fact]
