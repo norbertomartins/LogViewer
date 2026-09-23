@@ -301,6 +301,17 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         window.Show();
     }
 
+    public void ShowFileBrowserDialog(FileBrowserViewModel viewModel)
+    {
+        var window = new FileBrowserView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        window.Show();
+    }
+
     public IReadOnlyList<CustomLogFormat>? ShowCustomFormatsEditor(IReadOnlyList<CustomLogFormat> formats, IReadOnlyList<string> sampleLines)
     {
         var viewModel = new CustomFormatsEditorViewModel(formats, sampleLines);

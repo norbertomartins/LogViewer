@@ -1,0 +1,89 @@
+<Window x:Class="LogViewer.App.Views.Dialogs.FileBrowserView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:models="clr-namespace:LogViewer.App.Models"
+        xmlns:loc="clr-namespace:LogViewer.App.Localization"
+        Title="{Binding Title, StringFormat={loc:Loc Browser_TitleFmt}}"
+        Width="1000" Height="700"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource Theme.LogBackground}"
+        Foreground="{DynamicResource Theme.LogForeground}">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <ToolBar Grid.Row="0" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
+            <TextBlock Text="{loc:Loc Browser_Line}" VerticalAlignment="Center" Margin="2,0,4,0" />
+            <TextBox Width="110" VerticalAlignment="Center" FontFamily="Consolas"
+                     Text="{Binding GoToLineText, UpdateSourceTrigger=PropertyChanged}"
+                     AutomationProperties.Name="{loc:Loc Browser_LineName}">
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Return" Command="{Binding GoToLineCommand}" />
+                </TextBox.InputBindings>
+            </TextBox>
+            <Button Content="{loc:Loc Doc_Time_Go}" Command="{Binding GoToLineCommand}" MinWidth="40" />
+            <Separator />
+            <TextBlock Text="{loc:Loc Browser_Time}" VerticalAlignment="Center" Margin="2,0,4,0" />
+            <TextBox Width="170" VerticalAlignment="Center" FontFamily="Consolas"
+                     Text="{Binding GoToTimeText, UpdateSourceTrigger=PropertyChanged}"
+                     ToolTip="{loc:Loc Doc_Time_Hint}"
+                     AutomationProperties.Name="{loc:Loc Browser_TimeName}">
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Return" Command="{Binding GoToTimeCommand}" />
+                </TextBox.InputBindings>
+            </TextBox>
+            <Button Content="{loc:Loc Doc_Time_Go}" Command="{Binding GoToTimeCommand}" MinWidth="40" />
+            <Separator />
+            <ToggleButton Content="⤓" MinWidth="30" IsChecked="{Binding FollowEnd}"
+                          AutomationProperties.Name="{loc:Loc Browser_Follow}" ToolTip="{loc:Loc Browser_Follow}" />
+            <Button Content="{loc:Loc Browser_ShowInDocument}" Command="{Binding ShowInDocumentCommand}"
+                    ToolTip="{loc:Loc Browser_ShowInDocument_ToolTip}" />
+            <Button Content="{loc:Loc Doc_Ctx_Copy}" Command="{Binding CopySelectedCommand}" />
+        </ToolBar>
+
+        <!-- ScrollUnit="Item": pixel scrolling over millions of rows makes the thumb useless and forces WPF to
+             estimate every row's height. VirtualFileLineList only materializes the pages the panel asks for. -->
+        <ListView Grid.Row="1" x:Name="LineListView"
+                  ItemsSource="{Binding Lines}"
+                  SelectedItem="{Binding SelectedLine, Mode=TwoWay}"
+                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
+                  VirtualizingPanel.IsVirtualizing="True"
+                  VirtualizingPanel.VirtualizationMode="Standard"
+                  VirtualizingPanel.ScrollUnit="Item"
+                  Style="{StaticResource LogListViewStyle}"
+                  FontFamily="Consolas" FontSize="{Binding LogFontSize}">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource LogListViewItemStyle}">
+                    <Setter Property="Background" Value="{Binding Background}" />
+                    <Setter Property="Foreground" Value="{Binding Foreground}" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.ItemTemplate>
+                <DataTemplate DataType="{x:Type models:LogLineViewModel}">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="{Binding LineNumber}" Opacity="0.6" MinWidth="70" Margin="0,0,8,0" />
+                        <TextBlock Text="{Binding Text}" />
+                    </StackPanel>
+                </DataTemplate>
+            </ListView.ItemTemplate>
+        </ListView>
+
+        <StatusBar Grid.Row="2" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
+            <StatusBarItem>
+                <TextBlock Text="{Binding TotalLines, StringFormat={loc:Loc Browser_TotalLinesFmt}}" />
+            </StatusBarItem>
+            <StatusBarItem Visibility="{Binding IsIndexing, Converter={StaticResource BoolToVisibilityConverter}}">
+                <ProgressBar Width="160" Height="12" Minimum="0" Maximum="1" Value="{Binding IndexProgress}" />
+            </StatusBarItem>
+            <StatusBarItem>
+                <TextBlock Text="{Binding StatusMessage}" />
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Text="{Binding FilePath}" Opacity="0.6" />
+            </StatusBarItem>
+        </StatusBar>
+    </Grid>
+</Window>

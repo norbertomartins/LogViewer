@@ -1417,6 +1417,33 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         return true;
     }
 
+    // --- Whole-file browser --------------------------------------------------------------------
+
+    /// <summary>Raised to open the virtualized whole-file browser, optionally positioned at a line or a time.</summary>
+    public event Action<FileBrowserTarget?>? FileBrowserRequested;
+
+    [RelayCommand]
+    private void BrowseWholeFile()
+    {
+        if (!RequestFileBrowser(SelectedLine is { LineNumber: > 0 } line ? new FileBrowserTarget(line.LineNumber, null) : null))
+        {
+            StatusMessage = Loc.Get("Vm_Doc_NotFileBacked");
+        }
+    }
+
+    /// <summary>Opens the whole-file browser when this document is file-backed; returns false (doing nothing)
+    /// otherwise, so callers can fall back to a status message.</summary>
+    public bool RequestFileBrowser(FileBrowserTarget? target)
+    {
+        if (SearchableFilePath is null)
+        {
+            return false;
+        }
+
+        FileBrowserRequested?.Invoke(target);
+        return true;
+    }
+
     public void Dispose()
     {
         LogLineParsers.CustomFormatsChanged -= OnCustomFormatsChanged;

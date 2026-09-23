@@ -3,6 +3,7 @@ using System.IO;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LogViewer.App.Localization;
+using LogViewer.App.Models;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.Search;
 using LogViewer.Core.Structured;
@@ -140,7 +141,10 @@ public sealed partial class SearchViewModel : ObservableObject
 
         if (!_document.TryNavigateToLineNumber(SelectedResult.LineNumber))
         {
-            StatusMessage = Loc.Get("Vm_Search_LineEvicted");
+            // Evicted from the ring buffer: show it in the whole-file browser instead (file-backed documents only).
+            StatusMessage = _document.RequestFileBrowser(new FileBrowserTarget(SelectedResult.LineNumber, null))
+                ? Loc.Get("Vm_Browser_OpenedAtLine")
+                : Loc.Get("Vm_Search_LineEvicted");
         }
     }
 

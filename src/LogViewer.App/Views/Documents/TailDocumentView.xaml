@@ -250,6 +250,8 @@
             </Menu>
             <ToggleButton Content="📊" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeline}"
                           AutomationProperties.Name="{loc:Loc Doc_Timeline_Name}" ToolTip="{loc:Loc Doc_Timeline_ToolTip}" />
+            <Button Content="📜" Style="{StaticResource IconButton}" Command="{Binding BrowseWholeFileCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_BrowseFile_Name}" ToolTip="{loc:Loc Doc_BrowseFile_ToolTip}" />
             <Button Content="📈" Style="{StaticResource IconButton}" Command="{Binding ShowStatsCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Stats_Name}" ToolTip="{loc:Loc Doc_Stats_ToolTip}" />
             <Button Content="🕸" Style="{StaticResource IconButton}" Command="{Binding ShowTraceTreeCommand}"
@@ -375,6 +377,8 @@
                                 <MenuItem Header="{loc:Loc Doc_Ctx_FilterByThreadId}"
                                           Command="{Binding PlacementTarget.Tag.FilterByThreadIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <MenuItem Header="{loc:Loc Doc_Ctx_BrowseFileHere}"
+                                          Command="{Binding PlacementTarget.Tag.BrowseWholeFileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
                                 <Separator />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_FindSimilarBlock}"
                                           Command="{Binding PlacementTarget.Tag.FindSimilarBlockCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"

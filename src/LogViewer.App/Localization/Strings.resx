@@ -533,6 +533,20 @@
   <data name="Palette_PrevHighlight" xml:space="preserve"><value>Previous Highlight</value></data>
   <data name="Palette_ToggleBookmark" xml:space="preserve"><value>Toggle Bookmark</value></data>
   <data name="Palette_CloseDoc" xml:space="preserve"><value>Close Document</value></data>
+  <data name="Browser_Follow" xml:space="preserve"><value>Follow the end of the file as it grows</value></data>
+  <data name="Browser_Line" xml:space="preserve"><value>Line:</value></data>
+  <data name="Browser_LineName" xml:space="preserve"><value>Go to line number</value></data>
+  <data name="Browser_ShowInDocument" xml:space="preserve"><value>Show in live view</value></data>
+  <data name="Browser_ShowInDocument_ToolTip" xml:space="preserve"><value>Select this line in the live document (only if it is still in its buffer)</value></data>
+  <data name="Browser_Time" xml:space="preserve"><value>Time:</value></data>
+  <data name="Browser_TimeName" xml:space="preserve"><value>Go to time</value></data>
+  <data name="Browser_TitleFmt" xml:space="preserve"><value>Whole file — {0}</value></data>
+  <data name="Browser_TotalLinesFmt" xml:space="preserve"><value>{0:N0} lines</value></data>
+  <data name="Doc_BrowseFile_Name" xml:space="preserve"><value>Browse whole file</value></data>
+  <data name="Doc_BrowseFile_ToolTip" xml:space="preserve"><value>Browse the entire file, including lines no longer in the live buffer (indexed, works with multi-GB files)</value></data>
+  <data name="Doc_Ctx_BrowseFileHere" xml:space="preserve"><value>Open in Whole-File View Here</value></data>
+  <data name="Doc_Time_Go" xml:space="preserve"><value>Go</value></data>
+  <data name="Doc_Time_Hint" xml:space="preserve"><value>Accepts 2026-09-23 14:05, 14:05:30, or relative to the newest line: -5m, -1h30m, +30s. Times are read as written in the log.</value></data>
   <data name="Formats_Add" xml:space="preserve"><value>Add</value></data>
   <data name="Formats_Col_Properties" xml:space="preserve"><value>Properties</value></data>
   <data name="Formats_Col_Timestamp" xml:space="preserve"><value>Timestamp</value></data>
@@ -550,7 +564,18 @@
   <data name="Formats_Utc" xml:space="preserve"><value>UTC</value></data>
   <data name="Formats_Utc_ToolTip" xml:space="preserve"><value>Timestamps without an offset are UTC (unchecked: local time)</value></data>
   <data name="Menu_Tools_CustomFormats" xml:space="preserve"><value>Custom Log _Formats...</value></data>
+  <data name="Palette_BrowseFile" xml:space="preserve"><value>Browse Whole File…</value></data>
   <data name="Palette_CustomFormats" xml:space="preserve"><value>Custom Log Formats…</value></data>
+  <data name="Vm_Browser_Failed" xml:space="preserve"><value>Could not read the file: {0}</value></data>
+  <data name="Vm_Browser_Indexing" xml:space="preserve"><value>Indexing file…</value></data>
+  <data name="Vm_Browser_InvalidLine" xml:space="preserve"><value>"{0}" is not a line number.</value></data>
+  <data name="Vm_Browser_LineClamped" xml:space="preserve"><value>The file has only {0:N0} lines — showing the last one.</value></data>
+  <data name="Vm_Browser_NotInBuffer" xml:space="preserve"><value>That line is no longer in the live view's buffer.</value></data>
+  <data name="Vm_Browser_Searching" xml:space="preserve"><value>Searching…</value></data>
+  <data name="Vm_Doc_NotFileBacked" xml:space="preserve"><value>Only available for file-based documents.</value></data>
+  <data name="Vm_Doc_TimeInvalid" xml:space="preserve"><value>Could not read "{0}" as a time — try 2026-09-23 14:05, 14:05:30 or -5m.</value></data>
+  <data name="Vm_Doc_TimeNotFound" xml:space="preserve"><value>No line at or after {0}.</value></data>
+  <data name="Vm_Browser_OpenedAtLine" xml:space="preserve"><value>That line has left the live buffer — opened it in the whole-file view.</value></data>
   <data name="Vm_Formats_CopyName" xml:space="preserve"><value>{0} Copy</value></data>
   <data name="Vm_Formats_NewName" xml:space="preserve"><value>New format</value></data>
   <data name="Vm_Formats_SampleSummary" xml:space="preserve"><value>{0} of {1} sample lines matched.</value></data>
