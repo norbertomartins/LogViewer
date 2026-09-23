@@ -182,6 +182,19 @@ public sealed class Phase9UITests : IDisposable
             "The status bar did not report the correlation filter.");
     }
 
+    [Fact]
+    public void LogList_FillsTheDocument_WhenNoLineIsSelected()
+    {
+        // Regression: with no selection the detail-panel row used to reserve ~220px of empty space.
+        var window = LaunchRestoring("checkout-service.log", "correlation");
+        var list = UiHelpers.WaitFor(() => window.TryByAutomationId("LineListView"), "log list view");
+        Assert.True(UiHelpers.WaitUntil(() => list.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem)).Length > 0));
+
+        var windowHeight = window.BoundingRectangle.Height;
+        var listHeight = list.BoundingRectangle.Height;
+        Assert.True(listHeight > windowHeight * 0.7, $"The log list is only {listHeight}px of a {windowHeight}px window.");
+    }
+
     public void Dispose()
     {
         try

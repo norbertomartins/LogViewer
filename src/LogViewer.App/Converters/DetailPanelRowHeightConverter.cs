@@ -12,7 +12,10 @@ public sealed class DetailPanelRowHeightConverter : IMultiValueConverter
     public object Convert(object[] values, Type targetType, object? parameter, CultureInfo culture)
     {
         var height = values.Length > 0 && values[0] is double h ? h : 220d;
-        var hasStructuredDetail = values.Length > 1 && values[1] is not null;
+        // A MultiBinding hands over DependencyProperty.UnsetValue (not null) when the path can't resolve — e.g.
+        // SelectedLine is null, so "SelectedLine.Structured" has nothing to read. That must collapse the row too,
+        // or a document with no selection reserves an empty band the size of the detail panel.
+        var hasStructuredDetail = values.Length > 1 && values[1] is not null && values[1] != DependencyProperty.UnsetValue;
         return hasStructuredDetail ? new GridLength(height) : new GridLength(0);
     }
 
