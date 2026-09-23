@@ -654,4 +654,6 @@
   <data name="Vm_FilterView_NothingToSave" xml:space="preserve"><value>Nenhum filtro ativo — nada para guardar.</value></data>
   <data name="Palette_SaveFilterView" xml:space="preserve"><value>Guardar filtros atuais como vista…</value></data>
   <data name="Palette_ApplyFilterViewFmt" xml:space="preserve"><value>Aplicar vista de filtro: {0}</value></data>
+  <data name="Doc_Ctx_FilterAllByCorrelation" xml:space="preserve"><value>Filtrar todos os documentos por ID de correlação</value></data>
+  <data name="Vm_Correlation_AllDocuments" xml:space="preserve"><value>Todos os documentos filtrados por "{0}" — {1} de {2} têm linhas correspondentes.</value></data>
 </root>
