@@ -583,6 +583,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.FindSimilarBlockRequested += line => ShowSimilarBlockDialog(document, line);
         document.StatsRequested += () => ShowDocumentStatsDialog(document);
         document.TraceTreeRequested += traceId => ShowTraceTreeDialog(document, traceId);
+        document.FileBrowserRequested += target => ShowFileBrowser(document, target);
 
         Documents.Add(document);
         ActiveDocument = document;
@@ -639,6 +640,29 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private void ShowTraceTreeDialog(TailDocumentViewModel document, string? initialTraceId) =>
         _dialogService.ShowTraceTreeDialog(document, initialTraceId);
+
+    private void ShowFileBrowser(TailDocumentViewModel document, FileBrowserTarget? target)
+    {
+        if (document.SearchableFilePath is not { } path)
+        {
+            return;
+        }
+
+        var viewModel = new FileBrowserViewModel(
+            path,
+            document.Title,
+            _settings.HighlightPresets,
+            _currentThemeMode,
+            _settings.LogFontSize,
+            target,
+            lineNumber =>
+            {
+                ActiveDocument = document;
+                return document.TryNavigateToLineNumber(lineNumber);
+            },
+            document.StructuredFormatId);
+        _dialogService.ShowFileBrowserDialog(viewModel);
+    }
 
     /// <summary>Opens the custom-format editor, its preview prefilled with the active document's newest lines,
     /// and applies + persists the result immediately so every open document's picker picks it up.</summary>
@@ -864,6 +888,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             list.Add(new PaletteCommand(Loc.Get("Palette_Customize"), activeCat, () => active.CustomizeCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_Stats"), activeCat, () => active.ShowStatsCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_TraceTree"), activeCat, () => active.ShowTraceTreeCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_BrowseFile"), activeCat, () => active.BrowseWholeFileCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_NextHighlight"), activeCat, () => active.NextHighlightCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_PrevHighlight"), activeCat, () => active.PreviousHighlightCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_ToggleBookmark"), activeCat, () => active.ToggleBookmarkCommand.Execute(null)));
