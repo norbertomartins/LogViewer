@@ -209,6 +209,23 @@ public sealed class Phase9UITests : IDisposable
         Assert.Contains("Delete View", names);
     }
 
+    [Fact]
+    public void FileMenu_OpensTheContainerLogsDialog_AndReportsTheCliState()
+    {
+        var window = LaunchRestoring("checkout-service.log", "correlation");
+
+        UiHelpers.InvokeMenuPath(window, "File", "Open Container Logs (Docker / Kubernetes)...");
+
+        var dialog = WaitForTopLevelWindow("Open Container Logs");
+        Assert.NotNull(UiHelpers.WaitFor(() => dialog.FindFirstDescendant(cf => cf.ByName("Container / pod").And(cf.ByControlType(ControlType.ComboBox))), "target picker"));
+
+        // Whether or not docker is installed here, the dialog must finish asking and say something (a list or an error).
+        Assert.True(UiHelpers.WaitUntil(() => dialog.FindAllDescendants(cf => cf.ByControlType(ControlType.Text))
+            .Any(t => t.Name.Contains("docker", StringComparison.OrdinalIgnoreCase) || t.Name.Contains("Nothing running", StringComparison.Ordinal))
+            || dialog.FindFirstDescendant(cf => cf.ByControlType(ControlType.ComboBox))?.AsComboBox().Items.Length > 0));
+        dialog.Close();
+    }
+
     public void Dispose()
     {
         try

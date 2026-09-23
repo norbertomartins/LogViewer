@@ -663,4 +663,16 @@
   <data name="Doc_Detail_Continuation" xml:space="preserve"><value>Continuation lines</value></data>
   <data name="Palette_Cat_Archive" xml:space="preserve"><value>Archive {0}</value></data>
   <data name="Palette_OpenAllEntriesFmt" xml:space="preserve"><value>Open all {0} files</value></data>
+  <data name="Containers_Title" xml:space="preserve"><value>Open Container Logs</value></data>
+  <data name="Containers_Context" xml:space="preserve"><value>Context (optional)</value></data>
+  <data name="Containers_Context_ToolTip" xml:space="preserve"><value>kubectl context; empty = the current context</value></data>
+  <data name="Containers_Namespace" xml:space="preserve"><value>Namespace (optional)</value></data>
+  <data name="Containers_Target" xml:space="preserve"><value>Container / pod</value></data>
+  <data name="Containers_Container" xml:space="preserve"><value>Container in the pod (optional)</value></data>
+  <data name="Containers_TailLines" xml:space="preserve"><value>Start with the last</value></data>
+  <data name="Containers_Timestamps" xml:space="preserve"><value>Add timestamps (--timestamps)</value></data>
+  <data name="Vm_Containers_Loading" xml:space="preserve"><value>Asking the CLI…</value></data>
+  <data name="Vm_Containers_NoneRunning" xml:space="preserve"><value>Nothing running — you can still type a name.</value></data>
+  <data name="Menu_File_OpenContainerLogs" xml:space="preserve"><value>Open _Container Logs (Docker / Kubernetes)...</value></data>
+  <data name="Palette_OpenContainerLogs" xml:space="preserve"><value>Open Container Logs (Docker / Kubernetes)…</value></data>
 </root>

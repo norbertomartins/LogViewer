@@ -487,6 +487,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         return document!;
     }
 
+    /// <summary>Follows a Docker container's or Kubernetes pod's logs — a <c>docker/kubectl logs -f</c> process tail,
+    /// so it relaunches if the stream drops and is restored with the session like any command tail.</summary>
+    [RelayCommand]
+    private void OpenContainerLogs()
+    {
+        var request = _dialogService.ShowOpenContainerLogsDialog();
+        if (request is null)
+        {
+            return;
+        }
+
+        var (fileName, arguments) = ContainerLogs.BuildCommand(request);
+        OpenProcessTail(fileName, arguments, restartOnExit: true);
+    }
+
     [RelayCommand]
     private void OpenSshTail()
     {
@@ -966,6 +981,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             new(Loc.Get("Palette_OpenEventLog"), file, () => OpenEventLogCommand.Execute(null)),
             new(Loc.Get("Palette_OpenRemote"), file, () => OpenRemoteEndpointCommand.Execute(null)),
             new(Loc.Get("Palette_OpenCommand"), file, () => OpenProcessTailCommand.Execute(null)),
+            new(Loc.Get("Palette_OpenContainerLogs"), file, () => OpenContainerLogsCommand.Execute(null)),
             new(Loc.Get("Palette_OpenSsh"), file, () => OpenSshTailCommand.Execute(null)),
             new(Loc.Get("Palette_OpenEtw"), file, () => OpenEtwTailCommand.Execute(null)),
             new(Loc.Get("Palette_WindowTabbed"), window, () => SwitchWindowModeCommand.Execute("Tabbed")),

@@ -663,4 +663,16 @@
   <data name="Doc_Detail_Continuation" xml:space="preserve"><value>Linhas de continuação</value></data>
   <data name="Palette_Cat_Archive" xml:space="preserve"><value>Arquivo {0}</value></data>
   <data name="Palette_OpenAllEntriesFmt" xml:space="preserve"><value>Abrir os {0} ficheiros</value></data>
+  <data name="Containers_Title" xml:space="preserve"><value>Abrir logs de contentor</value></data>
+  <data name="Containers_Context" xml:space="preserve"><value>Contexto (opcional)</value></data>
+  <data name="Containers_Context_ToolTip" xml:space="preserve"><value>Contexto do kubectl; vazio = o contexto atual</value></data>
+  <data name="Containers_Namespace" xml:space="preserve"><value>Namespace (opcional)</value></data>
+  <data name="Containers_Target" xml:space="preserve"><value>Contentor / pod</value></data>
+  <data name="Containers_Container" xml:space="preserve"><value>Contentor dentro do pod (opcional)</value></data>
+  <data name="Containers_TailLines" xml:space="preserve"><value>Começar pelas últimas</value></data>
+  <data name="Containers_Timestamps" xml:space="preserve"><value>Adicionar data/hora (--timestamps)</value></data>
+  <data name="Vm_Containers_Loading" xml:space="preserve"><value>A consultar a CLI…</value></data>
+  <data name="Vm_Containers_NoneRunning" xml:space="preserve"><value>Nada em execução — pode escrever um nome à mão.</value></data>
+  <data name="Menu_File_OpenContainerLogs" xml:space="preserve"><value>Abrir logs de _contentor (Docker / Kubernetes)...</value></data>
+  <data name="Palette_OpenContainerLogs" xml:space="preserve"><value>Abrir logs de contentor (Docker / Kubernetes)…</value></data>
 </root>

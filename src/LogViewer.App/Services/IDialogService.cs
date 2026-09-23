@@ -8,6 +8,7 @@ using LogViewer.Core.ExternalTools;
 using LogViewer.Core.Highlighting;
 using LogViewer.Core.Search;
 using LogViewer.Core.Structured;
+using LogViewer.Core.Tailing;
 
 namespace LogViewer.App.Services;
 
@@ -58,6 +59,9 @@ public interface IDialogService
     HttpTailSelection? ShowOpenHttpTailDialog();
 
     ProcessTailSelection? ShowOpenProcessTailDialog();
+
+    /// <summary>Opens the Docker/Kubernetes container-logs picker. Returns what to follow, or null if cancelled.</summary>
+    ContainerLogRequest? ShowOpenContainerLogsDialog();
 
     SshTailSelection? ShowOpenSshTailDialog();
 
