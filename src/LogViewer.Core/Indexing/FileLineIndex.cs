@@ -146,6 +146,7 @@ public sealed partial class FileLineIndex
             var position = indexedOffset;
             var lineCount = CompleteLineCountSnapshot();
             var newCheckpoints = new List<long>();
+            var lineEnds = new List<long>();
 
             while (position < length)
             {
@@ -160,7 +161,8 @@ public sealed partial class FileLineIndex
 
                 var chunk = buffer.AsSpan(0, read);
                 var lastLineStart = -1L;
-                foreach (var newlineEnd in FindLineEnds(chunk, position))
+                FindLineEnds(chunk, position, lineEnds);
+                foreach (var newlineEnd in lineEnds)
                 {
                     lineCount++;
                     lastLineStart = newlineEnd;
@@ -222,10 +224,11 @@ public sealed partial class FileLineIndex
 
     /// <summary>Yields, for every newline in <paramref name="chunk"/> (which starts at absolute
     /// <paramref name="chunkOffset"/>), the absolute offset of the byte right after it — i.e. the start of the
-    /// next line. Multi-byte encodings (UTF-16/32) only match newlines aligned to the code-unit size.</summary>
-    private List<long> FindLineEnds(ReadOnlySpan<byte> chunk, long chunkOffset)
+    /// next line. Multi-byte encodings (UTF-16/32) only match newlines aligned to the code-unit size. Fills the
+    /// caller's reusable <paramref name="ends"/> (cleared first) — a fresh list per chunk cost ~25 bytes per line.</summary>
+    private void FindLineEnds(ReadOnlySpan<byte> chunk, long chunkOffset, List<long> ends)
     {
-        var ends = new List<long>();
+        ends.Clear();
         if (_newline.Length == 1)
         {
             var start = 0;
@@ -236,7 +239,7 @@ public sealed partial class FileLineIndex
                 ends.Add(chunkOffset + start);
             }
 
-            return ends;
+            return;
         }
 
         var unit = _newline.Length;
@@ -249,8 +252,6 @@ public sealed partial class FileLineIndex
                 ends.Add(chunkOffset + i + unit);
             }
         }
-
-        return ends;
     }
 
     /// <summary>
@@ -264,6 +265,23 @@ public sealed partial class FileLineIndex
             return [];
         }
 
+        var result = new List<IndexedLine>(Math.Min(count, 4096));
+        ScanLines(firstLineNumber, firstLineNumber + count - 1, line =>
+        {
+            result.Add(line);
+            return true;
+        });
+        return result;
+    }
+
+    /// <summary>
+    /// Streams lines <paramref name="firstLineNumber"/>..<paramref name="lastLineNumber"/> (clamped to the indexed
+    /// file) to <paramref name="visit"/> in order, stopping early when it returns false. Each line is decoded straight
+    /// from the read buffer and handed over at once, so a whole-file pass (count, search) keeps nothing alive between
+    /// lines — materializing pages first pushed every decoded string into gen2.
+    /// </summary>
+    private void ScanLines(long firstLineNumber, long lastLineNumber, Func<IndexedLine, bool> visit)
+    {
         long checkpointOffset;
         long checkpointLine;
         long lineCount;
@@ -272,13 +290,13 @@ public sealed partial class FileLineIndex
         {
             if (_encoding is null || _checkpoints.Count == 0)
             {
-                return [];
+                return;
             }
 
             lineCount = _completeLineCount + (_fileLength > _indexedOffset ? 1 : 0);
             if (firstLineNumber > lineCount)
             {
-                return [];
+                return;
             }
 
             var k = (int)Math.Min((firstLineNumber - 1) / Stride, _checkpoints.Count - 1);
@@ -287,8 +305,7 @@ public sealed partial class FileLineIndex
             encoding = _encoding;
         }
 
-        var wantedLast = Math.Min(lineCount, firstLineNumber + count - 1);
-        var result = new List<IndexedLine>((int)(wantedLast - firstLineNumber + 1));
+        var wantedLast = Math.Min(lineCount, lastLineNumber);
 
         using var stream = OpenShared();
         stream.Position = checkpointOffset;
@@ -296,6 +313,7 @@ public sealed partial class FileLineIndex
         var pool = ArrayPool<byte>.Shared;
         var buffer = pool.Rent(64 * 1024);
         var pending = new ArrayBufferWriter<byte>();
+        var lineEnds = new List<long>();
         try
         {
             var lineNumber = checkpointLine;
@@ -307,13 +325,27 @@ public sealed partial class FileLineIndex
             {
                 var chunk = buffer.AsSpan(0, read);
                 var consumed = 0;
-                foreach (var end in FindLineEnds(chunk, position))
+                FindLineEnds(chunk, position, lineEnds);
+                foreach (var end in lineEnds)
                 {
                     var endInChunk = (int)(end - position);
                     if (lineNumber >= firstLineNumber)
                     {
-                        pending.Write(chunk[consumed..endInChunk]);
-                        result.Add(new IndexedLine(lineNumber, lineStart, Decode(encoding, pending.WrittenSpan, stripNewline: true)));
+                        string text;
+                        if (pending.WrittenCount == 0)
+                        {
+                            text = Decode(encoding, chunk[consumed..endInChunk], stripNewline: true);
+                        }
+                        else
+                        {
+                            pending.Write(chunk[consumed..endInChunk]);
+                            text = Decode(encoding, pending.WrittenSpan, stripNewline: true);
+                        }
+
+                        if (!visit(new IndexedLine(lineNumber, lineStart, text)))
+                        {
+                            return;
+                        }
                     }
 
                     pending.Clear();
@@ -337,15 +369,13 @@ public sealed partial class FileLineIndex
             // Trailing line with no terminating newline.
             if (lineNumber <= wantedLast && lineNumber >= firstLineNumber && pending.WrittenCount > 0)
             {
-                result.Add(new IndexedLine(lineNumber, lineStart, Decode(encoding, pending.WrittenSpan, stripNewline: false)));
+                visit(new IndexedLine(lineNumber, lineStart, Decode(encoding, pending.WrittenSpan, stripNewline: false)));
             }
         }
         finally
         {
             pool.Return(buffer);
         }
-
-        return result;
     }
 
     /// <summary>
@@ -445,30 +475,27 @@ public sealed partial class FileLineIndex
 
         if (forward)
         {
-            var next = Math.Max(1, fromLine + 1);
-            var span = Math.Max(1, total - next + 1);
-            while (next <= total)
+            var first = Math.Max(1, fromLine + 1);
+            var span = Math.Max(1, total - first + 1);
+            IndexedLine? found = null;
+            cancellationToken.ThrowIfCancellationRequested();
+            ScanLines(first, total, line =>
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var page = ReadLines(next, Stride);
-                if (page.Count == 0)
+                if (isMatch(line.Text))
                 {
-                    break;
+                    found = line;
+                    return false;
                 }
 
-                foreach (var line in page)
+                if (line.LineNumber % Stride == 0)
                 {
-                    if (isMatch(line.Text))
-                    {
-                        return line;
-                    }
+                    cancellationToken.ThrowIfCancellationRequested();
+                    progress?.Report(Math.Min(1, (double)(line.LineNumber - fromLine) / span));
                 }
 
-                next = page[^1].LineNumber + 1;
-                progress?.Report(Math.Min(1, (double)(next - fromLine) / span));
-            }
-
-            return null;
+                return true;
+            });
+            return found;
         }
 
         var end = Math.Min(fromLine - 1, total); // last line still to check, scanning downwards
@@ -498,28 +525,23 @@ public sealed partial class FileLineIndex
     {
         var total = LineCount;
         long count = 0;
-        var next = 1L;
-        while (next <= total)
+        cancellationToken.ThrowIfCancellationRequested();
+        ScanLines(1, total, line =>
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            var page = ReadLines(next, Stride * 4);
-            if (page.Count == 0)
+            if (isMatch(line.Text))
             {
-                break;
+                count++;
             }
 
-            foreach (var line in page)
+            if (line.LineNumber % (Stride * 4) == 0)
             {
-                if (isMatch(line.Text))
-                {
-                    count++;
-                }
+                cancellationToken.ThrowIfCancellationRequested();
+                progress?.Report((double)line.LineNumber / total);
             }
 
-            next = page[^1].LineNumber + 1;
-            progress?.Report((double)(next - 1) / total);
-        }
-
+            return true;
+        });
+        progress?.Report(1);
         return count;
     }
 
