@@ -621,4 +621,14 @@
   <data name="Vm_Formats_CopyName" xml:space="preserve"><value>{0} (cópia)</value></data>
   <data name="Vm_Formats_NewName" xml:space="preserve"><value>Novo formato</value></data>
   <data name="Vm_Formats_SampleSummary" xml:space="preserve"><value>{0} de {1} linhas de exemplo reconhecidas.</value></data>
+  <data name="Browser_SearchName" xml:space="preserve"><value>Pesquisar no ficheiro completo</value></data>
+  <data name="Browser_Search_ToolTip" xml:space="preserve"><value>Pesquisar no ficheiro completo — Enter / F3: seguinte, Shift+Enter / Shift+F3: anterior</value></data>
+  <data name="Browser_FindNext" xml:space="preserve"><value>Resultado seguinte (F3)</value></data>
+  <data name="Browser_FindPrevious" xml:space="preserve"><value>Resultado anterior (Shift+F3)</value></data>
+  <data name="Browser_CountMatches" xml:space="preserve"><value>Contar todos os resultados no ficheiro</value></data>
+  <data name="Browser_CancelSearch" xml:space="preserve"><value>Cancelar pesquisa</value></data>
+  <data name="Vm_Browser_NoMatch" xml:space="preserve"><value>Nenhuma linha corresponde a "{0}".</value></data>
+  <data name="Vm_Browser_WrappedToStart" xml:space="preserve"><value>Chegou ao fim do ficheiro — continuou a partir do início.</value></data>
+  <data name="Vm_Browser_WrappedToEnd" xml:space="preserve"><value>Chegou ao início do ficheiro — continuou a partir do fim.</value></data>
+  <data name="Vm_Browser_MatchCount" xml:space="preserve"><value>{0:N0} linhas correspondentes</value></data>
 </root>

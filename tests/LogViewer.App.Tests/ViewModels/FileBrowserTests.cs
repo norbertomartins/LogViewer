@@ -54,5 +54,33 @@ public sealed class FileBrowserTests : IDisposable
         Assert.Equal([3000L], shown);
     }
 
+    [Fact]
+    public async Task Search_FindsNextAndPrevious_WrapsAround_AndCounts()
+    {
+        var path = _tempDir.CreateFile("s.log", string.Concat(Enumerable.Range(1, 4000).Select(i => i % 1000 == 0 ? $"ERROR boom {i}\n" : $"INFO ok {i}\n")));
+        using var vm = new FileBrowserViewModel(path, "s.log", [], ThemeBaseMode.Light, 12, new FileBrowserTarget(1, null), null);
+        await vm.InitializeAsync();
+
+        vm.SearchText = "error";
+        await vm.FindNextCommand.ExecuteAsync(null);
+        Assert.Equal(1000, vm.SelectedLine?.LineNumber);
+
+        await vm.FindNextCommand.ExecuteAsync(null);
+        Assert.Equal(2000, vm.SelectedLine?.LineNumber);
+
+        await vm.FindPreviousCommand.ExecuteAsync(null);
+        Assert.Equal(1000, vm.SelectedLine?.LineNumber);
+
+        await vm.FindPreviousCommand.ExecuteAsync(null); // wraps to the last match
+        Assert.Equal(4000, vm.SelectedLine?.LineNumber);
+        Assert.NotNull(vm.StatusMessage);
+
+        vm.SearchIsRegex = true;
+        vm.SearchText = @"boom \d000";
+        await vm.CountMatchesCommand.ExecuteAsync(null);
+        Assert.Contains("4", vm.MatchCountText);
+        Assert.False(vm.IsSearching);
+    }
+
     public void Dispose() => _tempDir.Dispose();
 }

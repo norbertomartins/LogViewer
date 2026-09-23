@@ -1,5 +1,6 @@
 using System.Text;
 using LogViewer.Core.Indexing;
+using LogViewer.Core.Search;
 using LogViewer.Core.Tailing;
 using LogViewer.Core.Tests.TestUtilities;
 
@@ -132,5 +133,51 @@ public sealed class FileLineIndexTests
         Assert.Equal(1231, index.FindFirstLineAtOrAfter(start.AddSeconds(1229.5), MergedTimestampExtractor.TryExtract));
         Assert.Equal(1, index.FindFirstLineAtOrAfter(start.AddDays(-1), MergedTimestampExtractor.TryExtract));
         Assert.Null(index.FindFirstLineAtOrAfter(start.AddDays(1), MergedTimestampExtractor.TryExtract));
+    }
+}
+
+public sealed class FileLineIndexSearchTests
+{
+    private static async Task<FileLineIndex> IndexOf(TempFileFixture file, int lines, Func<int, string> text)
+    {
+        file.WriteAllText(string.Concat(Enumerable.Range(1, lines).Select(i => text(i) + "\n")));
+        var index = new FileLineIndex(file.FilePath, stride: 64);
+        await index.UpdateAsync();
+        return index;
+    }
+
+    [Fact]
+    public async Task FindNext_ScansForwardAndBackward_AcrossPages()
+    {
+        using var file = new TempFileFixture();
+        var index = await IndexOf(file, 1000, i => i % 250 == 0 ? $"ERROR at {i}" : $"info {i}");
+        Assert.True(LineMatcher.TryCreate("error", isRegex: false, caseSensitive: false, out var isMatch, out _));
+
+        Assert.Equal(250, index.FindNext(0, forward: true, isMatch)?.LineNumber);
+        Assert.Equal(500, index.FindNext(250, forward: true, isMatch)?.LineNumber);
+        Assert.Null(index.FindNext(1000, forward: true, isMatch));
+
+        Assert.Equal(750, index.FindNext(1000, forward: false, isMatch)?.LineNumber);
+        Assert.Equal(250, index.FindNext(500, forward: false, isMatch)?.LineNumber);
+        Assert.Null(index.FindNext(250, forward: false, isMatch));
+    }
+
+    [Fact]
+    public async Task CountMatches_CountsEveryMatchingLine()
+    {
+        using var file = new TempFileFixture();
+        var index = await IndexOf(file, 700, i => i % 7 == 0 ? $"req-{i} failed" : $"req-{i} ok");
+        Assert.True(LineMatcher.TryCreate(@"req-\d+ failed", isRegex: true, caseSensitive: true, out var isMatch, out _));
+
+        Assert.Equal(100, index.CountMatches(isMatch));
+    }
+
+    [Theory]
+    [InlineData("", false)]
+    [InlineData("(open", true)]
+    public void LineMatcher_RejectsEmptyAndInvalidPatterns(string pattern, bool isRegex)
+    {
+        Assert.False(LineMatcher.TryCreate(pattern, isRegex, caseSensitive: false, out _, out var error));
+        Assert.False(string.IsNullOrEmpty(error));
     }
 }
