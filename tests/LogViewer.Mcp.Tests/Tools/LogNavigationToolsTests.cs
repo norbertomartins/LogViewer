@@ -57,6 +57,35 @@ public sealed class LogNavigationToolsTests
     }
 
     [Fact]
+    public async Task GetNewLinesSince_PagesThroughTheFile_AndFollowsAppends()
+    {
+        using var fixture = new TempFileFixture();
+        fixture.WriteAllText("a\nb\nc\nd\ne\n");
+        var tools = new LogNavigationTools(new FakeCatalog([]));
+
+        var first = await tools.GetNewLinesSince(fixture.FilePath, 0, 3, CancellationToken.None);
+        Assert.Equal(["a", "b", "c"], first.Lines.Select(l => l.Text));
+        Assert.Equal(3, first.NextCursor);
+        Assert.True(first.HasMore);
+
+        var rest = await tools.GetNewLinesSince(fixture.FilePath, first.NextCursor, 10, CancellationToken.None);
+        Assert.Equal(["d", "e"], rest.Lines.Select(l => l.Text));
+        Assert.False(rest.HasMore);
+
+        File.AppendAllText(fixture.FilePath, "f\n");
+        var appended = await tools.GetNewLinesSince(fixture.FilePath, rest.NextCursor, 10, CancellationToken.None);
+        Assert.Equal(["f"], appended.Lines.Select(l => l.Text));
+
+        var tail = await tools.GetNewLinesSince(fixture.FilePath, -1, 2, CancellationToken.None);
+        Assert.Equal(["e", "f"], tail.Lines.Select(l => l.Text));
+
+        fixture.WriteAllText("new\n"); // truncated/rotated
+        var reset = await tools.GetNewLinesSince(fixture.FilePath, appended.NextCursor, 10, CancellationToken.None);
+        Assert.True(reset.FileWasReset);
+        Assert.Equal(["new"], reset.Lines.Select(l => l.Text));
+    }
+
+    [Fact]
     public async Task GetBookmarks_ReturnsBookmarkedLinesWithText()
     {
         using var fixture = new TempFileFixture();

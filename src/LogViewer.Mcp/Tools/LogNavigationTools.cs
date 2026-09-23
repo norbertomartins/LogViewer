@@ -12,6 +12,8 @@ public sealed record BookmarkDto(long LineNumber, string? Text);
 
 public sealed record DocumentBookmarks(string SourcePath, string Title, IReadOnlyList<BookmarkDto> Bookmarks, bool Truncated);
 
+public sealed record NewLinesResult(IReadOnlyList<SearchResultDto> Lines, long NextCursor, bool HasMore, long TotalLines, bool FileWasReset);
+
 public sealed record TimeRangeToolResult(string? From, string? To, IReadOnlyList<SearchResultDto> Lines, bool Truncated, string? Error);
 
 [McpServerToolType]
@@ -48,6 +50,34 @@ public sealed class LogNavigationTools(IOpenDocumentCatalog documentCatalog)
         }
 
         return result;
+    }
+
+    [McpServerTool(Name = "logs_get_new_lines_since")]
+    [Description(
+        "Follows a log like 'tail -f' without re-reading it: returns the lines after line number 'afterLine' " +
+        "(0 = from the start; pass -1 to get only the newest maxResults lines) plus a 'nextCursor' to pass as " +
+        "'afterLine' on the next call. 'fileWasReset' is true when the file is now shorter than the cursor " +
+        "(truncated/rotated) — the lines then restart from the beginning of the new file.")]
+    public async Task<NewLinesResult> GetNewLinesSince(
+        [Description("Full path to the log file.")] string sourcePath,
+        [Description("Cursor from the previous call (last line number already seen), 0 for the start, -1 for the tail.")] long afterLine,
+        [Description("Maximum number of lines to return.")] int maxResults,
+        CancellationToken cancellationToken)
+    {
+        var cap = ResponseLimits.ClampRows(maxResults);
+        var index = await FileLineIndexCache.GetAsync(sourcePath, cancellationToken).ConfigureAwait(false);
+        var total = index.LineCount;
+
+        var reset = afterLine > total;
+        var from = afterLine < 0 ? Math.Max(1, total - cap + 1) : reset ? 1 : afterLine + 1;
+        var lines = index.ReadLines(from, cap);
+        var next = lines.Count > 0 ? lines[^1].LineNumber : Math.Min(Math.Max(afterLine, 0), total);
+        return new NewLinesResult(
+            lines.Select(l => new SearchResultDto(l.LineNumber, ResponseLimits.Truncate(l.Text))).ToList(),
+            next,
+            next < total,
+            total,
+            reset);
     }
 
     [McpServerTool(Name = "logs_query_time_range")]
