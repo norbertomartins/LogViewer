@@ -29,6 +29,28 @@ public sealed class FilePatternFrequencyAnalyzerTests
     }
 
     [Fact]
+    public async Task AnalyzeBySignatureAsync_GroupsPlainTextLinesByMaskedShape()
+    {
+        using var fixture = new TempFileFixture();
+        fixture.WriteAllText(string.Join('\n',
+        [
+            "2026-02-15 09:00:03.000 [WARN] Gateway slow: 372ms for pay_632084",
+            "2026-02-15 09:00:04.000 [INFO] Payment pay_514002 captured",
+            "2026-02-15 09:00:09.000 [WARN] Gateway slow: 1283ms for pay_666950",
+            "2026-02-15 09:00:12.000 [WARN] Gateway slow: 90ms for pay_151998",
+            string.Empty,
+        ]));
+
+        var analyzer = new FilePatternFrequencyAnalyzer();
+        var result = await analyzer.AnalyzeBySignatureAsync(fixture.FilePath, minLevel: null, topN: 10, CancellationToken.None);
+
+        Assert.Equal(2, result.Count);
+        Assert.Equal(3, result[0].Count);
+        Assert.Equal("Warning", result[0].Level);
+        Assert.Equal(1, result[0].FirstLineNumber);
+    }
+
+    [Fact]
     public async Task AnalyzeBySignatureAsync_MinLevelFiltersOutLowerSeverityLines()
     {
         using var fixture = new TempFileFixture();

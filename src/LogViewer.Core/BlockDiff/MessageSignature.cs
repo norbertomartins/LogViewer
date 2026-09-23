@@ -36,8 +36,9 @@ public static class MessageSignature
 
     // No trailing \b: a duration/count is often immediately followed by a unit suffix with no
     // separator ("120ms", "42%"), where \d and the following letter are both word characters and
-    // therefore share no boundary — requiring one there would leave the digits unmasked.
-    private static readonly Regex NumberPattern = new(@"-?\b\d+(\.\d+)?", RegexOptions.Compiled);
+    // therefore share no boundary — requiring one there would leave the digits unmasked. Likewise digits right
+    // after an underscore ("pay_632084", "req_17") have no leading boundary, since '_' is a word character.
+    private static readonly Regex NumberPattern = new(@"-?(?:\b|(?<=_))\d+(\.\d+)?", RegexOptions.Compiled);
 
     private static readonly Regex WhitespacePattern = new(@"\s+", RegexOptions.Compiled);
 

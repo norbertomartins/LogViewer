@@ -6,7 +6,7 @@ namespace LogViewer.Core.Structured;
 /// <summary>
 /// Streams a file from the start (reusing <see cref="Search.FileFullTextSearchService"/>'s exact
 /// streaming approach: <see cref="EncodingDetector"/>/<see cref="LineSplitter"/>, a 64KB read buffer,
-/// never materializing the whole file) and yields every line that parses as Serilog JSON, paired with
+/// never materializing the whole file) and yields every line that parses as an event, paired with
 /// its 1-based line number. Shared by <see cref="BlockDiff.FileBlockScanService"/> and the
 /// pattern/property frequency analyzers so they all agree on the same streaming/parsing behavior.
 /// </summary>
@@ -15,11 +15,12 @@ public static class StructuredFileReader
     private const int ReadBufferSize = 64 * 1024;
 
     /// <summary>Streams a file, auto-detecting its structured format (Serilog/CLEF, NDJSON, logfmt, syslog,
-    /// W3C) from the first lines and falling back to Serilog when detection is inconclusive.</summary>
+    /// W3C) from the first lines. When detection is inconclusive each line is tried as Serilog and otherwise read
+    /// as plain text (<see cref="PlainTextLogLineParser"/>), so unstructured logs still yield one event per line.</summary>
     public static IAsyncEnumerable<(long LineNumber, StructuredLogEvent Event)> ReadAsync(
         string path, CancellationToken cancellationToken)
     {
-        var parser = LogLineParsers.Create(LogLineParsers.DetectFile(path)) ?? new SerilogLogLineParser();
+        var parser = LogLineParsers.Create(LogLineParsers.DetectFile(path)) ?? new FallbackLogLineParser(new SerilogLogLineParser(), new PlainTextLogLineParser());
         return ReadAsync(path, parser, cancellationToken);
     }
 
