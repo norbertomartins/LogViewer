@@ -78,6 +78,8 @@ architecture decisions.
   default, applied live over the tail in both plain and structured view and combinable with the
   trace/span/level filters.
 - Export the currently visible (filtered) lines to a file.
+- Incident report (Export ▸ Incident Report…): the bookmarked, annotated and selected lines with context plus the
+  file's most frequent exceptions, as Markdown or a self-contained HTML page.
 - Volume timeline: a collapsible histogram of line volume over time (error/warning/info stacked per time
   bucket), click a bar to jump to the first line in that bucket. Works on structured logs and on
   plain-text logs with a leading timestamp.
@@ -149,7 +151,8 @@ architecture decisions.
   the most errors, group distinct exceptions/stack traces (`logs_exception_groups`), and reuse the
   block-diff/similarity engine. It can also read the user's bookmarks and line notes (`logs_get_bookmarks`,
   `logs_get_notes`), the alerts each document raised (`logs_get_alerts`), a time range (`logs_query_time_range`) and
-  follow a file with a cursor (`logs_get_new_lines_since`).
+  follow a file with a cursor (`logs_get_new_lines_since`). A separate Settings opt-in lets it bookmark lines and add
+  `[AI]` notes to them (`logs_add_bookmark`, `logs_add_note`); it never modifies log files.
 
 ## Solution layout
 

@@ -408,6 +408,21 @@
     while the line still has that text. MCP `logs_get_notes` flags notes whose line changed.
   Tests: 333 Core / 30 Mcp / 219 App / 14 Phase-9+ FlaUI, all green.
 
+- **Phase 14 — fifth ROADMAP.md batch.** One commit per item on `phase-14-roadmap`.
+  - **MCP writes bookmarks and notes (6.4):** `logs_add_bookmark` / `logs_add_note`, registered with the MCP host only
+    when the new `Mcp.AllowAnnotationWrites` is on (schema v15; a separate Settings checkbox) — without it the agent
+    doesn't even see them. Core `IDocumentAnnotationWriter`, implemented by `WpfOpenDocumentCatalog` on the UI thread.
+    They touch only the app's annotations, never a file: the tool reads the line from the index (range check + the
+    text the note is tied to), agent notes are prefixed `[AI]` and appended after any user note, and each write shows
+    in the status bar. `McpServerHostTests` checks the tool list over the real Streamable HTTP transport.
+  - **Incident report (7.2):** Export ▸ Incident Report… (and the command palette). `IncidentReportBuilder` (Core)
+    takes the bookmarks, the notes still matching their line and the selected line, adds two lines of context
+    (overlapping windows merged; stale notes pull in nothing) and the file's ten most frequent `ExceptionGrouper`
+    groups; `IncidentReportFormatter` renders Markdown (fences longer than any backtick run in the text, markup
+    escaped) or one self-contained HTML page (light/dark, marked lines highlighted across horizontal scroll), by the
+    chosen extension, with labels in the UI language.
+  Tests: 339 Core / 38 Mcp / 225 App / 42 FlaUI, all green.
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was
