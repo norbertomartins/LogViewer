@@ -35,6 +35,27 @@ jobs:
       - name: Publish
         run: dotnet publish src/LogViewer.App/LogViewer.App.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
 
+      - name: Unblock and wait for published exe
+        shell: pwsh
+        run: |
+          $path = "publish/LogViewer.App.exe"
+          Unblock-File -Path $path -ErrorAction SilentlyContinue
+          $deadline = (Get-Date).AddSeconds(30)
+          $unlocked = $false
+          while ((Get-Date) -lt $deadline) {
+            try {
+              $stream = [System.IO.File]::Open($path, 'Open', 'Read', 'None')
+              $stream.Close()
+              $unlocked = $true
+              break
+            } catch {
+              Start-Sleep -Seconds 1
+            }
+          }
+          if (-not $unlocked) {
+            throw "Timed out waiting for $path to be unlocked."
+          }
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:

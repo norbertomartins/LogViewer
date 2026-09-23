@@ -44,6 +44,7 @@
 
         <ListView x:Name="ResultsList" Grid.Row="3" ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                   Style="{StaticResource LogListViewStyle}"
+                  ItemContainerStyle="{StaticResource LogListViewItemStyle}"
                   FontFamily="Consolas" FontSize="12" MouseDoubleClick="OnResultsDoubleClick">
             <ListView.View>
                 <GridView>
