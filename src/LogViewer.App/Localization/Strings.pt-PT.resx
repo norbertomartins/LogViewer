@@ -680,4 +680,7 @@
   <data name="Doc_Note_Name" xml:space="preserve"><value>Nota</value></data>
   <data name="Note_Title" xml:space="preserve"><value>Nota da linha</value></data>
   <data name="Note_Prompt" xml:space="preserve"><value>Nota para a linha {0} (vazia remove-a):</value></data>
+  <data name="Settings_McpAllowAnnotationWrites" xml:space="preserve"><value>Permitir ao agente de IA adicionar bookmarks e notas (nunca altera os ficheiros de log; é necessário reiniciar para aplicar)</value></data>
+  <data name="Vm_Mcp_AgentBookmarked" xml:space="preserve"><value>O agente de IA marcou a linha {0} em {1}</value></data>
+  <data name="Vm_Mcp_AgentNoted" xml:space="preserve"><value>O agente de IA adicionou uma nota à linha {0} em {1}</value></data>
 </root>

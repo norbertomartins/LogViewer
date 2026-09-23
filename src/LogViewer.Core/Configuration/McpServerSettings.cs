@@ -18,4 +18,8 @@ public sealed class McpServerSettings
     public bool RequireApiKeyHeader { get; set; }
 
     public string? ApiKey { get; set; }
+
+    /// <summary>Separate opt-in (off by default) for the tools that let the agent add bookmarks and notes. They only
+    /// touch the app's own annotations — log files are never modified.</summary>
+    public bool AllowAnnotationWrites { get; set; }
 }

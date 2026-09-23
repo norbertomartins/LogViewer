@@ -1216,7 +1216,19 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     }
 
     /// <summary>Adds, replaces or (for empty text) removes the note on <paramref name="line"/> and persists them.</summary>
-    public void SetNote(LogLineViewModel line, string? text)
+    public void SetNote(LogLineViewModel line, string? text) => SetNoteAt(line.LineNumber, line.Text, text);
+
+    /// <summary>Adds <paramref name="note"/> after the note already on a line — which need not be loaded in the view —
+    /// for the MCP write tools, so an agent never overwrites what the user wrote.</summary>
+    public void AppendNote(long lineNumber, string lineText, string note)
+    {
+        var existing = _notes.TryGetValue(lineNumber, out var current) && current.TextHash == LineAnnotationStore.HashText(lineText)
+            ? current.Note
+            : null;
+        SetNoteAt(lineNumber, lineText, existing is null ? note : existing + " · " + note);
+    }
+
+    private void SetNoteAt(long lineNumber, string lineText, string? text)
     {
         if (!CanAnnotate)
         {
@@ -1226,13 +1238,20 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var trimmed = text?.Trim();
         if (string.IsNullOrEmpty(trimmed))
         {
-            _notes.Remove(line.LineNumber);
-            line.Note = null;
+            _notes.Remove(lineNumber);
         }
         else
         {
-            _notes[line.LineNumber] = new LineAnnotation(line.LineNumber, LineAnnotationStore.HashText(line.Text), trimmed, DateTimeOffset.Now);
-            line.Note = trimmed;
+            _notes[lineNumber] = new LineAnnotation(lineNumber, LineAnnotationStore.HashText(lineText), trimmed, DateTimeOffset.Now);
+        }
+
+        foreach (var line in Lines)
+        {
+            if (line.LineNumber == lineNumber)
+            {
+                line.Note = null;
+                ApplyNote(line);
+            }
         }
 
         _annotationStore!.Set(SessionKey, [.. _notes.Values]);

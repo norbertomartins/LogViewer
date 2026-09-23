@@ -11,7 +11,7 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 14;
+    public int SchemaVersion { get; set; } = 15;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
 
