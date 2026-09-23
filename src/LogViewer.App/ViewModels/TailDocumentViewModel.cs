@@ -518,6 +518,8 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _source.SourceReset += (_, e) => _sink.EnqueueReset(e.Reason, e.SwitchedFilePath);
         _source.Error += (_, e) => System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => StatusMessage = e.Exception.Message);
 
+        LogLineParsers.CustomFormatsChanged += OnCustomFormatsChanged;
+
         _source.Start();
     }
 
@@ -559,8 +561,41 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     public bool IsStructuredFormatManuallyChosen { get; private set; }
 
 
-    /// <summary>Format ids offered in the picker, in detection-priority order.</summary>
-    public IReadOnlyList<string> AvailableStructuredFormats { get; } = LogLineParsers.FormatIds;
+    /// <summary>Formats offered in the picker (user-defined custom formats first, then the built-ins), refreshed
+    /// whenever the custom formats are edited.</summary>
+    public IReadOnlyList<StructuredFormatOption> AvailableStructuredFormats { get; private set; } = StructuredFormatOption.All();
+
+    /// <summary>Custom formats were added/edited/removed — refresh the picker, and rebuild this document's parser
+    /// when it uses a custom format so an edited pattern takes effect without reopening the document.</summary>
+    private void OnCustomFormatsChanged()
+    {
+        void Apply()
+        {
+            AvailableStructuredFormats = StructuredFormatOption.All();
+            OnPropertyChanged(nameof(AvailableStructuredFormats));
+
+            if (_structuredFormatId.StartsWith(CustomLogFormat.IdPrefix, StringComparison.Ordinal)
+                && LogLineParsers.Create(_structuredFormatId) is { } parser)
+            {
+                _lineParser = parser;
+                OnPropertyChanged(nameof(StructuredFormatName));
+                if (IsStructuredView)
+                {
+                    _ = ReprocessAllLinesSafeAsync();
+                }
+            }
+        }
+
+        var dispatcher = System.Windows.Application.Current?.Dispatcher;
+        if (dispatcher is null || dispatcher.CheckAccess())
+        {
+            Apply();
+        }
+        else
+        {
+            dispatcher.BeginInvoke(Apply);
+        }
+    }
 
     /// <summary>Human-readable name of the active structured parser, shown next to the "Structured View" toggle.</summary>
     public string StructuredFormatName => _lineParser.DisplayName;
@@ -1384,6 +1419,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public void Dispose()
     {
+        LogLineParsers.CustomFormatsChanged -= OnCustomFormatsChanged;
         _reprocessCts?.Cancel();
         _timelineRecomputeTimer?.Stop();
         _sink.LinesFlushed -= OnLinesFlushed;

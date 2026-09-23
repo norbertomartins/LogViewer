@@ -110,6 +110,7 @@
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
                 <MenuItem Header="{loc:Loc Menu_Tools_ExternalTools}" Command="{Binding EditExternalToolsCommand}" />
+                <MenuItem Header="{loc:Loc Menu_Tools_CustomFormats}" Command="{Binding EditCustomFormatsCommand}" />
                 <MenuItem Header="{loc:Loc Menu_Tools_Services}" Command="{Binding OpenServicesCommand}" />
                 <MenuItem Header="{loc:Loc Menu_Tools_Settings}" Command="{Binding OpenSettingsCommand}" />
                 <Separator />

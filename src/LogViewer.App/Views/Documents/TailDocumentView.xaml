@@ -131,7 +131,8 @@
             <ToggleButton Content="☰" Style="{StaticResource IconButton}" IsChecked="{Binding IsStructuredView}"
                           AutomationProperties.Name="{loc:Loc Doc_StructuredView_Name}"
                           ToolTip="{Binding StructuredFormatName, StringFormat={loc:Loc Doc_StructuredView_ToolTip}}" />
-            <ComboBox ItemsSource="{Binding AvailableStructuredFormats}" SelectedItem="{Binding StructuredFormatId}" Width="86"
+            <ComboBox ItemsSource="{Binding AvailableStructuredFormats}" DisplayMemberPath="Name" SelectedValuePath="Id"
+                      SelectedValue="{Binding StructuredFormatId}" Width="120"
                       AutomationProperties.Name="{loc:Loc Doc_StructuredFormat_Name}"
                       ToolTip="{Binding StructuredFormatName, StringFormat={loc:Loc Doc_StructuredFormat_ToolTip}}"
                       Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />

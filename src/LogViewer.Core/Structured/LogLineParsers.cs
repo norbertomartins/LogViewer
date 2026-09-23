@@ -9,10 +9,38 @@ namespace LogViewer.Core.Structured;
 /// </summary>
 public static class LogLineParsers
 {
-    /// <summary>Format ids in detection-priority order.</summary>
-    public static readonly IReadOnlyList<string> FormatIds = ["serilog", "ndjson", "w3c", "syslog", "logfmt"];
+    /// <summary>Built-in format ids in detection-priority order.</summary>
+    public static readonly IReadOnlyList<string> BuiltInFormatIds = ["serilog", "ndjson", "w3c", "syslog", "logfmt"];
 
     private const int ReadBufferSize = 64 * 1024;
+
+    // Swapped atomically as a whole (never mutated in place), so readers on any thread see a consistent set.
+    private static volatile IReadOnlyList<CustomLogFormat> _customFormats = [];
+
+    /// <summary>Every format id in detection-priority order: the user's valid custom formats first (they are
+    /// written for this user's specific logs, so they should win over a generic built-in), then the built-ins.</summary>
+    public static IReadOnlyList<string> FormatIds => [.. _customFormats.Select(f => f.Id), .. BuiltInFormatIds];
+
+    /// <summary>The currently registered custom formats (copies), in detection-priority order.</summary>
+    public static IReadOnlyList<CustomLogFormat> CustomFormats => _customFormats;
+
+    /// <summary>Replaces the registered user-defined formats (from <c>AppSettings.CustomLogFormats</c>). Formats
+    /// whose pattern doesn't compile are skipped. Raises <see cref="CustomFormatsChanged"/>.</summary>
+    public static void SetCustomFormats(IEnumerable<CustomLogFormat> formats)
+    {
+        _customFormats = formats
+            .Where(f => f.Id.StartsWith(CustomLogFormat.IdPrefix, StringComparison.Ordinal)
+                && RegexLogLineParser.TryCreate(f, out _, out _))
+            .Select(f => f.Clone())
+            .ToList();
+        CustomFormatsChanged?.Invoke();
+    }
+
+    /// <summary>Raised after <see cref="SetCustomFormats"/> so open documents can refresh their format pickers.</summary>
+    public static event Action? CustomFormatsChanged;
+
+    /// <summary>Human-readable name for <paramref name="formatId"/> (the id itself when unknown).</summary>
+    public static string DisplayNameFor(string formatId) => Create(formatId)?.DisplayName ?? formatId;
 
     /// <summary>Creates a fresh parser for <paramref name="formatId"/>, or null if unknown. A new instance is
     /// returned every call because some parsers (W3C) are stateful and must not be shared between documents.</summary>
@@ -23,11 +51,18 @@ public static class LogLineParsers
         "w3c" => new W3cExtendedLogLineParser(),
         "syslog" => new SyslogLogLineParser(),
         "logfmt" => new LogfmtLogLineParser(),
-        _ => null,
+        null => null,
+        _ => CreateCustom(formatId),
     };
 
+    private static RegexLogLineParser? CreateCustom(string formatId)
+    {
+        var format = _customFormats.FirstOrDefault(f => string.Equals(f.Id, formatId, StringComparison.Ordinal));
+        return format is not null && RegexLogLineParser.TryCreate(format, out var parser, out _) ? parser : null;
+    }
+
     /// <summary>All parsers, fresh instances, in detection-priority order.</summary>
-    public static IReadOnlyList<ILogLineParser> CreateAll() => [.. FormatIds.Select(id => Create(id)!)];
+    public static IReadOnlyList<ILogLineParser> CreateAll() => [.. FormatIds.Select(Create).OfType<ILogLineParser>()];
 
     /// <summary>
     /// Returns the <see cref="ILogLineParser.FormatId"/> of the format that best explains
