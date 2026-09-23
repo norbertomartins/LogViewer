@@ -1,6 +1,8 @@
 using FlaUI.Core;
 using FlaUI.Core.AutomationElements;
 using FlaUI.Core.Definitions;
+using FlaUI.Core.Input;
+using FlaUI.Core.WindowsAPI;
 using FlaUI.UIA3;
 using LogViewer.UITests.TestUtilities;
 
@@ -17,9 +19,9 @@ public sealed class Phase9UITests : IDisposable
     private UIA3Automation _automation = null!;
     private Application _app = null!;
 
-    private Window LaunchRestoring(string sampleFile)
+    private Window LaunchRestoring(string sampleFile, string sampleFolder = "timeline")
     {
-        var path = AppExeLocator.Sample("timeline", sampleFile);
+        var path = AppExeLocator.Sample(sampleFolder, sampleFile);
         var fixture = new IsolatedSettingsFixture(IsolatedSettingsFixture.RestoringFile(path));
         _disposables.Add(fixture);
 
@@ -128,6 +130,56 @@ public sealed class Phase9UITests : IDisposable
         }
 
         return false;
+    }
+
+    private static bool SelectedRowContains(AutomationElement list, string text) =>
+        list.AsListBox().SelectedItem?.FindAllDescendants(cf => cf.ByControlType(ControlType.Text))
+            .Any(t => t.Name?.Contains(text, StringComparison.Ordinal) == true) == true;
+
+    [Fact]
+    public void TimePopup_GoToTime_SelectsTheFirstLineAtThatTime()
+    {
+        var window = LaunchRestoring("checkout-service.log", "correlation");
+        var list = UiHelpers.WaitFor(() => window.TryByAutomationId("LineListView"), "log list view");
+        Assert.True(UiHelpers.WaitUntil(() => list.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem)).Length > 0));
+
+        ToolbarButton(window, "Time navigation").AsToggleButton().Toggle();
+
+        // The popup is its own top-level HWND, so look for its controls from the desktop.
+        var desktop = _automation.GetDesktop();
+        var box = UiHelpers.WaitFor(() => desktop.FindFirstDescendant(cf => cf.ByName("Time to go to").And(cf.ByControlType(ControlType.Edit))), "go-to-time box");
+        box.Patterns.Value.Pattern.SetValue("10:01:30");
+        UiHelpers.WaitFor(() => desktop.FindFirstDescendant(cf => cf.ByName("Go").And(cf.ByControlType(ControlType.Button))), "Go button").AsButton().Invoke();
+
+        Assert.True(UiHelpers.WaitUntil(() => SelectedRowContains(list, "10:01:30")), "Go to time did not select the 10:01:30 line.");
+    }
+
+    [Fact]
+    public void RowContextMenu_FilterByCorrelationId_FiltersToThatRequest()
+    {
+        var window = LaunchRestoring("checkout-service.log", "correlation");
+        var list = UiHelpers.WaitFor(() => window.TryByAutomationId("LineListView"), "log list view");
+        var rows = UiHelpers.WaitFor(() => list.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem)).FirstOrDefault(), "first row");
+
+        // Select + focus a row, then open its context menu from the keyboard (no synthetic mouse in RDP).
+        rows.Patterns.SelectionItem.Pattern.Select();
+        rows.Focus();
+        Keyboard.TypeSimultaneously(VirtualKeyShort.SHIFT, VirtualKeyShort.F10);
+
+        var desktop = _automation.GetDesktop();
+        var correlation = UiHelpers.WaitFor(
+            () => desktop.FindFirstDescendant(cf => cf.ByControlType(ControlType.MenuItem).And(cf.ByName("Filter by Correlation ID"))),
+            "correlation menu item").AsMenuItem();
+        Assert.True(correlation.IsEnabled, "The correlation submenu was disabled for a line with a request_id.");
+        correlation.Expand();
+        var firstId = UiHelpers.WaitFor(() => correlation.Items.FirstOrDefault(), "correlation id item").AsMenuItem();
+        Assert.True(firstId.Name?.Contains("request_id", StringComparison.Ordinal) == true, $"Unexpected first id item: '{firstId.Name}' of [{string.Join(", ", correlation.Items.Select(i => i.Name))}]");
+        firstId.Invoke();
+
+        Assert.True(UiHelpers.WaitUntil(() => window.FindFirstDescendant(cf => cf.ByControlType(ControlType.Text)
+                .And(cf.ByName("Filtered by: request_id ~ req-100"))) is not null
+            || window.FindAllDescendants(cf => cf.ByControlType(ControlType.Text)).Any(t => t.Name?.Contains("request_id ~ req-100", StringComparison.Ordinal) == true)),
+            "The status bar did not report the correlation filter.");
     }
 
     public void Dispose()
