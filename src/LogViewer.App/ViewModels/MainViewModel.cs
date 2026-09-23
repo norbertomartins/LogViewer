@@ -570,6 +570,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.ApplyThemeMode(_currentThemeMode);
         document.ApplyColorizeStructuredValues(_settings.ColorizeStructuredValues);
         document.ApplyShowHighlightMatchSpans(_settings.HighlightMatchSpans);
+        document.ApplyNotifyOnFileSwitch(_settings.NotifyOnFileSwitch);
         document.ApplyLogFontSize(_settings.LogFontSize);
         document.ApplyDetailPanelHeight(_settings.Layout.DetailPanelHeight);
         document.DetailPanelHeightChanged += height => OnDetailPanelHeightChanged(document, height);
@@ -759,6 +760,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             document.ApplyColorizeStructuredValues(_settings.ColorizeStructuredValues);
             document.ApplyShowHighlightMatchSpans(_settings.HighlightMatchSpans);
+            document.ApplyNotifyOnFileSwitch(_settings.NotifyOnFileSwitch);
             document.ApplyLogFontSize(_settings.LogFontSize);
         }
     }

@@ -60,6 +60,9 @@ public sealed partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool _notificationAlertsEnabled;
 
+    [ObservableProperty]
+    private bool _notifyOnFileSwitch;
+
     public SettingsViewModel(AppSettings settings, IDialogService dialogService)
     {
         _settings = settings;
@@ -78,6 +81,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _soundAlertsEnabled = settings.SoundAlerts.Enabled;
         _soundAlertCustomFilePath = settings.SoundAlerts.CustomSoundFilePath;
         _notificationAlertsEnabled = settings.NotificationAlerts.Enabled;
+        _notifyOnFileSwitch = settings.NotifyOnFileSwitch;
 
         _selectedLanguage = AvailableLanguages.FirstOrDefault(
             l => string.Equals(l.Code, settings.Language, StringComparison.OrdinalIgnoreCase)) ?? AvailableLanguages[0];
@@ -138,6 +142,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         settings.SoundAlerts.Enabled = SoundAlertsEnabled;
         settings.SoundAlerts.CustomSoundFilePath = string.IsNullOrWhiteSpace(SoundAlertCustomFilePath) ? null : SoundAlertCustomFilePath;
         settings.NotificationAlerts.Enabled = NotificationAlertsEnabled;
+        settings.NotifyOnFileSwitch = NotifyOnFileSwitch;
         settings.Language = SelectedLanguage.Code;
     }
 }

@@ -122,6 +122,10 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [ObservableProperty]
     private bool _showHighlightMatchSpans = true;
 
+    /// <summary>When true, auto-switching to a newer file in a directory-watch source inserts a marker
+    /// line naming the newly active file. Synced from the global setting via <see cref="ApplyNotifyOnFileSwitch"/>.</summary>
+    private bool _notifyOnFileSwitch = true;
+
     /// <summary>Syncs the global highlight-match-span setting to this document.</summary>
     public void ApplyShowHighlightMatchSpans(bool show) => ShowHighlightMatchSpans = show;
 
@@ -511,7 +515,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _sink.ResetFlushed += OnResetFlushed;
 
         _source.LinesRead += (_, e) => _sink.EnqueueLines(e.Lines);
-        _source.SourceReset += (_, e) => _sink.EnqueueReset(e.Reason);
+        _source.SourceReset += (_, e) => _sink.EnqueueReset(e.Reason, e.SwitchedFilePath);
         _source.Error += (_, e) => System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => StatusMessage = e.Exception.Message);
 
         _source.Start();
@@ -636,6 +640,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     /// <summary>Syncs the global colorize-structured-values setting to this document's own toggle.</summary>
     public void ApplyColorizeStructuredValues(bool colorize) => IsColorizeStructuredValues = colorize;
+
+    /// <summary>Syncs the global "notify on directory-watch file switch" setting to this document.</summary>
+    public void ApplyNotifyOnFileSwitch(bool notify) => _notifyOnFileSwitch = notify;
 
     [RelayCommand]
     private void RunExternalTool(ExternalToolDefinition? tool)
@@ -1037,7 +1044,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
     }
 
-    private void OnResetFlushed(TailResetReason reason)
+    private void OnResetFlushed(TailResetReason reason, string? switchedFilePath)
     {
         // A source reset (truncate/rotate) invalidates whatever snapshot a concurrent
         // ReprocessAllLinesAsync took — cancel it so it doesn't later overwrite this reset with stale lines.
@@ -1050,9 +1057,14 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _bookmarks.Clear();
         _highlightedLineNumbers.Clear();
 
-        var marker = new LogLineViewModel(0, $"── file {reason.ToString().ToLowerInvariant()} — resuming ──", structured: null, match: null, isBookmarked: false);
+        var markerText = switchedFilePath is not null && _notifyOnFileSwitch
+            ? $"── {Loc.Format("Vm_Doc_SwitchedToFile", Path.GetFileName(switchedFilePath))} ──"
+            : $"── file {reason.ToString().ToLowerInvariant()} — resuming ──";
+        var marker = new LogLineViewModel(0, markerText, structured: null, match: null, isBookmarked: false);
         Lines.AppendRange([marker]);
-        StatusMessage = Loc.Format("Vm_Doc_SourceResumed", reason.ToString().ToLowerInvariant());
+        StatusMessage = switchedFilePath is not null
+            ? Loc.Format("Vm_Doc_SwitchedToFile", Path.GetFileName(switchedFilePath))
+            : Loc.Format("Vm_Doc_SourceResumed", reason.ToString().ToLowerInvariant());
     }
 
     private void TrimEvictedLineNumbers()

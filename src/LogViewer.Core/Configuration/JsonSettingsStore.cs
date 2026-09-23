@@ -84,7 +84,9 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
         // v8 -> v9: NotificationAlerts is new (plus AlertEnabled/AlertThresholdCount/AlertWindowSeconds
         // on HighlightRule); the field initializers already give pre-v9 files an enabled-by-default
         // global setting and alerts disabled on every existing rule, so no field-level migration is needed.
-        settings.SchemaVersion = 9;
+        // v9 -> v10: NotifyOnFileSwitch is new; the field initializer already gives pre-v10 files an
+        // enabled-by-default global setting, so no field-level migration is needed.
+        settings.SchemaVersion = 10;
         return settings;
     }
 

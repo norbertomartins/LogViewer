@@ -255,6 +255,7 @@
   <data name="Settings_ReduceRedrawRdp" xml:space="preserve"><value>Reduzir a taxa de redesenho da UI quando em Ambiente de Trabalho Remoto</value></data>
   <data name="Settings_ColorizeStructured" xml:space="preserve"><value>Colorir os valores das variáveis nas mensagens de log estruturadas</value></data>
   <data name="Settings_EmphasizeMatches" xml:space="preserve"><value>Realçar o texto exato correspondente dentro das linhas realçadas (negrito + sublinhado)</value></data>
+  <data name="Settings_NotifyOnFileSwitch" xml:space="preserve"><value>Mostrar uma linha a indicar o nome do ficheiro ao mudar automaticamente para o ficheiro mais recente numa pasta vigiada</value></data>
   <data name="Settings_LogFontSize" xml:space="preserve"><value>Tamanho da letra do log (também ajustável com Ctrl+roda do rato sobre o log)</value></data>
   <data name="Settings_Theme" xml:space="preserve"><value>Tema</value></data>
   <data name="Settings_ManageThemes" xml:space="preserve"><value>Gerir temas...</value></data>
@@ -473,6 +474,7 @@
   <data name="Vm_Doc_InvalidFilterRegex" xml:space="preserve"><value>Regex de filtro inválida: {0}</value></data>
   <data name="Vm_Doc_SwitchStructuredFailed" xml:space="preserve"><value>Falha ao mudar para a vista estruturada: {0}</value></data>
   <data name="Vm_Doc_SourceResumed" xml:space="preserve"><value>Fonte {0} — tailing retomado.</value></data>
+  <data name="Vm_Doc_SwitchedToFile" xml:space="preserve"><value>mudou para o ficheiro: {0}</value></data>
   <data name="Vm_Doc_NotStructured" xml:space="preserve"><value>A linha selecionada não é um evento de log estruturado.</value></data>
   <data name="Vm_Doc_NoProperty" xml:space="preserve"><value>A linha selecionada não tem a propriedade {0}.</value></data>
   <data name="Vm_Doc_FilteredByPrefix" xml:space="preserve"><value>Filtrado por </value></data>

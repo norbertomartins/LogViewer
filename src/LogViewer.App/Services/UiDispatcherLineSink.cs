@@ -13,13 +13,13 @@ namespace LogViewer.App.Services;
 /// </summary>
 public sealed class UiDispatcherLineSink : IDisposable
 {
-    private readonly record struct QueueItem(IReadOnlyList<TailLine>? Lines, TailResetReason? Reset);
+    private readonly record struct QueueItem(IReadOnlyList<TailLine>? Lines, TailResetReason? Reset, string? SwitchedFilePath);
 
     private readonly ConcurrentQueue<QueueItem> _queue = new();
     private readonly DispatcherTimer _timer;
 
     public event Action<IReadOnlyList<TailLine>>? LinesFlushed;
-    public event Action<TailResetReason>? ResetFlushed;
+    public event Action<TailResetReason, string?>? ResetFlushed;
 
     /// <summary>Wall-clock time the most recent non-empty <see cref="Flush"/> held the UI thread, in ms.</summary>
     public double LastFlushMilliseconds { get; private set; }
@@ -35,9 +35,9 @@ public sealed class UiDispatcherLineSink : IDisposable
         _timer.Start();
     }
 
-    public void EnqueueLines(IReadOnlyList<TailLine> lines) => _queue.Enqueue(new QueueItem(lines, null));
+    public void EnqueueLines(IReadOnlyList<TailLine> lines) => _queue.Enqueue(new QueueItem(lines, null, null));
 
-    public void EnqueueReset(TailResetReason reason) => _queue.Enqueue(new QueueItem(null, reason));
+    public void EnqueueReset(TailResetReason reason, string? switchedFilePath) => _queue.Enqueue(new QueueItem(null, reason, switchedFilePath));
 
     private void Flush()
     {
@@ -53,7 +53,7 @@ public sealed class UiDispatcherLineSink : IDisposable
             if (item.Reset is { } reason)
             {
                 FlushPendingLines(ref pendingLines);
-                ResetFlushed?.Invoke(reason);
+                ResetFlushed?.Invoke(reason, item.SwitchedFilePath);
             }
             else if (item.Lines is not null)
             {

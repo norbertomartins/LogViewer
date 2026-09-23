@@ -253,7 +253,7 @@ public sealed class DirectoryWatchTailSource : ITailSource
 
         if (raiseReset)
         {
-            SourceReset?.Invoke(this, new TailSourceResetEventArgs(TailResetReason.Rotated));
+            SourceReset?.Invoke(this, new TailSourceResetEventArgs(TailResetReason.Rotated, path));
         }
 
         _activeFilePath = path;

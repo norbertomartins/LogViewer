@@ -255,6 +255,7 @@
   <data name="Settings_ReduceRedrawRdp" xml:space="preserve"><value>Reduce UI redraw rate when running over Remote Desktop</value></data>
   <data name="Settings_ColorizeStructured" xml:space="preserve"><value>Colorize variable values in structured log messages</value></data>
   <data name="Settings_EmphasizeMatches" xml:space="preserve"><value>Emphasize the exact matched text within highlighted lines (bold + underline)</value></data>
+  <data name="Settings_NotifyOnFileSwitch" xml:space="preserve"><value>Show a marker line naming the file when auto-switching to the newest file in a watched directory</value></data>
   <data name="Settings_LogFontSize" xml:space="preserve"><value>Log font size (also adjustable via Ctrl+Mouse wheel over the log)</value></data>
   <data name="Settings_Theme" xml:space="preserve"><value>Theme</value></data>
   <data name="Settings_ManageThemes" xml:space="preserve"><value>Manage Themes...</value></data>
@@ -473,6 +474,7 @@
   <data name="Vm_Doc_InvalidFilterRegex" xml:space="preserve"><value>Invalid filter regex: {0}</value></data>
   <data name="Vm_Doc_SwitchStructuredFailed" xml:space="preserve"><value>Failed to switch structured view: {0}</value></data>
   <data name="Vm_Doc_SourceResumed" xml:space="preserve"><value>Source {0} — resumed tailing.</value></data>
+  <data name="Vm_Doc_SwitchedToFile" xml:space="preserve"><value>switched to file: {0}</value></data>
   <data name="Vm_Doc_NotStructured" xml:space="preserve"><value>Selected line is not a structured log event.</value></data>
   <data name="Vm_Doc_NoProperty" xml:space="preserve"><value>Selected line has no {0} property.</value></data>
   <data name="Vm_Doc_FilteredByPrefix" xml:space="preserve"><value>Filtered by </value></data>

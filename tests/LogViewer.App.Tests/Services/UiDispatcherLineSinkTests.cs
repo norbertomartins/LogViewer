@@ -30,10 +30,10 @@ public sealed class UiDispatcherLineSinkTests
         using var sink = new UiDispatcherLineSink(FastInterval);
         var events = new List<string>();
         sink.LinesFlushed += _ => events.Add("lines");
-        sink.ResetFlushed += _ => events.Add("reset");
+        sink.ResetFlushed += (_, _) => events.Add("reset");
 
         sink.EnqueueLines([Line(1, "before-reset")]);
-        sink.EnqueueReset(TailResetReason.Truncated);
+        sink.EnqueueReset(TailResetReason.Truncated, null);
         sink.EnqueueLines([Line(1, "after-reset")]);
 
         SpinUntil(() => events.Count >= 3);
@@ -49,7 +49,7 @@ public sealed class UiDispatcherLineSinkTests
         using var sink = new UiDispatcherLineSink(FastInterval);
         var flushed = false;
         sink.LinesFlushed += _ => flushed = true;
-        sink.ResetFlushed += _ => flushed = true;
+        sink.ResetFlushed += (_, _) => flushed = true;
 
         // Let several ticks pass with an empty queue.
         SpinFor(TimeSpan.FromMilliseconds(150));

@@ -18,9 +18,13 @@ public sealed class TailLinesReadEventArgs(IReadOnlyList<TailLine> lines) : Even
     public IReadOnlyList<TailLine> Lines { get; } = lines;
 }
 
-public sealed class TailSourceResetEventArgs(TailResetReason reason) : EventArgs
+public sealed class TailSourceResetEventArgs(TailResetReason reason, string? switchedFilePath = null) : EventArgs
 {
     public TailResetReason Reason { get; } = reason;
+
+    /// <summary>When this reset was caused by a directory-watch source auto-switching to a newer file,
+    /// the full path of the newly active file. Null for truncation/rotation-in-place/deletion resets.</summary>
+    public string? SwitchedFilePath { get; } = switchedFilePath;
 }
 
 public sealed class TailSourceErrorEventArgs(Exception exception) : EventArgs

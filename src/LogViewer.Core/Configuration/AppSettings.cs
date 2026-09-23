@@ -10,7 +10,7 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 9;
+    public int SchemaVersion { get; set; } = 10;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
 
@@ -72,4 +72,8 @@ public sealed class AppSettings
     /// <summary>Global master switch for highlight-rule threshold/window desktop notifications — see
     /// <see cref="Highlighting.HighlightRule.AlertEnabled"/>.</summary>
     public NotificationAlertSettings NotificationAlerts { get; set; } = new();
+
+    /// <summary>When true, a directory-watch source auto-switching to a newer file inserts a marker line
+    /// naming the newly active file, so the switch is visible in the tail output itself.</summary>
+    public bool NotifyOnFileSwitch { get; set; } = true;
 }

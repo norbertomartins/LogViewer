@@ -43,6 +43,10 @@
                 <TextBlock Text="{loc:Loc Settings_EmphasizeMatches}" TextWrapping="Wrap" />
             </CheckBox>
 
+            <CheckBox IsChecked="{Binding NotifyOnFileSwitch}" Margin="0,0,0,10">
+                <TextBlock Text="{loc:Loc Settings_NotifyOnFileSwitch}" TextWrapping="Wrap" />
+            </CheckBox>
+
             <TextBlock Text="{loc:Loc Settings_LogFontSize}" TextWrapping="Wrap" />
             <TextBox Text="{Binding LogFontSize, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
 
