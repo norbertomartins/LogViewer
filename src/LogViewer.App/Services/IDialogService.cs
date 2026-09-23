@@ -34,6 +34,10 @@ public interface IDialogService
     /// <summary>Picks a single .wav file for the global sound-alert setting. Returns the path, or null if cancelled.</summary>
     string? ShowOpenSoundFileDialog();
 
+    /// <summary>Asks where to save an incident report (Markdown or HTML, picked by the chosen extension). Returns the
+    /// path, or null if cancelled.</summary>
+    string? ShowSaveIncidentReportDialog(string suggestedFileName);
+
     /// <summary>Opens the "merge files/folders by time" builder. Returns the resolved concrete file paths
     /// (folder entries already expanded), or null if cancelled.</summary>
     IReadOnlyList<string>? ShowOpenMergedSourcesDialog();

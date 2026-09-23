@@ -38,6 +38,18 @@ public sealed class DialogService(ThemeService themeService, IContainerCli conta
         return dialog.ShowDialog() == true ? dialog.FileName : null;
     }
 
+    public string? ShowSaveIncidentReportDialog(string suggestedFileName)
+    {
+        var dialog = new SaveFileDialog
+        {
+            FileName = suggestedFileName,
+            Filter = "Markdown (*.md)|*.md|HTML (*.html)|*.html",
+            DefaultExt = ".md",
+        };
+
+        return dialog.ShowDialog() == true ? dialog.FileName : null;
+    }
+
     public IReadOnlyList<string>? ShowOpenMergedSourcesDialog()
     {
         var viewModel = new OpenMergedSourcesViewModel();
