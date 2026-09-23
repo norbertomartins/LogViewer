@@ -631,4 +631,6 @@
   <data name="Vm_Browser_WrappedToStart" xml:space="preserve"><value>Chegou ao fim do ficheiro — continuou a partir do início.</value></data>
   <data name="Vm_Browser_WrappedToEnd" xml:space="preserve"><value>Chegou ao início do ficheiro — continuou a partir do fim.</value></data>
   <data name="Vm_Browser_MatchCount" xml:space="preserve"><value>{0:N0} linhas correspondentes</value></data>
+  <data name="Doc_ScrollMarkers_Name" xml:space="preserve"><value>Visão geral de erros, avisos, marcadores e realces</value></data>
+  <data name="Doc_ScrollMarkers_ToolTip" xml:space="preserve"><value>Vermelho: erro · âmbar: aviso · azul: marcador · outras cores: regras de realce. Clique para saltar.</value></data>
 </root>

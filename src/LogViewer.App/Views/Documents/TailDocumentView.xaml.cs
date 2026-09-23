@@ -4,6 +4,7 @@ using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Threading;
+using LogViewer.App.Controls;
 using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
@@ -14,6 +15,13 @@ namespace LogViewer.App.Views.Documents;
 
 public partial class TailDocumentView : UserControl
 {
+    private static readonly Brush ErrorMarkerBrush = Frozen(Color.FromRgb(0xE5, 0x39, 0x35));
+    private static readonly Brush WarningMarkerBrush = Frozen(Color.FromRgb(0xFF, 0xB3, 0x00));
+    private static readonly Brush BookmarkMarkerBrush = Frozen(Color.FromRgb(0x1E, 0x88, 0xE5));
+    private static readonly int ErrorRank = LogLevelSeverity.Rank("Error")!.Value;
+    private static readonly int WarningRank = LogLevelSeverity.Rank("Warning")!.Value;
+
+    private readonly DispatcherTimer _markerRefreshTimer;
     private TailDocumentViewModel? _viewModel;
     private ScrollViewer? _lineListScrollViewer;
 
@@ -21,6 +29,96 @@ public partial class TailDocumentView : UserControl
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+
+        // Tail flushes arrive every ~100ms; redrawing the strip at most every 400ms keeps it cheap under load.
+        _markerRefreshTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(400) };
+        _markerRefreshTimer.Tick += (_, _) =>
+        {
+            _markerRefreshTimer.Stop();
+            RefreshScrollMarkers();
+        };
+        MarkerStrip.PositionClicked += OnMarkerStripClicked;
+        MarkerStrip.SizeChanged += (_, _) => ScheduleMarkerRefresh();
+        ((System.Collections.Specialized.INotifyCollectionChanged)LineListView.Items).CollectionChanged += (_, _) => ScheduleMarkerRefresh();
+    }
+
+    private static Brush Frozen(Color color)
+    {
+        var brush = new SolidColorBrush(color);
+        brush.Freeze();
+        return brush;
+    }
+
+    private void ScheduleMarkerRefresh()
+    {
+        if (!_markerRefreshTimer.IsEnabled)
+        {
+            _markerRefreshTimer.Start();
+        }
+    }
+
+    /// <summary>Rebuilds the overview strip from the currently visible (post-filter) lines: bookmarks first, then
+    /// errors, warnings and highlight matches — the strip keeps the highest-priority mark per pixel row.</summary>
+    private void RefreshScrollMarkers()
+    {
+        var items = LineListView.Items;
+        var count = items.Count;
+        var markers = new List<ScrollMarker>();
+        if (count > 0)
+        {
+            var scale = count > 1 ? 1.0 / (count - 1) : 0;
+            var index = 0;
+            foreach (var item in items)
+            {
+                if (item is LogLineViewModel line)
+                {
+                    var position = index * scale;
+                    if (line.IsBookmarked)
+                    {
+                        markers.Add(new ScrollMarker(position, BookmarkMarkerBrush, 0));
+                    }
+                    else if (line.SeverityRank is { } rank && rank >= ErrorRank)
+                    {
+                        markers.Add(new ScrollMarker(position, ErrorMarkerBrush, 1));
+                    }
+                    else if (line.SeverityRank is { } warnRank && warnRank >= WarningRank)
+                    {
+                        markers.Add(new ScrollMarker(position, WarningMarkerBrush, 2));
+                    }
+                    else if (line.HighlightMarkerBrush is { } highlight)
+                    {
+                        markers.Add(new ScrollMarker(position, highlight, 3));
+                    }
+                }
+
+                index++;
+            }
+        }
+
+        MarkerStrip.SetMarkers(markers);
+    }
+
+    /// <summary>Clicking the strip scrolls to the proportional line. A user gesture, so it isn't marked as a
+    /// programmatic scroll — the scroll-changed handler pauses follow exactly as a manual scroll would.</summary>
+    private void OnMarkerStripClicked(double fraction)
+    {
+        var count = LineListView.Items.Count;
+        if (count == 0 || !LineListView.IsLoaded)
+        {
+            return;
+        }
+
+        var target = LineListView.Items[(int)Math.Round(fraction * (count - 1))];
+        try
+        {
+            LineListView.ScrollIntoView(target);
+            LineListView.SelectedItem = target;
+            ResetHorizontalScrollAfterLayout();
+        }
+        catch (InvalidOperationException)
+        {
+            // Mid-reparent during a window-mode switch; the user can click again.
+        }
     }
 
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
@@ -32,6 +130,7 @@ public partial class TailDocumentView : UserControl
             _viewModel.ScrollToLineRequested -= OnScrollToLineRequested;
             _viewModel.FilterChanged -= OnFilterChanged;
             _viewModel.ExportRequested -= OnExportRequested;
+            _viewModel.ScrollMarkersInvalidated -= ScheduleMarkerRefresh;
         }
 
         _viewModel = e.NewValue as TailDocumentViewModel;
@@ -43,6 +142,7 @@ public partial class TailDocumentView : UserControl
             _viewModel.ScrollToLineRequested += OnScrollToLineRequested;
             _viewModel.FilterChanged += OnFilterChanged;
             _viewModel.ExportRequested += OnExportRequested;
+            _viewModel.ScrollMarkersInvalidated += ScheduleMarkerRefresh;
         }
 
         OnFilterChanged();
