@@ -713,4 +713,25 @@
   <data name="Doc_ToggleEntry_Name" xml:space="preserve"><value>Expandir ou colapsar entrada</value></data>
   <data name="Doc_ToggleEntry_ToolTip" xml:space="preserve"><value>Mostrar ou esconder as linhas desta entrada (o seu stack trace)</value></data>
   <data name="Doc_Ctx_ToggleEntry" xml:space="preserve"><value>Expandir/Colapsar Entrada</value></data>
+  <data name="Doc_ColumnView_Name" xml:space="preserve"><value>Vista em colunas</value></data>
+  <data name="Doc_ColumnView_ToolTip" xml:space="preserve"><value>Mostrar os eventos estruturados numa tabela: escolher colunas de propriedades, ordenar, filtrar por valor</value></data>
+  <data name="Palette_ColumnView" xml:space="preserve"><value>Vista em colunas…</value></data>
+  <data name="Grid_TitleFmt" xml:space="preserve"><value>Colunas — {0}</value></data>
+  <data name="Grid_Search" xml:space="preserve"><value>Procurar:</value></data>
+  <data name="Grid_Live_ToolTip" xml:space="preserve"><value>Recarregar a tabela à medida que chegam linhas novas</value></data>
+  <data name="Grid_ClearFilters" xml:space="preserve"><value>Limpar filtros</value></data>
+  <data name="Grid_RemoveFilter_ToolTip" xml:space="preserve"><value>Remover este filtro</value></data>
+  <data name="Grid_Columns" xml:space="preserve"><value>Colunas</value></data>
+  <data name="Grid_Col_Line" xml:space="preserve"><value>Linha</value></data>
+  <data name="Grid_Col_Time" xml:space="preserve"><value>Hora</value></data>
+  <data name="Grid_Col_Level" xml:space="preserve"><value>Nível</value></data>
+  <data name="Grid_Col_Message" xml:space="preserve"><value>Mensagem</value></data>
+  <data name="Grid_Ctx_FilterByValue" xml:space="preserve"><value>Filtrar por este valor</value></data>
+  <data name="Grid_Ctx_ExcludeValue" xml:space="preserve"><value>Excluir este valor</value></data>
+  <data name="Grid_Ctx_FilterByValueFmt" xml:space="preserve"><value>Filtrar: {0} = {1}</value></data>
+  <data name="Grid_Ctx_ExcludeValueFmt" xml:space="preserve"><value>Excluir: {0} ≠ {1}</value></data>
+  <data name="Grid_Ctx_GoToLine" xml:space="preserve"><value>Ir para a linha</value></data>
+  <data name="Grid_Ctx_CopyValue" xml:space="preserve"><value>Copiar valor</value></data>
+  <data name="Vm_Grid_NoEvents" xml:space="preserve"><value>Sem eventos estruturados no buffer: nenhuma linha corresponde ao formato estruturado deste documento (pode mudá-lo na barra de ferramentas).</value></data>
+  <data name="Vm_Grid_Summary" xml:space="preserve"><value>A mostrar {0:N0} de {1:N0} eventos</value></data>
 </root>

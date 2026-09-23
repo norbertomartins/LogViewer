@@ -664,6 +664,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.StatsRequested += () => ShowDocumentStatsDialog(document);
         document.TraceTreeRequested += traceId => ShowTraceTreeDialog(document, traceId);
         document.ExceptionGroupsRequested += () => _dialogService.ShowExceptionGroupsDialog(document);
+        document.StructuredGridRequested += () => _dialogService.ShowStructuredGridDialog(document);
         document.FileBrowserRequested += target => ShowFileBrowser(document, target);
         document.ApplyFilterViews(_settings.FilterViews);
         document.SaveFilterViewRequested += () => SaveFilterView(document);
@@ -1107,6 +1108,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             list.Add(new PaletteCommand(Loc.Get("Palette_Stats"), activeCat, () => active.ShowStatsCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_TraceTree"), activeCat, () => active.ShowTraceTreeCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_Exceptions"), activeCat, () => active.ShowExceptionGroupsCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_ColumnView"), activeCat, () => active.ShowStructuredGridCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_NextNewPattern"), activeCat, () => active.NextNewPatternCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_PrevNewPattern"), activeCat, () => active.PreviousNewPatternCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_BrowseFile"), activeCat, () => active.BrowseWholeFileCommand.Execute(null)));

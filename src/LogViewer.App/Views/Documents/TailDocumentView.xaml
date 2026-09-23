@@ -376,6 +376,8 @@
                     AutomationProperties.Name="{loc:Loc Doc_BrowseFile_Name}" ToolTip="{loc:Loc Doc_BrowseFile_ToolTip}" />
             <Button Content="💥" Style="{StaticResource IconButton}" Command="{Binding ShowExceptionGroupsCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Exceptions_Name}" ToolTip="{loc:Loc Doc_Exceptions_ToolTip}" />
+            <Button Content="▦" Style="{StaticResource IconButton}" Command="{Binding ShowStructuredGridCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_ColumnView_Name}" ToolTip="{loc:Loc Doc_ColumnView_ToolTip}" />
             <Button Content="{Binding NewPatternBadge}" Style="{StaticResource IconButton}" Command="{Binding NextNewPatternCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_NewPattern_Name}" ToolTip="{loc:Loc Doc_NewPattern_ToolTip}" />
             <Button Content="📈" Style="{StaticResource IconButton}" Command="{Binding ShowStatsCommand}"

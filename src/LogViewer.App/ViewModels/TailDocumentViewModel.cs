@@ -2276,6 +2276,12 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [RelayCommand]
     private void ShowExceptionGroups() => ExceptionGroupsRequested?.Invoke();
 
+    /// <summary>Raised to open the column view (a sortable, filterable grid of this document's structured events).</summary>
+    public event Action? StructuredGridRequested;
+
+    [RelayCommand]
+    private void ShowStructuredGrid() => StructuredGridRequested?.Invoke();
+
     /// <summary>Raised to open the virtualized whole-file browser, optionally positioned at a line or a time.</summary>
     public event Action<FileBrowserTarget?>? FileBrowserRequested;
 
