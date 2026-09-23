@@ -6,7 +6,7 @@ temporal (Δ, ir para hora, filtro por intervalo), formatos personalizados por r
 correlação + agrupamento de exceções.
 
 Prioridade: **P1** = maior impacto / custo moderado, **P2** = útil, **P3** = oportunista.
-Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = feito (Fases 10–12, ver `PLAN.md`).
+Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = feito (Fases 10–13, ver `PLAN.md`).
 
 ---
 
@@ -16,8 +16,8 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 |---|------|------|---------|-------|
 | 1.1 | ✅ Correr `LogViewer.App.Tests` no CI (`windows-latest`) | P1 | S | Hoje o CI só corre Core e Mcp; os testes de ViewModel são rápidos (~6 s) e apanham regressões de UI lógica. |
 | 1.2 | Passagem manual interativa às Fases 7–9 | P1 | S | **Parcial:** submenu de correlação e popup 🕐 agora cobertos por testes FlaUI (encontrou e corrigiu um bug: `_` tratado como tecla de acesso); pt-PT verificado por capturas (popup 🕐, painel de exceções). Falta: toast de alerta real, SSH/ETW contra host real. |
-| 1.3 | Testes FlaUI para os diálogos da Fase 7 (Compare Files, Stats) | P2 | S | Mesmo padrão de `Phase9UITests` (procurar janelas com owner nos descendentes do desktop). |
-| 1.4 | Teste de carga do navegador do ficheiro completo com ficheiro de vários GB | P2 | S | Medir tempo de indexação e memória; benchmark em `benchmarks/` para `FileLineIndex.UpdateAsync`/`ReadLines`. |
+| 1.3 | ✅ Testes FlaUI para os diálogos da Fase 7 (Compare Files, Stats) | P2 | S | Mesmo padrão de `Phase9UITests` (procurar janelas com owner nos descendentes do desktop). |
+| 1.4 | ✅ Teste de carga do navegador do ficheiro completo com ficheiro de vários GB | P2 | S | Medir tempo de indexação e memória; benchmark em `benchmarks/` para `FileLineIndex.UpdateAsync`/`ReadLines`. |
 
 ## 2. Desempenho e escala
 
@@ -64,25 +64,25 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 |---|------|------|---------|-------|
 | 6.1 | ✅ `logs_get_bookmarks`, `logs_query_time_range` | P1 | S | O intervalo de tempo pode usar `FileLineIndex.FindFirstLineAtOrAfter` — barato mesmo em ficheiros enormes. Sempre com `ResponseLimits`. |
 | 6.2 | ✅ `logs_get_new_lines_since(cursor)` | P2 | M | Permite ao agente acompanhar o tail sem reler; o cursor é o número de linha absoluto. |
-| 6.3 | `logs_get_alerts` | P3 | S | Expor os disparos do `AlertWindowTracker`. |
+| 6.3 | ✅ `logs_get_alerts` | P3 | S | Expor os disparos do `AlertWindowTracker`. |
 | 6.4 | Escrita controlada: adicionar bookmarks/anotações | P3 | M | Opt-in separado nas definições do MCP; nunca modificar ficheiros. |
 
 ## 7. Colaboração
 
 | # | Item | Prio | Esforço | Notas |
 |---|------|------|---------|-------|
-| 7.1 | Anotações/notas em linhas | P2 | M | Persistidas por ficheiro (caminho + nº de linha + hash do texto para detetar mudanças). |
+| 7.1 | ✅ Anotações/notas em linhas | P2 | M | Persistidas por ficheiro (caminho + nº de linha + hash do texto para detetar mudanças). |
 | 7.2 | Relatório de incidente | P3 | M | Exportar excerto (linhas selecionadas/bookmarks + anotações + grupos de exceções) para HTML ou Markdown. |
 
 ---
 
 ## Ordem sugerida
 
-Feitos: todos os P1 (Fase 10); 2.1, 3.2, 3.3, 3.6, 3.7, 4.2, 6.2 (Fase 11); 3.5, 3.8, 4.3, 5.1, 5.2 (Fase 12).
-Falta do 1.2 o toast real, SSH/ETW contra hosts reais e o diálogo de contentores contra um Docker/Kubernetes real
-(nenhum dos dois está instalado na máquina de desenvolvimento). A seguir:
+Feitos: todos os P1 (Fase 10); 2.1, 3.2, 3.3, 3.6, 3.7, 4.2, 6.2 (Fase 11); 3.5, 3.8, 4.3, 5.1, 5.2 (Fase 12);
+1.3, 1.4, 6.3, 7.1 (Fase 13). Falta do 1.2 o toast real, SSH/ETW contra hosts reais e o diálogo de contentores contra
+um Docker/Kubernetes real (nenhum dos dois está instalado na máquina de desenvolvimento). A seguir:
 
-1. **1.3 + 1.4** — testes FlaUI para os diálogos da Fase 7 e um benchmark do índice com um ficheiro de vários GB.
-2. **6.3 + 7.1** — `logs_get_alerts` e anotações em linhas.
-3. **3.4 / 4.4** — entradas multi-linha agrupadas na vista (base já existe com o 3.5) e vista em colunas (maiores).
-4. **2.3, 2.4, 6.4, 7.2, 5.3** — conforme a necessidade.
+1. **7.2 + 6.4** — relatório de incidente (bookmarks + notas + grupos de exceções → Markdown/HTML) e escrita
+   controlada de bookmarks/notas pelo MCP; as notas (7.1) são a base de ambos.
+2. **3.4 / 4.4** — entradas multi-linha agrupadas na vista (base já existe com o 3.5) e vista em colunas (maiores).
+3. **2.3, 2.4, 5.3** — conforme a necessidade.

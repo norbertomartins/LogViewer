@@ -390,6 +390,24 @@
     Neither CLI is installed on the dev box: the CLI side is covered with a substitute.
   Tests: 325 Core / 26 Mcp / 216 App / 10 Phase-9+ FlaUI, all green.
 
+- **Phase 13 — fourth ROADMAP.md batch.** One commit per item on `phase-13-roadmap`.
+  - **Plain-text logs in the analyzers (found by 1.3):** `StructuredFileReader` fell back to the Serilog parser for
+    undetected formats, so Statistics, Compare Files and the MCP pattern/search tools returned nothing for an ordinary
+    `[ERROR] …` log. Now Serilog-then-`PlainTextLogLineParser` (level word + leading timestamp per line);
+    `MessageSignature.Mask` also masks digits after `_` (`pay_632084`).
+  - **FlaUI for the Phase 7 windows (1.3):** Statistics, Compare Files and Export to File, driving the native
+    Open/Save dialogs (closure detected by the file-name box going stale — the cached dialog keeps saying "available").
+  - **`logs_get_alerts` (6.3):** per-document `AlertHistory` (last 200 threshold hits and post-load new error
+    patterns), recorded even with desktop notifications off; exposed through `OpenDocumentInfo.RecentAlerts`.
+  - **Index load test (1.4):** `FileLineIndexBenchmarks` on generated 256 MB / 2 GB files. It found per-chunk list
+    allocations in the scan and page materialization in count/search; fixed with a reused line-ends list and a
+    streaming `ScanLines`. 2 GB: full scan 1.07 s / 527 MB → 0.92 s / 0.9 MB, match count 8.4 s → 3.0 s (no gen2);
+    cache reopen ~1 ms, middle page ~0.25 ms, go-to-time ~4 ms.
+  - **Line notes (7.1):** right-click ▸ Add / Edit Note; 📝 glyph + tooltip, green strip mark. Stored per file key in
+    `annotations.json` (`LineAnnotationStore`, no settings schema bump) with a hash of the line text — shown only
+    while the line still has that text. MCP `logs_get_notes` flags notes whose line changed.
+  Tests: 333 Core / 30 Mcp / 219 App / 14 Phase-9+ FlaUI, all green.
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was
