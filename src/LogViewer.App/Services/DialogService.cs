@@ -10,11 +10,12 @@ using LogViewer.Core.ExternalTools;
 using LogViewer.Core.Highlighting;
 using LogViewer.Core.Search;
 using LogViewer.Core.Structured;
+using LogViewer.Core.Tailing;
 using Microsoft.Win32;
 
 namespace LogViewer.App.Services;
 
-public sealed class DialogService(ThemeService themeService) : IDialogService
+public sealed class DialogService(ThemeService themeService, IContainerCli containerCli) : IDialogService
 {
     public IReadOnlyList<string>? ShowOpenFileDialog()
     {
@@ -187,6 +188,13 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         return window.ShowDialog() == true
             ? new ProcessTailSelection(vm.FileName.Trim(), vm.Arguments.Trim(), vm.RestartOnExit)
             : null;
+    }
+
+    public ContainerLogRequest? ShowOpenContainerLogsDialog()
+    {
+        var vm = new OpenContainerLogsViewModel(containerCli);
+        var window = new OpenContainerLogsView { DataContext = vm, Owner = Application.Current?.MainWindow };
+        return window.ShowDialog() == true && vm.IsValid ? vm.ToRequest() : null;
     }
 
     public SshTailSelection? ShowOpenSshTailDialog()

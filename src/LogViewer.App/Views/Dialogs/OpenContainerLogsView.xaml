@@ -1,0 +1,70 @@
+<Window x:Class="LogViewer.App.Views.Dialogs.OpenContainerLogsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:LogViewer.App.Localization"
+        Title="{loc:Loc Containers_Title}"
+        Width="560" SizeToContent="Height"
+        WindowStartupLocation="CenterOwner"
+        ResizeMode="NoResize">
+    <Grid Margin="12">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Grid.Row="0">
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <RadioButton Content="Docker" GroupName="Runtime" Margin="0,0,16,0"
+                             IsChecked="{Binding IsKubernetes, Converter={StaticResource InverseBoolConverter}}" />
+                <RadioButton Content="Kubernetes (kubectl)" GroupName="Runtime" IsChecked="{Binding IsKubernetes}" />
+            </StackPanel>
+
+            <Grid Visibility="{Binding IsKubernetes, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="12" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <StackPanel Grid.Column="0">
+                    <TextBlock Text="{loc:Loc Containers_Context}" />
+                    <TextBox Text="{Binding Context, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,0"
+                             ToolTip="{loc:Loc Containers_Context_ToolTip}" AutomationProperties.Name="{loc:Loc Containers_Context}" />
+                </StackPanel>
+                <StackPanel Grid.Column="2">
+                    <TextBlock Text="{loc:Loc Containers_Namespace}" />
+                    <ComboBox IsEditable="True" ItemsSource="{Binding Namespaces}" Text="{Binding Namespace, UpdateSourceTrigger=LostFocus}"
+                              Margin="0,2,0,0" AutomationProperties.Name="{loc:Loc Containers_Namespace}" />
+                </StackPanel>
+            </Grid>
+
+            <TextBlock Text="{loc:Loc Containers_Target}" />
+            <DockPanel Margin="0,2,0,10">
+                <Button DockPanel.Dock="Right" Content="⟳" Width="30" Margin="6,0,0,0" Command="{Binding RefreshCommand}"
+                        ToolTip="{loc:Loc Common_Refresh}" AutomationProperties.Name="{loc:Loc Common_Refresh}" />
+                <ComboBox IsEditable="True" ItemsSource="{Binding Targets}" Text="{Binding Target, UpdateSourceTrigger=PropertyChanged}"
+                          FontFamily="Consolas" AutomationProperties.Name="{loc:Loc Containers_Target}" />
+            </DockPanel>
+
+            <StackPanel Visibility="{Binding IsKubernetes, Converter={StaticResource BoolToVisibilityConverter}}" Margin="0,0,0,10">
+                <TextBlock Text="{loc:Loc Containers_Container}" />
+                <ComboBox IsEditable="True" ItemsSource="{Binding Containers}" Text="{Binding Container, UpdateSourceTrigger=PropertyChanged}"
+                          FontFamily="Consolas" Margin="0,2,0,0" AutomationProperties.Name="{loc:Loc Containers_Container}" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{loc:Loc Containers_TailLines}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                <TextBox Text="{Binding TailLines}" Width="70" AutomationProperties.Name="{loc:Loc Containers_TailLines}" />
+                <CheckBox Content="{loc:Loc Containers_Timestamps}" IsChecked="{Binding Timestamps}" VerticalAlignment="Center" Margin="16,0,0,0" />
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                <ProgressBar Width="80" Height="8" IsIndeterminate="True" Margin="0,0,8,0"
+                             Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibilityConverter}}" />
+                <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" MaxWidth="500" Opacity="0.8" />
+            </StackPanel>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="{loc:Loc Common_OK}" Width="80" Margin="0,0,6,0" Click="OnOkClick" IsDefault="True" IsEnabled="{Binding IsValid}" />
+            <Button Content="{loc:Loc Common_Cancel}" Width="80" IsCancel="True" />
+        </StackPanel>
+    </Grid>
+</Window>

@@ -49,6 +49,7 @@
                 <MenuItem Header="{loc:Loc Menu_File_OpenEventLog}" Command="{Binding OpenEventLogCommand}" />
                 <MenuItem Header="{loc:Loc Menu_File_OpenRemote}" Command="{Binding OpenRemoteEndpointCommand}"
                           ToolTip="{loc:Loc Menu_File_OpenRemote_ToolTip}" />
+                <MenuItem Header="{loc:Loc Menu_File_OpenContainerLogs}" Command="{Binding OpenContainerLogsCommand}" />
                 <MenuItem Header="{loc:Loc Menu_File_OpenCommand}" Command="{Binding OpenProcessTailCommand}"
                           ToolTip="{loc:Loc Menu_File_OpenCommand_ToolTip}" />
                 <MenuItem Header="{loc:Loc Menu_File_OpenSsh}" Command="{Binding OpenSshTailCommand}"
