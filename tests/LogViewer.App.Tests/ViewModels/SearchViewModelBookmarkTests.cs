@@ -32,6 +32,28 @@ public sealed class SearchViewModelBookmarkTests : IDisposable
     }
 
     [Fact]
+    public async Task SearchResults_AreMarkedOnTheDocument_UntilTheSearchWindowCloses()
+    {
+        var (viewModel, _) = MainViewModelFactory.Create();
+        var doc = viewModel.OpenPath(_tempDir.CreateFile("s.log", "alpha\nbeta\nalpha again\n"));
+        SpinUntil(() => doc.Lines.Count >= 3);
+        var search = new SearchViewModel(doc, new FileFullTextSearchService(), Substitute.For<IEventLogSearchService>())
+        {
+            Pattern = "alpha",
+        };
+
+        await search.SearchCommand.ExecuteAsync(null);
+
+        Assert.True(doc.IsSearchHit(1));
+        Assert.False(doc.IsSearchHit(2));
+        Assert.True(doc.IsSearchHit(3));
+
+        search.Close();
+        Assert.Equal(0, doc.SearchHitCount);
+        viewModel.Dispose();
+    }
+
+    [Fact]
     public void BookmarkSelected_WithNoSelection_DoesNothing()
     {
         var (viewModel, _) = MainViewModelFactory.Create();
