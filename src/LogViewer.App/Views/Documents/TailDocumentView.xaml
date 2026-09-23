@@ -224,6 +224,32 @@
                     </StackPanel>
                 </Border>
             </Popup>
+            <Menu Background="Transparent">
+                <MenuItem Header="🗂" FontSize="13" AutomationProperties.Name="{loc:Loc Doc_FilterViews_Name}" ToolTip="{loc:Loc Doc_FilterViews_ToolTip}">
+                    <MenuItem Header="{loc:Loc Doc_FilterViews_Save}" Command="{Binding SaveFilterViewCommand}"
+                              AutomationProperties.Name="{loc:Loc Doc_FilterViews_Save}" />
+                    <MenuItem Header="{loc:Loc Doc_FilterViews_Apply}" ItemsSource="{Binding FilterViews}" IsEnabled="{Binding HasFilterViews}"
+                              AutomationProperties.Name="{loc:Loc Doc_FilterViews_Apply}">
+                        <MenuItem.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Header" Value="{Binding Name}" />
+                                <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=Menu}, Path=DataContext.ApplyFilterViewCommand}" />
+                                <Setter Property="CommandParameter" Value="{Binding}" />
+                            </Style>
+                        </MenuItem.ItemContainerStyle>
+                    </MenuItem>
+                    <MenuItem Header="{loc:Loc Doc_FilterViews_Delete}" ItemsSource="{Binding FilterViews}" IsEnabled="{Binding HasFilterViews}"
+                              AutomationProperties.Name="{loc:Loc Doc_FilterViews_Delete}">
+                        <MenuItem.ItemContainerStyle>
+                            <Style TargetType="MenuItem">
+                                <Setter Property="Header" Value="{Binding Name}" />
+                                <Setter Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType=Menu}, Path=DataContext.DeleteFilterViewCommand}" />
+                                <Setter Property="CommandParameter" Value="{Binding}" />
+                            </Style>
+                        </MenuItem.ItemContainerStyle>
+                    </MenuItem>
+                </MenuItem>
+            </Menu>
             <Separator />
             <Button Content="🖍▲" Style="{StaticResource IconButton}" Command="{Binding PreviousHighlightCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_PrevHighlight_Name}" ToolTip="{loc:Loc Doc_PrevHighlight_ToolTip}" />

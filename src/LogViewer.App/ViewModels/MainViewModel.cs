@@ -585,6 +585,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.TraceTreeRequested += traceId => ShowTraceTreeDialog(document, traceId);
         document.ExceptionGroupsRequested += () => _dialogService.ShowExceptionGroupsDialog(document);
         document.FileBrowserRequested += target => ShowFileBrowser(document, target);
+        document.ApplyFilterViews(_settings.FilterViews);
+        document.SaveFilterViewRequested += () => SaveFilterView(document);
+        document.DeleteFilterViewRequested += DeleteFilterView;
 
         Documents.Add(document);
         ActiveDocument = document;
@@ -663,6 +666,50 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             },
             document.StructuredFormatId);
         _dialogService.ShowFileBrowserDialog(viewModel);
+    }
+
+    /// <summary>Prompts for a name and saves <paramref name="document"/>'s current filters as a view (replacing a
+    /// view of the same name), then pushes the updated list to every open document.</summary>
+    private void SaveFilterView(TailDocumentViewModel document)
+    {
+        var probe = document.CaptureFilters(string.Empty);
+        if (probe.IsEmpty)
+        {
+            document.StatusMessage = Loc.Get("Vm_FilterView_NothingToSave");
+            return;
+        }
+
+        var name = _dialogService.ShowTextPrompt(Loc.Get("Vm_FilterView_SaveTitle"), Loc.Get("Vm_FilterView_SavePrompt"))?.Trim();
+        if (string.IsNullOrEmpty(name))
+        {
+            return;
+        }
+
+        var view = document.CaptureFilters(name);
+        _settings.FilterViews.RemoveAll(v => string.Equals(v.Name, name, StringComparison.CurrentCultureIgnoreCase));
+        _settings.FilterViews.Add(view);
+        _settings.FilterViews.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.CurrentCultureIgnoreCase));
+        PublishFilterViews();
+        document.StatusMessage = Loc.Format("Vm_FilterView_Saved", name);
+    }
+
+    private void DeleteFilterView(FilterView view)
+    {
+        if (_settings.FilterViews.RemoveAll(v => string.Equals(v.Name, view.Name, StringComparison.CurrentCultureIgnoreCase)) > 0)
+        {
+            PublishFilterViews();
+        }
+    }
+
+    private void PublishFilterViews()
+    {
+        IReadOnlyList<FilterView> snapshot = [.. _settings.FilterViews];
+        foreach (var document in Documents)
+        {
+            document.ApplyFilterViews(snapshot);
+        }
+
+        _settingsStore.Save(_settings);
     }
 
     /// <summary>Opens the custom-format editor, its preview prefilled with the active document's newest lines,
@@ -898,6 +945,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             list.Add(new PaletteCommand(Loc.Get("Palette_PrevHighlight"), activeCat, () => active.PreviousHighlightCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_ToggleBookmark"), activeCat, () => active.ToggleBookmarkCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_CloseDoc"), activeCat, () => CloseDocumentCommand.Execute(active)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_SaveFilterView"), activeCat, () => active.SaveFilterViewCommand.Execute(null)));
+            foreach (var view in _settings.FilterViews)
+            {
+                var captured = view;
+                list.Add(new PaletteCommand(Loc.Format("Palette_ApplyFilterViewFmt", captured.Name), activeCat, () => active.ApplyFilterViewCommand.Execute(captured)));
+            }
         }
 
         return list;
@@ -954,6 +1007,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         entry.TextFilterCaseSensitive = document.TextFilterCaseSensitive;
         entry.TextFilterExclude = document.TextFilterExclude;
         entry.MinLevel = document.IsLevelFilterActive ? document.MinLevel : null;
+        var filters = document.CaptureFilters(string.Empty);
+        entry.TimeFilterFromText = filters.TimeFilterFromText;
+        entry.TimeFilterToText = filters.TimeFilterToText;
+        entry.CorrelationFilterName = filters.CorrelationName;
+        entry.CorrelationFilterValue = filters.CorrelationValue;
         entry.SoundAlertsEnabled = document.IsSoundAlertEnabled;
     }
 
@@ -1072,6 +1130,17 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         if (!string.IsNullOrEmpty(entry.MinLevel))
         {
             document.MinLevel = entry.MinLevel;
+        }
+
+        if (!string.IsNullOrEmpty(entry.CorrelationFilterValue) || !string.IsNullOrWhiteSpace(entry.TimeFilterFromText) || !string.IsNullOrWhiteSpace(entry.TimeFilterToText))
+        {
+            // Reuse the filter-view path so the time range resolves once the restored document has lines.
+            var filters = document.CaptureFilters(string.Empty);
+            filters.CorrelationName = entry.CorrelationFilterName;
+            filters.CorrelationValue = entry.CorrelationFilterValue;
+            filters.TimeFilterFromText = entry.TimeFilterFromText;
+            filters.TimeFilterToText = entry.TimeFilterToText;
+            document.ApplyFilters(filters);
         }
 
         if (entry.SoundAlertsEnabled is { } soundAlertsEnabled)
