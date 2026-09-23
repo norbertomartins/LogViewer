@@ -71,6 +71,10 @@
             <TextBlock Text="{loc:Loc Settings_McpPort}" TextWrapping="Wrap" />
             <TextBox Text="{Binding McpPort, UpdateSourceTrigger=PropertyChanged}" Margin="0,2,0,10" />
 
+            <CheckBox IsChecked="{Binding McpAllowAnnotationWrites}" IsEnabled="{Binding McpEnabled}" Margin="0,0,0,10">
+                <TextBlock Text="{loc:Loc Settings_McpAllowAnnotationWrites}" TextWrapping="Wrap" />
+            </CheckBox>
+
             <Separator Margin="0,4,0,10" />
 
             <CheckBox IsChecked="{Binding SoundAlertsEnabled}" Margin="0,0,0,10">

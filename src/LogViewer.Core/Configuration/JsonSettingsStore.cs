@@ -94,7 +94,9 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
         // filters; initializers give pre-v13 files no views and inactive filters, so no field-level migration.
         // v13 -> v14: TailSourceSettings.ArchiveEntry is new (zip entry of a File source); null keeps pre-v14
         // behavior (open the file itself), so no field-level migration is needed.
-        settings.SchemaVersion = 14;
+        // v14 -> v15: Mcp.AllowAnnotationWrites is new; its initializer (false) keeps pre-v15 behavior (read-only MCP
+        // tools), so no field-level migration is needed.
+        settings.SchemaVersion = 15;
         return settings;
     }
 

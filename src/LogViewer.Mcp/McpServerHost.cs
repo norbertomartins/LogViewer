@@ -24,7 +24,8 @@ public sealed class McpServerHost : IAsyncDisposable
         IBlockScanService blockScanService,
         ISimilarBlockFinder similarBlockFinder,
         IPatternFrequencyAnalyzer patternFrequencyAnalyzer,
-        ILineWindowReader lineWindowReader)
+        ILineWindowReader lineWindowReader,
+        IDocumentAnnotationWriter? annotationWriter = null)
     {
         ResponseLimits.Configure(settings.MaxResultsPerCall, settings.MaxLineTextLength);
 
@@ -39,7 +40,7 @@ public sealed class McpServerHost : IAsyncDisposable
         builder.Services.AddSingleton(patternFrequencyAnalyzer);
         builder.Services.AddSingleton(lineWindowReader);
 
-        builder.Services.AddMcpServer()
+        var mcp = builder.Services.AddMcpServer()
             .WithHttpTransport()
             .WithTools<LogDiscoveryTools>()
             .WithTools<LogSearchTools>()
@@ -48,6 +49,13 @@ public sealed class McpServerHost : IAsyncDisposable
             .WithTools<LogExceptionTools>()
             .WithTools<LogNavigationTools>()
             .WithTools<LogAlertTools>();
+
+        // The write tools are a separate opt-in: without it the agent doesn't even see them.
+        if (settings.AllowAnnotationWrites && annotationWriter is not null)
+        {
+            builder.Services.AddSingleton(annotationWriter);
+            mcp.WithTools<LogAnnotationWriteTools>();
+        }
 
         _app = builder.Build();
 

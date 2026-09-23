@@ -48,6 +48,9 @@ public sealed partial class SettingsViewModel : ObservableObject
     private int _mcpPort;
 
     [ObservableProperty]
+    private bool _mcpAllowAnnotationWrites;
+
+    [ObservableProperty]
     private LanguageOption _selectedLanguage;
 
     [ObservableProperty]
@@ -81,6 +84,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         _logFontSize = settings.LogFontSize;
         _mcpEnabled = settings.Mcp.Enabled;
         _mcpPort = settings.Mcp.Port;
+        _mcpAllowAnnotationWrites = settings.Mcp.AllowAnnotationWrites;
         _soundAlertsEnabled = settings.SoundAlerts.Enabled;
         _soundAlertCustomFilePath = settings.SoundAlerts.CustomSoundFilePath;
         _notificationAlertsEnabled = settings.NotificationAlerts.Enabled;
@@ -143,6 +147,7 @@ public sealed partial class SettingsViewModel : ObservableObject
         settings.ActiveThemeId = SelectedTheme.Id;
         settings.Mcp.Enabled = McpEnabled;
         settings.Mcp.Port = McpPort;
+        settings.Mcp.AllowAnnotationWrites = McpAllowAnnotationWrites;
         settings.SoundAlerts.Enabled = SoundAlertsEnabled;
         settings.SoundAlerts.CustomSoundFilePath = string.IsNullOrWhiteSpace(SoundAlertCustomFilePath) ? null : SoundAlertCustomFilePath;
         settings.NotificationAlerts.Enabled = NotificationAlertsEnabled;

@@ -58,7 +58,8 @@ public partial class App : Application
         services.AddSingleton<INotificationService>(sp => sp.GetRequiredService<WindowsNotificationService>());
         services.AddSingleton<DockingWindowModeHost>();
         services.AddSingleton<MainViewModel>();
-        services.AddSingleton<IOpenDocumentCatalog, WpfOpenDocumentCatalog>();
+        services.AddSingleton<WpfOpenDocumentCatalog>();
+        services.AddSingleton<IOpenDocumentCatalog>(sp => sp.GetRequiredService<WpfOpenDocumentCatalog>());
         services.AddSingleton<MainWindow>();
 
         _serviceProvider = services.BuildServiceProvider();
@@ -90,7 +91,8 @@ public partial class App : Application
                 _serviceProvider.GetRequiredService<IBlockScanService>(),
                 _serviceProvider.GetRequiredService<ISimilarBlockFinder>(),
                 _serviceProvider.GetRequiredService<IPatternFrequencyAnalyzer>(),
-                _serviceProvider.GetRequiredService<ILineWindowReader>());
+                _serviceProvider.GetRequiredService<ILineWindowReader>(),
+                _serviceProvider.GetRequiredService<WpfOpenDocumentCatalog>());
 
             _ = StartMcpServerAsync(_mcpServerHost, mainViewModel);
         }
