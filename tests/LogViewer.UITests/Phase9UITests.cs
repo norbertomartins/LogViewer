@@ -1,0 +1,114 @@
+using FlaUI.Core;
+using FlaUI.Core.AutomationElements;
+using FlaUI.Core.Definitions;
+using FlaUI.UIA3;
+using LogViewer.UITests.TestUtilities;
+
+namespace LogViewer.UITests;
+
+/// <summary>
+/// End-to-end checks for the Phase 9 document features: the Δ/time-navigation/whole-file/exceptions toolbar
+/// buttons exist, and the whole-file browser, exceptions panel and custom-format editor windows actually open
+/// and render (XAML/binding errors only surface at runtime).
+/// </summary>
+public sealed class Phase9UITests : IDisposable
+{
+    private readonly List<IDisposable> _disposables = [];
+    private UIA3Automation _automation = null!;
+    private Application _app = null!;
+
+    private Window LaunchRestoring(string sampleFile)
+    {
+        var path = AppExeLocator.Sample("timeline", sampleFile);
+        var fixture = new IsolatedSettingsFixture(IsolatedSettingsFixture.RestoringFile(path));
+        _disposables.Add(fixture);
+
+        _automation = new UIA3Automation();
+        _app = Application.Launch(AppExeLocator.Find());
+        var window = _app.GetMainWindow(_automation, UiHelpers.Timeout)
+            ?? throw new TimeoutException("Main window did not appear.");
+        UiHelpers.MaximizeWindow(window);
+        UiHelpers.WaitFor(() => window.TryByAutomationId("LineListView"), "log list view");
+        return window;
+    }
+
+    // Owned WPF windows appear under their owner in the UIA tree, not as desktop children — search descendants.
+    private Window WaitForTopLevelWindow(string titlePrefix) =>
+        UiHelpers.WaitFor(
+            () => _automation.GetDesktop()
+                .FindAllDescendants(cf => cf.ByControlType(ControlType.Window))
+                .FirstOrDefault(w => w.Name?.StartsWith(titlePrefix, StringComparison.Ordinal) == true),
+            $"window '{titlePrefix}…'").AsWindow();
+
+    private static AutomationElement ToolbarButton(Window window, string name) =>
+        UiHelpers.WaitFor(() => window.TryByName(name, ControlType.Button) ?? window.TryByName(name, ControlType.CheckBox), name);
+
+    [Fact]
+    public void DocumentToolbar_ExposesThePhase8Buttons()
+    {
+        var window = LaunchRestoring("payments-service.log");
+
+        foreach (var name in new[] { "Time delta column", "Time navigation", "Browse whole file", "Exceptions" })
+        {
+            Assert.NotNull(ToolbarButton(window, name));
+        }
+
+        ToolbarButton(window, "Time delta column").AsToggleButton().Toggle();
+        Assert.Equal(ToggleState.On, ToolbarButton(window, "Time delta column").AsToggleButton().ToggleState);
+    }
+
+    [Fact]
+    public void BrowseWholeFile_OpensTheVirtualizedBrowserWithLines()
+    {
+        var window = LaunchRestoring("payments-service.log");
+
+        ToolbarButton(window, "Browse whole file").AsButton().Invoke();
+
+        var browser = WaitForTopLevelWindow("Whole file");
+        var list = UiHelpers.WaitFor(() => browser.TryByAutomationId("LineListView"), "browser line list");
+        Assert.True(UiHelpers.WaitUntil(() => list.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem)).Length > 0),
+            "The whole-file browser showed no lines.");
+    }
+
+    [Fact]
+    public void Exceptions_OpensTheGroupsPanel()
+    {
+        var window = LaunchRestoring("payments-service.log");
+
+        ToolbarButton(window, "Exceptions").AsButton().Invoke();
+
+        var panel = WaitForTopLevelWindow("Exceptions");
+        Assert.NotNull(UiHelpers.WaitFor(() => panel.TryByAutomationId("ExceptionGroupsList"), "exception groups list"));
+    }
+
+    [Fact]
+    public void ToolsMenu_OpensTheCustomFormatsEditor()
+    {
+        var window = LaunchRestoring("payments-service.log");
+
+        UiHelpers.InvokeMenuPath(window, "Tools", "Custom Log Formats...");
+
+        var editor = WaitForTopLevelWindow("Custom Log Formats");
+        Assert.NotNull(UiHelpers.WaitFor(() => editor.TryByAutomationId("CustomFormatsList"), "custom formats list"));
+        editor.Close();
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            _app?.Close();
+            _app?.Dispose();
+        }
+        catch (Exception)
+        {
+            // Best-effort — a failed test may have left the process in an odd state.
+        }
+
+        _automation?.Dispose();
+        foreach (var disposable in _disposables)
+        {
+            disposable.Dispose();
+        }
+    }
+}
