@@ -28,7 +28,7 @@ public enum LineIndexUpdate
 /// live-growing log only ever scans its new bytes; a file that shrank is re-indexed from the start. Reads and
 /// updates may run concurrently (e.g. UI-thread reads while a background update scans the tail).</para>
 /// </summary>
-public sealed class FileLineIndex
+public sealed partial class FileLineIndex
 {
     public const int DefaultStride = 1024;
 
@@ -114,6 +114,11 @@ public sealed class FileLineIndex
                 result = LineIndexUpdate.Rebuilt;
             }
 
+            if (_encoding is null && result != LineIndexUpdate.Rebuilt && TryLoadPersistedLocked(stream))
+            {
+                // Restored from the on-disk cache; only the bytes after the cached offset get scanned below.
+            }
+
             if (_encoding is null)
             {
                 var (encoding, preambleLength) = EncodingDetector.Detect(stream);
@@ -189,6 +194,7 @@ public sealed class FileLineIndex
                 _fileLength = length;
             }
 
+            MaybePersist(length - indexedOffset);
             return result;
         }
         finally
