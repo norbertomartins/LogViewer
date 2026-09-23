@@ -7,6 +7,7 @@ using LogViewer.Core.EventLogging;
 using LogViewer.Core.ExternalTools;
 using LogViewer.Core.Highlighting;
 using LogViewer.Core.Search;
+using LogViewer.Core.Structured;
 
 namespace LogViewer.App.Services;
 
@@ -100,4 +101,8 @@ public interface IDialogService
     /// currently buffered lines. <paramref name="initialTraceId"/> preselects a trace (e.g. from a
     /// right-clicked line), or null to default to the most recent one.</summary>
     void ShowTraceTreeDialog(TailDocumentViewModel document, string? initialTraceId);
+
+    /// <summary>Opens the modal custom-log-format editor over <paramref name="formats"/>, with the preview prefilled
+    /// from <paramref name="sampleLines"/>. Returns the edited list, or null if cancelled.</summary>
+    IReadOnlyList<CustomLogFormat>? ShowCustomFormatsEditor(IReadOnlyList<CustomLogFormat> formats, IReadOnlyList<string> sampleLines);
 }

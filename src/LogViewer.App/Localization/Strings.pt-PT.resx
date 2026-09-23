@@ -533,4 +533,25 @@
   <data name="Palette_PrevHighlight" xml:space="preserve"><value>Realce anterior</value></data>
   <data name="Palette_ToggleBookmark" xml:space="preserve"><value>Alternar marcador</value></data>
   <data name="Palette_CloseDoc" xml:space="preserve"><value>Fechar documento</value></data>
+  <data name="Formats_Add" xml:space="preserve"><value>Adicionar</value></data>
+  <data name="Formats_Col_Properties" xml:space="preserve"><value>Propriedades</value></data>
+  <data name="Formats_Col_Timestamp" xml:space="preserve"><value>Data/hora</value></data>
+  <data name="Formats_Duplicate" xml:space="preserve"><value>Duplicar</value></data>
+  <data name="Formats_FromExample" xml:space="preserve"><value>Adicionar a partir de exemplo:</value></data>
+  <data name="Formats_GroupsHint" xml:space="preserve"><value>Grupos com nome: timestamp (ou date + time), level, message, exception, traceid, spanid, template. Qualquer outro grupo com nome, p.ex. (?&lt;thread&gt;…), torna-se uma propriedade filtrável.</value></data>
+  <data name="Formats_IgnoreCase" xml:space="preserve"><value>Ignorar maiúsculas</value></data>
+  <data name="Formats_Name" xml:space="preserve"><value>Nome</value></data>
+  <data name="Formats_Pattern" xml:space="preserve"><value>Regex</value></data>
+  <data name="Formats_Remove" xml:space="preserve"><value>Remover</value></data>
+  <data name="Formats_Sample" xml:space="preserve"><value>Linhas de exemplo (pré-preenchidas a partir do documento ativo)</value></data>
+  <data name="Formats_TimestampFormat" xml:space="preserve"><value>Formato da data/hora</value></data>
+  <data name="Formats_TimestampFormat_ToolTip" xml:space="preserve"><value>Formato(s) .NET opcionais separados por |, p.ex. dd/MM/yyyy HH:mm:ss.fff. Vazio = deteta automaticamente datas tipo ISO e epoch Unix.</value></data>
+  <data name="Formats_Title" xml:space="preserve"><value>Formatos de log personalizados</value></data>
+  <data name="Formats_Utc" xml:space="preserve"><value>UTC</value></data>
+  <data name="Formats_Utc_ToolTip" xml:space="preserve"><value>Datas sem fuso horário estão em UTC (desmarcado: hora local)</value></data>
+  <data name="Menu_Tools_CustomFormats" xml:space="preserve"><value>_Formatos de log personalizados...</value></data>
+  <data name="Palette_CustomFormats" xml:space="preserve"><value>Formatos de log personalizados…</value></data>
+  <data name="Vm_Formats_CopyName" xml:space="preserve"><value>{0} (cópia)</value></data>
+  <data name="Vm_Formats_NewName" xml:space="preserve"><value>Novo formato</value></data>
+  <data name="Vm_Formats_SampleSummary" xml:space="preserve"><value>{0} de {1} linhas de exemplo reconhecidas.</value></data>
 </root>

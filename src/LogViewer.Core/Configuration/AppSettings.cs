@@ -1,5 +1,6 @@
 using LogViewer.Core.ExternalTools;
 using LogViewer.Core.Highlighting;
+using LogViewer.Core.Structured;
 using LogViewer.Core.Theming;
 
 namespace LogViewer.Core.Configuration;
@@ -10,7 +11,7 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 10;
+    public int SchemaVersion { get; set; } = 11;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
 
@@ -28,6 +29,10 @@ public sealed class AppSettings
     public List<HighlightPreset> HighlightPresets { get; set; } = [];
 
     public List<ExternalToolDefinition> ExternalTools { get; set; } = [];
+
+    /// <summary>User-defined regex line formats (see <see cref="CustomLogFormat"/>), offered alongside the built-in
+    /// structured formats and tried first during auto-detection.</summary>
+    public List<CustomLogFormat> CustomLogFormats { get; set; } = [];
 
     public WindowLayoutSettings Layout { get; set; } = new();
 

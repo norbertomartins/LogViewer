@@ -9,6 +9,7 @@ using LogViewer.Core.EventLogging;
 using LogViewer.Core.ExternalTools;
 using LogViewer.Core.Highlighting;
 using LogViewer.Core.Search;
+using LogViewer.Core.Structured;
 using Microsoft.Win32;
 
 namespace LogViewer.App.Services;
@@ -298,6 +299,18 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         };
 
         window.Show();
+    }
+
+    public IReadOnlyList<CustomLogFormat>? ShowCustomFormatsEditor(IReadOnlyList<CustomLogFormat> formats, IReadOnlyList<string> sampleLines)
+    {
+        var viewModel = new CustomFormatsEditorViewModel(formats, sampleLines);
+        var window = new CustomFormatsEditorView
+        {
+            DataContext = viewModel,
+            Owner = Application.Current?.MainWindow,
+        };
+
+        return window.ShowDialog() == true ? viewModel.ToFormats() : null;
     }
 
     public bool ShowCustomizeDialog(TailDocumentViewModel document)

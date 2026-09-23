@@ -80,6 +80,9 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         _currentThemeMode = _themeService.ResolveActiveTheme(_settings).BaseMode;
         _themeService.ThemeApplied += OnThemeApplied;
 
+        // Before RestoreSession: restored documents may auto-detect (or have pinned) a custom format.
+        LogLineParsers.SetCustomFormats(_settings.CustomLogFormats);
+
         if (_settings.RestorePreviousSessionOnStartup)
         {
             RestoreSession();
@@ -637,6 +640,26 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     private void ShowTraceTreeDialog(TailDocumentViewModel document, string? initialTraceId) =>
         _dialogService.ShowTraceTreeDialog(document, initialTraceId);
 
+    /// <summary>Opens the custom-format editor, its preview prefilled with the active document's newest lines,
+    /// and applies + persists the result immediately so every open document's picker picks it up.</summary>
+    [RelayCommand]
+    private void EditCustomFormats()
+    {
+        var sample = ActiveDocument is { } active
+            ? active.Lines.Where(l => l.LineNumber > 0).TakeLast(30).Select(l => MergedTailSource.StripLabel(l.Text)).ToList()
+            : [];
+
+        var edited = _dialogService.ShowCustomFormatsEditor(_settings.CustomLogFormats, sample);
+        if (edited is null)
+        {
+            return;
+        }
+
+        _settings.CustomLogFormats = [.. edited];
+        LogLineParsers.SetCustomFormats(_settings.CustomLogFormats);
+        _settingsStore.Save(_settings);
+    }
+
     [RelayCommand]
     private void OpenCompareFiles() =>
         _dialogService.ShowCompareFilesDialog((path, lineNumber) => OpenPath(path).TryNavigateToLineNumber(lineNumber));
@@ -800,6 +823,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             new(Loc.Get("Palette_WindowMdi"), window, () => SwitchWindowModeCommand.Execute("Mdi")),
             new(Loc.Get("Palette_HighlightPresets"), tools, () => EditHighlightPresetsCommand.Execute(null)),
             new(Loc.Get("Palette_ExternalTools"), tools, () => EditExternalToolsCommand.Execute(null)),
+            new(Loc.Get("Palette_CustomFormats"), tools, () => EditCustomFormatsCommand.Execute(null)),
             new(Loc.Get("Palette_Services"), tools, () => OpenServicesCommand.Execute(null)),
             new(Loc.Get("Palette_Settings"), tools, () => OpenSettingsCommand.Execute(null)),
             new(Loc.Get("Palette_SaveProfile"), session, () => SaveSessionProfileAsCommand.Execute(null)),
