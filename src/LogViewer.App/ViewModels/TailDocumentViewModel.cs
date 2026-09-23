@@ -7,6 +7,7 @@ using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
 using LogViewer.Core.Analysis;
+using LogViewer.Core.Annotations;
 using LogViewer.Core.Bookmarks;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
@@ -553,7 +554,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     public string SessionKey
     {
         get => _sessionKey ?? SourcePath;
-        set => _sessionKey = value;
+        set
+        {
+            _sessionKey = value;
+            ReloadNotes(); // notes are keyed by the session key
+        }
     }
 
     private string? _sessionKey;
@@ -1118,20 +1123,120 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// that entry's continuation and inherits its level. Must be called in line order (it tracks the owner).</summary>
     private LogLineViewModel CreateLine(long lineNumber, string text, StructuredLogEvent? structured, HighlightMatch? match, bool isBookmarked)
     {
+        LogLineViewModel line;
         if (structured is not null)
         {
             _continuationOwner = (lineNumber, structured.Level);
+            line = new LogLineViewModel(lineNumber, text, structured, match, isBookmarked);
         }
         else if (JoinsContinuationLines && _continuationOwner is { } owner && text.Length > 0)
         {
-            return new LogLineViewModel(lineNumber, text, structured, match, isBookmarked)
+            line = new LogLineViewModel(lineNumber, text, structured, match, isBookmarked)
             {
                 ContinuationOf = owner.LineNumber,
                 InheritedLevel = owner.Level,
             };
         }
+        else
+        {
+            line = new LogLineViewModel(lineNumber, text, structured, match, isBookmarked);
+        }
 
-        return new LogLineViewModel(lineNumber, text, structured, match, isBookmarked);
+        ApplyNote(line);
+        return line;
+    }
+
+    // --- Line notes (annotations) -------------------------------------------------------------------
+
+    private ILineAnnotationStore? _annotationStore;
+
+    /// <summary>This document's notes by line number; empty until a store is attached, for non-file documents, and
+    /// for files nobody annotated (so <see cref="ApplyNote"/> costs a single Count check on the hot path).</summary>
+    private Dictionary<long, LineAnnotation> _notes = [];
+
+    /// <summary>Notes need a stable line numbering of one file: plain or compressed files, not merged views, directory
+    /// watches (whose file changes), commands or event logs.</summary>
+    public bool CanAnnotate => _annotationStore is not null && Kind == TailSourceKind.File && !_isMergedSource;
+
+    /// <summary>Every note stored for this file (including ones whose line has since changed), for the MCP tools.</summary>
+    public IReadOnlyList<LineAnnotation> Notes => [.. _notes.Values.OrderBy(n => n.LineNumber)];
+
+    /// <summary>Raised by <see cref="EditNoteCommand"/>; the shell prompts for the text and calls <see cref="SetNote"/>.</summary>
+    public event Action<LogLineViewModel>? EditNoteRequested;
+
+    public void AttachAnnotationStore(ILineAnnotationStore store)
+    {
+        _annotationStore = store;
+        ReloadNotes();
+    }
+
+    private void ReloadNotes()
+    {
+        _notes = CanAnnotate
+            ? _annotationStore!.Get(SessionKey).ToDictionary(n => n.LineNumber)
+            : [];
+        foreach (var line in Lines)
+        {
+            line.Note = null;
+            ApplyNote(line);
+        }
+
+        ScrollMarkersInvalidated?.Invoke();
+    }
+
+    /// <summary>Shows a stored note on its line only while the line still has the text the note was written on.</summary>
+    private void ApplyNote(LogLineViewModel line)
+    {
+        if (_notes.Count > 0
+            && _notes.TryGetValue(line.LineNumber, out var note)
+            && note.TextHash == LineAnnotationStore.HashText(line.Text))
+        {
+            line.Note = note.Note;
+        }
+    }
+
+    [RelayCommand]
+    private void EditNote(LogLineViewModel? line)
+    {
+        line ??= SelectedLine;
+        if (line is not null && line.LineNumber > 0 && CanAnnotate)
+        {
+            EditNoteRequested?.Invoke(line);
+        }
+    }
+
+    [RelayCommand]
+    private void RemoveNote(LogLineViewModel? line)
+    {
+        line ??= SelectedLine;
+        if (line?.HasNote == true)
+        {
+            SetNote(line, null);
+        }
+    }
+
+    /// <summary>Adds, replaces or (for empty text) removes the note on <paramref name="line"/> and persists them.</summary>
+    public void SetNote(LogLineViewModel line, string? text)
+    {
+        if (!CanAnnotate)
+        {
+            return;
+        }
+
+        var trimmed = text?.Trim();
+        if (string.IsNullOrEmpty(trimmed))
+        {
+            _notes.Remove(line.LineNumber);
+            line.Note = null;
+        }
+        else
+        {
+            _notes[line.LineNumber] = new LineAnnotation(line.LineNumber, LineAnnotationStore.HashText(line.Text), trimmed, DateTimeOffset.Now);
+            line.Note = trimmed;
+        }
+
+        _annotationStore!.Set(SessionKey, [.. _notes.Values]);
+        ScrollMarkersInvalidated?.Invoke();
     }
 
     /// <summary>The continuation lines (stack frames, wrapped text) of the selected entry, for the detail panel.</summary>

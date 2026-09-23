@@ -183,6 +183,31 @@ public sealed class Phase9UITests : IDisposable
     }
 
     [Fact]
+    public void RowContextMenu_AddNote_ShowsTheNoteGlyphOnTheLine()
+    {
+        var window = LaunchRestoring("checkout-service.log", "correlation");
+        var list = UiHelpers.WaitFor(() => window.TryByAutomationId("LineListView"), "log list view");
+        var row = UiHelpers.WaitFor(() => list.FindAllChildren(cf => cf.ByControlType(ControlType.ListItem)).FirstOrDefault(), "first row");
+
+        row.Patterns.SelectionItem.Pattern.Select();
+        row.Focus();
+        Keyboard.TypeSimultaneously(VirtualKeyShort.SHIFT, VirtualKeyShort.F10);
+
+        var desktop = _automation.GetDesktop();
+        UiHelpers.WaitFor(
+            () => desktop.FindFirstDescendant(cf => cf.ByControlType(ControlType.MenuItem).And(cf.ByName("Add / Edit Note…"))),
+            "Add Note menu item").AsMenuItem().Invoke();
+
+        var prompt = WaitForTopLevelWindow("Line Note");
+        var input = UiHelpers.WaitFor(() => prompt.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit)), "note text box");
+        input.Patterns.Value.Pattern.SetValue("deploy started here");
+        prompt.ByName("OK", ControlType.Button).AsButton().Invoke();
+
+        Assert.True(UiHelpers.WaitUntil(() => row.FindFirstDescendant(cf => cf.ByName("Note")) is not null),
+            "The note glyph did not appear on the annotated line.");
+    }
+
+    [Fact]
     public void LogList_FillsTheDocument_WhenNoLineIsSelected()
     {
         // Regression: with no selection the detail-panel row used to reserve ~220px of empty space.

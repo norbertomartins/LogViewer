@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Globalization;
 using LogViewer.Core.Analysis;
+using LogViewer.Core.Annotations;
 using LogViewer.Core.Documents;
 using LogViewer.Core.Indexing;
 using LogViewer.Core.Structured;
@@ -11,6 +12,12 @@ namespace LogViewer.Mcp.Tools;
 public sealed record BookmarkDto(long LineNumber, string? Text);
 
 public sealed record DocumentBookmarks(string SourcePath, string Title, IReadOnlyList<BookmarkDto> Bookmarks, bool Truncated);
+
+/// <summary><paramref name="LineChanged"/>: the line no longer has the text the note was written on (file rotated or
+/// rewritten), so the note may not apply to <paramref name="Text"/>.</summary>
+public sealed record NoteDto(long LineNumber, string Note, string? Text, bool LineChanged, string CreatedAt);
+
+public sealed record DocumentNotes(string SourcePath, string Title, IReadOnlyList<NoteDto> Notes, bool Truncated);
 
 public sealed record NewLinesResult(IReadOnlyList<SearchResultDto> Lines, long NextCursor, bool HasMore, long TotalLines, bool FileWasReset);
 
@@ -47,6 +54,50 @@ public sealed class LogNavigationTools(IOpenDocumentCatalog documentCatalog)
                 .Select(n => new BookmarkDto(n, index?.ReadLines(n, 1).FirstOrDefault().Text is { } text ? ResponseLimits.Truncate(text) : null))
                 .ToList();
             result.Add(new DocumentBookmarks(document.SearchableFilePath ?? document.SourcePath, document.Title, dtos, bookmarks.Count > cap));
+        }
+
+        return result;
+    }
+
+    [McpServerTool(Name = "logs_get_notes")]
+    [Description(
+        "Lists the notes the user wrote on lines of each open LogViewer document (right-click > Add Note), with the " +
+        "line text — their own explanations of what a line means (e.g. 'root cause', 'deploy started here'). Read these " +
+        "before drawing conclusions about an incident the user has been investigating. 'lineChanged' means the file " +
+        "was rotated or rewritten since, so that note may no longer describe the line shown.")]
+    public async Task<IReadOnlyList<DocumentNotes>> GetNotes(
+        [Description("Maximum notes to return per document.")] int maxResults,
+        CancellationToken cancellationToken)
+    {
+        var cap = ResponseLimits.ClampRows(maxResults);
+        var result = new List<DocumentNotes>();
+        foreach (var document in documentCatalog.GetOpenDocuments())
+        {
+            var notes = document.Notes ?? [];
+            if (notes.Count == 0)
+            {
+                continue;
+            }
+
+            FileLineIndex? index = null;
+            if (document.SearchableFilePath is { } path && File.Exists(path))
+            {
+                index = await FileLineIndexCache.GetAsync(path, cancellationToken).ConfigureAwait(false);
+            }
+
+            var dtos = notes.OrderBy(n => n.LineNumber).Take(cap)
+                .Select(n =>
+                {
+                    var text = index?.ReadLines(n.LineNumber, 1).FirstOrDefault().Text;
+                    return new NoteDto(
+                        n.LineNumber,
+                        ResponseLimits.Truncate(n.Note),
+                        text is null ? null : ResponseLimits.Truncate(text),
+                        text is not null && LineAnnotationStore.HashText(text) != n.TextHash,
+                        n.CreatedAt.ToString("O", CultureInfo.InvariantCulture));
+                })
+                .ToList();
+            result.Add(new DocumentNotes(document.SearchableFilePath ?? document.SourcePath, document.Title, dtos, notes.Count > cap));
         }
 
         return result;

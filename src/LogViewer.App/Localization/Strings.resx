@@ -675,4 +675,9 @@
   <data name="Vm_Containers_NoneRunning" xml:space="preserve"><value>Nothing running — you can still type a name.</value></data>
   <data name="Menu_File_OpenContainerLogs" xml:space="preserve"><value>Open _Container Logs (Docker / Kubernetes)...</value></data>
   <data name="Palette_OpenContainerLogs" xml:space="preserve"><value>Open Container Logs (Docker / Kubernetes)…</value></data>
+  <data name="Doc_Ctx_EditNote" xml:space="preserve"><value>Add / Edit Note…</value></data>
+  <data name="Doc_Ctx_RemoveNote" xml:space="preserve"><value>Remove Note</value></data>
+  <data name="Doc_Note_Name" xml:space="preserve"><value>Note</value></data>
+  <data name="Note_Title" xml:space="preserve"><value>Line Note</value></data>
+  <data name="Note_Prompt" xml:space="preserve"><value>Note for line {0} (empty removes it):</value></data>
 </root>

@@ -3,14 +3,17 @@ using System.IO;
 namespace LogViewer.UITests.TestUtilities;
 
 /// <summary>
-/// Moves the real <c>%LOCALAPPDATA%\LogViewer\settings.json</c> aside for the duration of a UI test
-/// so the app launches with fresh defaults (no restored documents, MCP off) instead of whatever the
-/// developer running these tests happens to have open, and puts it back afterwards untouched.
+/// Moves the real <c>%LOCALAPPDATA%\LogViewer\settings.json</c> (and <c>annotations.json</c>, the line notes)
+/// aside for the duration of a UI test so the app launches with fresh defaults (no restored documents, MCP off)
+/// instead of whatever the developer running these tests happens to have open, and puts them back afterwards
+/// untouched.
 /// </summary>
 public sealed class IsolatedSettingsFixture : IDisposable
 {
     private readonly string _settingsPath;
     private readonly string? _backupPath;
+    private readonly string _annotationsPath;
+    private readonly string? _annotationsBackupPath;
 
     public IsolatedSettingsFixture(string? initialSettingsJson = null)
     {
@@ -27,6 +30,13 @@ public sealed class IsolatedSettingsFixture : IDisposable
         if (initialSettingsJson is not null)
         {
             File.WriteAllText(_settingsPath, initialSettingsJson);
+        }
+
+        _annotationsPath = Path.Combine(directory, "annotations.json");
+        if (File.Exists(_annotationsPath))
+        {
+            _annotationsBackupPath = _annotationsPath + ".uitest-backup-" + Guid.NewGuid().ToString("N");
+            File.Move(_annotationsPath, _annotationsBackupPath);
         }
     }
 
@@ -110,6 +120,16 @@ public sealed class IsolatedSettingsFixture : IDisposable
         if (_backupPath is not null)
         {
             File.Move(_backupPath, _settingsPath);
+        }
+
+        if (File.Exists(_annotationsPath))
+        {
+            File.Delete(_annotationsPath);
+        }
+
+        if (_annotationsBackupPath is not null)
+        {
+            File.Move(_annotationsBackupPath, _annotationsPath);
         }
     }
 }

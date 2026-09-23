@@ -1,6 +1,7 @@
 using LogViewer.App.Services;
 using LogViewer.App.ViewModels;
 using LogViewer.Core.Analysis;
+using LogViewer.Core.Annotations;
 using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
@@ -16,7 +17,8 @@ public static class MainViewModelFactory
     public static (MainViewModel ViewModel, AppSettings Settings) Create(
         AppSettings? settings = null,
         IDialogService? dialogService = null,
-        INotificationService? notificationService = null)
+        INotificationService? notificationService = null,
+        ILineAnnotationStore? annotationStore = null)
     {
         var usedSettings = settings ?? new AppSettings { RestorePreviousSessionOnStartup = false };
 
@@ -36,7 +38,8 @@ public static class MainViewModelFactory
             Substitute.For<IPatternFrequencyAnalyzer>(),
             themeService,
             Substitute.For<ISoundAlertPlayer>(),
-            notificationService ?? Substitute.For<INotificationService>());
+            notificationService ?? Substitute.For<INotificationService>(),
+            annotationStore ?? new InMemoryAnnotationStore());
 
         return (viewModel, usedSettings);
     }

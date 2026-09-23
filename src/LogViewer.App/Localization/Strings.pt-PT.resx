@@ -675,4 +675,9 @@
   <data name="Vm_Containers_NoneRunning" xml:space="preserve"><value>Nada em execução — pode escrever um nome à mão.</value></data>
   <data name="Menu_File_OpenContainerLogs" xml:space="preserve"><value>Abrir logs de _contentor (Docker / Kubernetes)...</value></data>
   <data name="Palette_OpenContainerLogs" xml:space="preserve"><value>Abrir logs de contentor (Docker / Kubernetes)…</value></data>
+  <data name="Doc_Ctx_EditNote" xml:space="preserve"><value>Adicionar / editar nota…</value></data>
+  <data name="Doc_Ctx_RemoveNote" xml:space="preserve"><value>Remover nota</value></data>
+  <data name="Doc_Note_Name" xml:space="preserve"><value>Nota</value></data>
+  <data name="Note_Title" xml:space="preserve"><value>Nota da linha</value></data>
+  <data name="Note_Prompt" xml:space="preserve"><value>Nota para a linha {0} (vazia remove-a):</value></data>
 </root>

@@ -20,6 +20,7 @@ public partial class TailDocumentView : UserControl
     private static readonly Brush BookmarkMarkerBrush = Frozen(Color.FromRgb(0x1E, 0x88, 0xE5));
     private static readonly Brush NewPatternMarkerBrush = Frozen(Color.FromRgb(0xD8, 0x1B, 0x60));
     private static readonly Brush SearchHitMarkerBrush = Frozen(Color.FromRgb(0x00, 0xAC, 0xC1));
+    private static readonly Brush NoteMarkerBrush = Frozen(Color.FromRgb(0x43, 0xA0, 0x47));
     private static readonly int ErrorRank = LogLevelSeverity.Rank("Error")!.Value;
     private static readonly int WarningRank = LogLevelSeverity.Rank("Warning")!.Value;
 
@@ -59,7 +60,7 @@ public partial class TailDocumentView : UserControl
         }
     }
 
-    /// <summary>Rebuilds the overview strip from the currently visible (post-filter) lines: bookmarks first, then
+    /// <summary>Rebuilds the overview strip from the currently visible (post-filter) lines: bookmarks and notes first, then
     /// search results, new error patterns, errors, warnings and highlight matches — the strip keeps the highest-priority mark per pixel row.</summary>
     private void RefreshScrollMarkers()
     {
@@ -78,6 +79,10 @@ public partial class TailDocumentView : UserControl
                     if (line.IsBookmarked)
                     {
                         markers.Add(new ScrollMarker(position, BookmarkMarkerBrush, 0));
+                    }
+                    else if (line.HasNote)
+                    {
+                        markers.Add(new ScrollMarker(position, NoteMarkerBrush, 0));
                     }
                     else if (_viewModel?.IsSearchHit(line.LineNumber) == true)
                     {
