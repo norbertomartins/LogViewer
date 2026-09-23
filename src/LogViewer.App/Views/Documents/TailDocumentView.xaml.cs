@@ -19,6 +19,7 @@ public partial class TailDocumentView : UserControl
     private static readonly Brush WarningMarkerBrush = Frozen(Color.FromRgb(0xFF, 0xB3, 0x00));
     private static readonly Brush BookmarkMarkerBrush = Frozen(Color.FromRgb(0x1E, 0x88, 0xE5));
     private static readonly Brush NewPatternMarkerBrush = Frozen(Color.FromRgb(0xD8, 0x1B, 0x60));
+    private static readonly Brush SearchHitMarkerBrush = Frozen(Color.FromRgb(0x00, 0xAC, 0xC1));
     private static readonly int ErrorRank = LogLevelSeverity.Rank("Error")!.Value;
     private static readonly int WarningRank = LogLevelSeverity.Rank("Warning")!.Value;
 
@@ -59,7 +60,7 @@ public partial class TailDocumentView : UserControl
     }
 
     /// <summary>Rebuilds the overview strip from the currently visible (post-filter) lines: bookmarks first, then
-    /// new error patterns, errors, warnings and highlight matches — the strip keeps the highest-priority mark per pixel row.</summary>
+    /// search results, new error patterns, errors, warnings and highlight matches — the strip keeps the highest-priority mark per pixel row.</summary>
     private void RefreshScrollMarkers()
     {
         var items = LineListView.Items;
@@ -77,6 +78,10 @@ public partial class TailDocumentView : UserControl
                     if (line.IsBookmarked)
                     {
                         markers.Add(new ScrollMarker(position, BookmarkMarkerBrush, 0));
+                    }
+                    else if (_viewModel?.IsSearchHit(line.LineNumber) == true)
+                    {
+                        markers.Add(new ScrollMarker(position, SearchHitMarkerBrush, 1));
                     }
                     else if (line.IsNewPattern)
                     {

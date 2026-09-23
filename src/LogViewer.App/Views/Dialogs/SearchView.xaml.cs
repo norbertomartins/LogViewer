@@ -9,6 +9,7 @@ public partial class SearchView : Window
     public SearchView()
     {
         InitializeComponent();
+        Closed += (_, _) => (DataContext as SearchViewModel)?.Close();
     }
 
     private void OnResultsDoubleClick(object sender, MouseButtonEventArgs e)

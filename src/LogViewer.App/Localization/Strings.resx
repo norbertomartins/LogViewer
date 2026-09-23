@@ -632,7 +632,7 @@
   <data name="Vm_Browser_WrappedToEnd" xml:space="preserve"><value>Reached the start of the file — continued from the end.</value></data>
   <data name="Vm_Browser_MatchCount" xml:space="preserve"><value>{0:N0} matching lines</value></data>
   <data name="Doc_ScrollMarkers_Name" xml:space="preserve"><value>Overview of errors, warnings, bookmarks and highlights</value></data>
-  <data name="Doc_ScrollMarkers_ToolTip" xml:space="preserve"><value>Red: error · amber: warning · blue: bookmark · other colors: highlight rules. Click to jump.</value></data>
+  <data name="Doc_ScrollMarkers_ToolTip" xml:space="preserve"><value>Red: error · amber: warning · blue: bookmark · cyan: search result · magenta: new error pattern · other colors: highlight rules. Click to jump.</value></data>
   <data name="Settings_NotifyOnNewErrorPatterns" xml:space="preserve"><value>Also notify when a new kind of warning/error message appears (first occurrence of a message shape)</value></data>
   <data name="Doc_NewPattern_Name" xml:space="preserve"><value>New error patterns</value></data>
   <data name="Doc_NewPattern_ToolTip" xml:space="preserve"><value>Warning/error messages of a kind not seen before in this document (magenta on the overview strip). Click: next one.</value></data>

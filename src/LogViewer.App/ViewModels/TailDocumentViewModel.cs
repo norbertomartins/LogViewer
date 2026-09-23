@@ -1083,6 +1083,29 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
     }
 
+    // --- Search hits shown on the scroll-marker strip ---------------------------------------------
+
+    private readonly HashSet<long> _searchHitLineNumbers = [];
+
+    /// <summary>True when <paramref name="lineNumber"/> is a result of this document's open full-text search.</summary>
+    public bool IsSearchHit(long lineNumber) => _searchHitLineNumbers.Contains(lineNumber);
+
+    public int SearchHitCount => _searchHitLineNumbers.Count;
+
+    /// <summary>Called by the Search window as results stream in (and with an empty list when a new search starts
+    /// or the window closes), so the overview strip marks where the matches are.</summary>
+    public void SetSearchHits(IEnumerable<long> lineNumbers)
+    {
+        _searchHitLineNumbers.Clear();
+        AddSearchHits(lineNumbers);
+    }
+
+    public void AddSearchHits(IEnumerable<long> lineNumbers)
+    {
+        _searchHitLineNumbers.UnionWith(lineNumbers);
+        ScrollMarkersInvalidated?.Invoke();
+    }
+
     /// <summary>Raised when something the scroll-marker strip draws changed without a collection change on
     /// <see cref="Lines"/> (bookmark toggled, highlight rules/theme re-applied), so the view refreshes the strip.</summary>
     public event Action? ScrollMarkersInvalidated;

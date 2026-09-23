@@ -76,6 +76,7 @@ public sealed partial class SearchViewModel : ObservableObject
         _searchCts = cts;
 
         Results.Clear();
+        _document.SetSearchHits([]);
         IsSearching = true;
         StatusMessage = Loc.Get("Vm_Search_Searching");
 
@@ -89,11 +90,22 @@ public sealed partial class SearchViewModel : ObservableObject
                 return;
             }
 
+            var pendingHits = new List<long>();
             await foreach (var result in stream)
             {
                 Results.Add(result);
                 matchCount++;
+
+                // Batch the strip updates: one invalidation per 200 results instead of one per match.
+                pendingHits.Add(result.LineNumber);
+                if (pendingHits.Count >= 200)
+                {
+                    _document.AddSearchHits(pendingHits);
+                    pendingHits.Clear();
+                }
             }
+
+            _document.AddSearchHits(pendingHits);
 
             StatusMessage = matchCount == 1
                 ? Loc.Get("Vm_Search_MatchesOne")
@@ -113,6 +125,13 @@ public sealed partial class SearchViewModel : ObservableObject
         {
             IsSearching = false;
         }
+    }
+
+    /// <summary>Called when the Search window closes: stops any running search and removes its marks from the strip.</summary>
+    public void Close()
+    {
+        _searchCts?.Cancel();
+        _document.SetSearchHits([]);
     }
 
     private IAsyncEnumerable<SearchResult>? BuildStream(CancellationToken cancellationToken)
