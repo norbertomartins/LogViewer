@@ -20,6 +20,9 @@
                          VerticalAlignment="Center" Margin="0,0,12,0" GroupName="Scope" />
             <RadioButton Content="{loc:Loc Exceptions_ScopeFile}" IsChecked="{Binding IsWholeFile}"
                          IsEnabled="{Binding CanScanWholeFile}" VerticalAlignment="Center" GroupName="Scope" />
+            <CheckBox Content="{loc:Loc Exceptions_Live}" IsChecked="{Binding IsLive}" VerticalAlignment="Center" Margin="16,0,0,0"
+                      IsEnabled="{Binding IsWholeFile, Converter={StaticResource InverseBoolConverter}}"
+                      ToolTip="{loc:Loc Exceptions_Live_ToolTip}" />
             <ProgressBar Width="120" Height="10" Margin="16,0,0,0" IsIndeterminate="True"
                          Visibility="{Binding IsAnalyzing, Converter={StaticResource BoolToVisibilityConverter}}" />
         </StackPanel>

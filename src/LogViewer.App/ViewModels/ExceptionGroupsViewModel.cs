@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.IO;
+using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LogViewer.App.Localization;
@@ -18,13 +20,39 @@ namespace LogViewer.App.ViewModels;
 /// </summary>
 public sealed partial class ExceptionGroupsViewModel : ObservableObject, IDisposable
 {
+    private static readonly TimeSpan LiveRefreshInterval = TimeSpan.FromSeconds(2);
+
     private readonly TailDocumentViewModel _document;
+    private readonly DispatcherTimer _liveRefreshTimer;
     private CancellationTokenSource? _analyzeCts;
 
     public ExceptionGroupsViewModel(TailDocumentViewModel document)
     {
         _document = document;
+
+        // Live mode: new tailed lines mark the buffer dirty; the regroup runs at most every LiveRefreshInterval,
+        // so a burst of lines costs one background scan, not one per flush.
+        _liveRefreshTimer = new DispatcherTimer { Interval = LiveRefreshInterval };
+        _liveRefreshTimer.Tick += (_, _) =>
+        {
+            _liveRefreshTimer.Stop();
+            _ = AnalyzeAsync();
+        };
+        _document.Lines.CollectionChanged += OnDocumentLinesChanged;
+
         _ = AnalyzeAsync();
+    }
+
+    /// <summary>When on (the default), the buffer scope regroups automatically as new lines arrive.</summary>
+    [ObservableProperty]
+    private bool _isLive = true;
+
+    private void OnDocumentLinesChanged(object? sender, NotifyCollectionChangedEventArgs e)
+    {
+        if (IsLive && !IsWholeFile && !_liveRefreshTimer.IsEnabled)
+        {
+            _liveRefreshTimer.Start();
+        }
     }
 
     public string Title => _document.Title;
@@ -57,7 +85,7 @@ public sealed partial class ExceptionGroupsViewModel : ObservableObject, IDispos
 
         IsAnalyzing = true;
         StatusMessage = Loc.Get("Vm_Exceptions_Analyzing");
-        Groups.Clear();
+        var previousSignature = SelectedGroup?.Signature;
 
         try
         {
@@ -79,12 +107,15 @@ public sealed partial class ExceptionGroupsViewModel : ObservableObject, IDispos
                 return;
             }
 
+            // Replace in one go after the scan (not before), so a live refresh doesn't flash an empty list, and keep
+            // the user's selected group selected by its signature.
+            Groups.Clear();
             foreach (var group in groups)
             {
                 Groups.Add(group);
             }
 
-            SelectedGroup = Groups.FirstOrDefault();
+            SelectedGroup = Groups.FirstOrDefault(g => g.Signature == previousSignature) ?? Groups.FirstOrDefault();
             StatusMessage = groups.Count == 0
                 ? Loc.Get("Vm_Exceptions_None")
                 : Loc.Format("Vm_Exceptions_Summary", groups.Count, groups.Sum(g => g.Count));
@@ -178,5 +209,10 @@ public sealed partial class ExceptionGroupsViewModel : ObservableObject, IDispos
         }
     }
 
-    public void Dispose() => _analyzeCts?.Cancel();
+    public void Dispose()
+    {
+        _document.Lines.CollectionChanged -= OnDocumentLinesChanged;
+        _liveRefreshTimer.Stop();
+        _analyzeCts?.Cancel();
+    }
 }

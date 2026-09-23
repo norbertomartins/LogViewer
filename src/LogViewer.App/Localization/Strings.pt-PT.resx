@@ -656,4 +656,6 @@
   <data name="Palette_ApplyFilterViewFmt" xml:space="preserve"><value>Aplicar vista de filtro: {0}</value></data>
   <data name="Doc_Ctx_FilterAllByCorrelation" xml:space="preserve"><value>Filtrar todos os documentos por ID de correlação</value></data>
   <data name="Vm_Correlation_AllDocuments" xml:space="preserve"><value>Todos os documentos filtrados por "{0}" — {1} de {2} têm linhas correspondentes.</value></data>
+  <data name="Exceptions_Live" xml:space="preserve"><value>Ao vivo</value></data>
+  <data name="Exceptions_Live_ToolTip" xml:space="preserve"><value>Reagrupar automaticamente à medida que chegam linhas novas (só no âmbito do buffer ao vivo)</value></data>
 </root>

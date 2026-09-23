@@ -58,6 +58,29 @@ public sealed class CorrelationAndExceptionViewModelTests : IDisposable
     }
 
     [Fact]
+    public void ExceptionGroups_LiveMode_RegroupsAsNewLinesArrive_KeepingTheSelection()
+    {
+        var (main, _) = MainViewModelFactory.Create();
+        var path = _tempDir.CreateFile("live.log", "ERROR a\nSystem.InvalidOperationException: x\n   at A.B()\n");
+        var doc = main.OpenPath(path);
+        TestDispatcher.SpinUntil(() => doc.Lines.Count >= 3);
+
+        // Synchronous on purpose: an await could resume on another thread, and TestDispatcher would then pump a
+        // different Dispatcher than the one owning the document's tail flush and the panel's live-refresh timer.
+        using var vm = new ExceptionGroupsViewModel(doc);
+        TestDispatcher.SpinUntil(() => vm.Groups.Count == 1 && !vm.IsAnalyzing);
+        var first = Assert.Single(vm.Groups);
+        Assert.True(vm.IsLive);
+
+        System.IO.File.AppendAllText(path, "ERROR b\nSystem.TimeoutException: y\n   at C.D()\nERROR c\nSystem.TimeoutException: y\n   at C.D()\n");
+        TestDispatcher.SpinUntil(() => vm.Groups.Count == 2 && !vm.IsAnalyzing);
+
+        Assert.Equal(2, vm.Groups.Count);
+        Assert.Equal(first.Signature, vm.SelectedGroup?.Signature);
+        main.Dispose();
+    }
+
+    [Fact]
     public void FilterAllByCorrelation_AppliesTheIdToEveryDocument()
     {
         var (main, _) = MainViewModelFactory.Create();
