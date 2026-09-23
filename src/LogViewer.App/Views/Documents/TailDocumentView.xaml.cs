@@ -317,7 +317,8 @@ public partial class TailDocumentView : UserControl
         {
             correlationMenu.Items.Add(new MenuItem
             {
-                Header = $"{id.Name} = {id.Value}",
+                // "_" marks an access key in a MenuItem header — double it so "request_id" isn't shown as "requestid".
+                Header = $"{id.Name} = {id.Value}".Replace("_", "__", StringComparison.Ordinal),
                 Command = _viewModel.FilterByCorrelationCommand,
                 CommandParameter = id,
             });
