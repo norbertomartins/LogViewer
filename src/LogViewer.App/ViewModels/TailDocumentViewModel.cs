@@ -1251,6 +1251,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         return isBookmarked;
     }
 
+    /// <summary>The user's bookmarks as ascending absolute line numbers (a snapshot — for the MCP catalog).</summary>
+    public IReadOnlyList<long> BookmarkedLineNumbers => [.. _bookmarks.Bookmarks.Select(b => b.LineNumber).Order()];
+
     /// <summary>Bookmarks an arbitrary line number if it isn't already — used by the Search dialog's
     /// "bookmark all results" action, which should never accidentally remove an existing bookmark.</summary>
     public void EnsureBookmarked(long lineNumber)
