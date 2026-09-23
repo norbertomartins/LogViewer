@@ -372,6 +372,24 @@
   - **MCP (6.2):** `logs_get_new_lines_since` — cursor-based tailing over the cached index, with `fileWasReset`.
   Tests: 314 Core / 26 Mcp / 207 App / 9 Phase-9 FlaUI, all green.
 
+- **Phase 12 — third ROADMAP.md batch.** One commit per item on `phase-12-roadmap`.
+  - **Live Exceptions panel (4.3):** the live-buffer scope regroups at most every 2s as lines arrive, replacing the
+    list in one go and keeping the selection by signature; "Live" checkbox.
+  - **Search hits on the marker strip (3.8):** results of a document's open Search window are marked cyan (fed in
+    batches of 200 while streaming; cleared on a new search or when the window closes).
+  - **Multi-line entries for custom formats (3.5):** `CustomLogFormat.JoinContinuationLines` — unmatched lines after
+    an entry get `LogLineViewModel.ContinuationOf`/`InheritedLevel`, so the level filter (now `SeverityRank`-based)
+    keeps an ERROR line with its stack trace and the detail panel lists the entry's continuation lines.
+  - **Archives (5.1):** `CompressedLogFile` detects gzip/zip/bzip2/zstd by magic bytes (bzip2 + zstd via
+    SharpCompress); multi-file zips ask which entry (or all, up to 20) through the palette picker;
+    `TailSourceSettings.ArchiveEntry`, schema **v13→v14** (no-op). Fixed along the way: compressed documents never
+    matched their session entry (their `SourcePath` is the temp copy) — new `TailDocumentViewModel.SessionKey`.
+  - **Container logs (5.2):** File ▸ Open Container Logs — Docker or Kubernetes, containers/pods/namespaces/pod
+    containers listed through `IContainerCli` (`docker ps`, `kubectl get …`, 10s timeout, errors shown), producing a
+    `docker/kubectl logs -f` process tail. `ContainerLogs.BuildCommand` validates names (no argument injection).
+    Neither CLI is installed on the dev box: the CLI side is covered with a substitute.
+  Tests: 325 Core / 26 Mcp / 216 App / 10 Phase-9+ FlaUI, all green.
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was

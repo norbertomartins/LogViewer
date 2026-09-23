@@ -20,6 +20,8 @@ architecture decisions.
   One "Open Remote Log Endpoint" dialog routes by URL scheme.
 - Command-output tailing (`ProcessTailSource`) — `journalctl -f`, `docker logs -f`, `kubectl logs -f`,
   `adb logcat`, etc. — with auto-relaunch of follow-style commands.
+- Container logs (File ▸ Open Container Logs): pick a running Docker container or Kubernetes pod (context,
+  namespace, container) from lists fetched through the CLI, and follow it.
 - SSH tailing (`SshTailSource`) — run a command on a remote host and tail its output, with key or
   password auth and host-key fingerprint verification; credentials are never persisted.
 - Real-time ETW provider tailing (`EtwTailSource`) by provider name or GUID (requires elevation).
@@ -35,8 +37,9 @@ architecture decisions.
   Winston, zap), syslog (RFC 5424 + legacy BSD/RFC 3164), and W3C Extended / IIS logs — each yielding a
   common timestamp / level / message / exception / properties shape. The detected format is shown in a
   toolbar picker and can be overridden per document (persisted across restarts).
-- Gzip (`.gz`) log archives open transparently — decompressed once to a temp copy and then viewed,
-  searched, and parsed like any other file.
+- Compressed logs open transparently — gzip (`.gz`), bzip2 (`.bz2`), Zstandard (`.zst`) and zip (`.zip`, with a
+  picker when the archive holds several files) are decompressed once to a temp copy and then viewed, searched, and
+  parsed like any other file.
 - Structured view (and format auto-detection) also works on a merged multi-file document — the per-file
   label prefix is stripped before parsing.
 - Colorization by structured property (applied only to the message, not the whole line).
