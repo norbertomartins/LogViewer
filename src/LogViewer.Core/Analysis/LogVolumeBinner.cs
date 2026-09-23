@@ -18,6 +18,14 @@ public sealed record VolumeBin(
 
     /// <summary>Lines that are neither warnings nor errors.</summary>
     public int Info => Math.Max(0, Total - Warnings - Errors);
+
+    /// <summary>Set by <see cref="VolumeSpikeDetector"/>: total volume far above the recent baseline.</summary>
+    public bool IsVolumeSpike { get; init; }
+
+    /// <summary>Set by <see cref="VolumeSpikeDetector"/>: error count far above the recent baseline.</summary>
+    public bool IsErrorSpike { get; init; }
+
+    public bool IsSpike => IsVolumeSpike || IsErrorSpike;
 }
 
 /// <summary>

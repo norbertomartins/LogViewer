@@ -633,4 +633,13 @@
   <data name="Vm_Browser_MatchCount" xml:space="preserve"><value>{0:N0} linhas correspondentes</value></data>
   <data name="Doc_ScrollMarkers_Name" xml:space="preserve"><value>Visão geral de erros, avisos, marcadores e realces</value></data>
   <data name="Doc_ScrollMarkers_ToolTip" xml:space="preserve"><value>Vermelho: erro · âmbar: aviso · azul: marcador · outras cores: regras de realce. Clique para saltar.</value></data>
+  <data name="Settings_NotifyOnNewErrorPatterns" xml:space="preserve"><value>Notificar também quando aparece um novo tipo de mensagem de aviso/erro (primeira ocorrência de um padrão)</value></data>
+  <data name="Doc_NewPattern_Name" xml:space="preserve"><value>Novos padrões de erro</value></data>
+  <data name="Doc_NewPattern_ToolTip" xml:space="preserve"><value>Mensagens de aviso/erro de um tipo nunca visto neste documento (magenta na faixa de visão geral). Clique: seguinte.</value></data>
+  <data name="Doc_Timeline_VolumeSpike" xml:space="preserve"><value>⚠ Pico de volume (muito acima da base recente)</value></data>
+  <data name="Doc_Timeline_ErrorSpike" xml:space="preserve"><value>⚠ Pico de erros (muito acima da base recente)</value></data>
+  <data name="Palette_NextNewPattern" xml:space="preserve"><value>Novo padrão de erro seguinte</value></data>
+  <data name="Palette_PrevNewPattern" xml:space="preserve"><value>Novo padrão de erro anterior</value></data>
+  <data name="Vm_NewPattern_Title" xml:space="preserve"><value>Novo padrão de erro — {0}</value></data>
+  <data name="Vm_NewPattern_Message" xml:space="preserve"><value>Linha {0}: {1}</value></data>
 </root>

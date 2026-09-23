@@ -321,6 +321,8 @@
                     AutomationProperties.Name="{loc:Loc Doc_BrowseFile_Name}" ToolTip="{loc:Loc Doc_BrowseFile_ToolTip}" />
             <Button Content="💥" Style="{StaticResource IconButton}" Command="{Binding ShowExceptionGroupsCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Exceptions_Name}" ToolTip="{loc:Loc Doc_Exceptions_ToolTip}" />
+            <Button Content="{Binding NewPatternBadge}" Style="{StaticResource IconButton}" Command="{Binding NextNewPatternCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_NewPattern_Name}" ToolTip="{loc:Loc Doc_NewPattern_ToolTip}" />
             <Button Content="📈" Style="{StaticResource IconButton}" Command="{Binding ShowStatsCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Stats_Name}" ToolTip="{loc:Loc Doc_Stats_ToolTip}" />
             <Button Content="🕸" Style="{StaticResource IconButton}" Command="{Binding ShowTraceTreeCommand}"
@@ -366,14 +368,23 @@
                                     </ContextMenu>
                                 </Button.ContextMenu>
                                 <Button.ToolTip>
-                                    <TextBlock>
-                                        <Run Text="{Binding Start, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}', Mode=OneWay}" /><LineBreak />
-                                        <Run Text="{Binding Total, StringFormat={loc:Loc Doc_Timeline_Tip_Lines}, Mode=OneWay}" />
-                                        <Run Text="{Binding Warnings, StringFormat={loc:Loc Doc_Timeline_Tip_Warn}, Mode=OneWay}" />
-                                        <Run Text="{Binding Errors, StringFormat={loc:Loc Doc_Timeline_Tip_Err}, Mode=OneWay}" />
-                                    </TextBlock>
+                                    <StackPanel>
+                                        <TextBlock>
+                                            <Run Text="{Binding Start, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}', Mode=OneWay}" /><LineBreak />
+                                            <Run Text="{Binding Total, StringFormat={loc:Loc Doc_Timeline_Tip_Lines}, Mode=OneWay}" />
+                                            <Run Text="{Binding Warnings, StringFormat={loc:Loc Doc_Timeline_Tip_Warn}, Mode=OneWay}" />
+                                            <Run Text="{Binding Errors, StringFormat={loc:Loc Doc_Timeline_Tip_Err}, Mode=OneWay}" />
+                                        </TextBlock>
+                                        <TextBlock Text="{loc:Loc Doc_Timeline_VolumeSpike}" Foreground="#D81B60" FontWeight="Bold"
+                                                   Visibility="{Binding IsVolumeSpike, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                        <TextBlock Text="{loc:Loc Doc_Timeline_ErrorSpike}" Foreground="#D81B60" FontWeight="Bold"
+                                                   Visibility="{Binding IsErrorSpike, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                    </StackPanel>
                                 </Button.ToolTip>
                                 <StackPanel VerticalAlignment="Bottom">
+                                    <!-- Anomaly marker: a thin magenta cap on bins far above the recent baseline. -->
+                                    <Rectangle Fill="#D81B60" Height="3" Margin="0,0,0,1" HorizontalAlignment="Stretch"
+                                               Visibility="{Binding IsSpike, Converter={StaticResource BoolToVisibilityConverter}}" />
                                     <Rectangle Fill="#E53935" HorizontalAlignment="Stretch">
                                         <Rectangle.Height>
                                             <MultiBinding Converter="{StaticResource VolumeBinBarHeightConverter}" ConverterParameter="44">

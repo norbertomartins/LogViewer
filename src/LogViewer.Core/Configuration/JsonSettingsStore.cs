@@ -88,7 +88,9 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
         // enabled-by-default global setting, so no field-level migration is needed.
         // v10 -> v11: CustomLogFormats is new; the field initializer already gives pre-v11 files an empty
         // list (built-in formats only), so no field-level migration is needed.
-        settings.SchemaVersion = 11;
+        // v11 -> v12: NotificationAlerts.NotifyOnNewErrorPatterns is new; its initializer (false) keeps pre-v12
+        // behavior (no new-pattern notifications), so no field-level migration is needed.
+        settings.SchemaVersion = 12;
         return settings;
     }
 

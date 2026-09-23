@@ -7,4 +7,8 @@ namespace LogViewer.Core.Configuration;
 public sealed class NotificationAlertSettings
 {
     public bool Enabled { get; set; } = true;
+
+    /// <summary>Also notify when a document sees a Warning/Error message shape it has never seen before
+    /// (<see cref="Analysis.NewPatternDetector"/>). Off by default: noisy on logs with lots of unique messages.</summary>
+    public bool NotifyOnNewErrorPatterns { get; set; }
 }

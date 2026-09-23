@@ -633,4 +633,13 @@
   <data name="Vm_Browser_MatchCount" xml:space="preserve"><value>{0:N0} matching lines</value></data>
   <data name="Doc_ScrollMarkers_Name" xml:space="preserve"><value>Overview of errors, warnings, bookmarks and highlights</value></data>
   <data name="Doc_ScrollMarkers_ToolTip" xml:space="preserve"><value>Red: error · amber: warning · blue: bookmark · other colors: highlight rules. Click to jump.</value></data>
+  <data name="Settings_NotifyOnNewErrorPatterns" xml:space="preserve"><value>Also notify when a new kind of warning/error message appears (first occurrence of a message shape)</value></data>
+  <data name="Doc_NewPattern_Name" xml:space="preserve"><value>New error patterns</value></data>
+  <data name="Doc_NewPattern_ToolTip" xml:space="preserve"><value>Warning/error messages of a kind not seen before in this document (magenta on the overview strip). Click: next one.</value></data>
+  <data name="Doc_Timeline_VolumeSpike" xml:space="preserve"><value>⚠ Volume spike (far above the recent baseline)</value></data>
+  <data name="Doc_Timeline_ErrorSpike" xml:space="preserve"><value>⚠ Error spike (far above the recent baseline)</value></data>
+  <data name="Palette_NextNewPattern" xml:space="preserve"><value>Next New Error Pattern</value></data>
+  <data name="Palette_PrevNewPattern" xml:space="preserve"><value>Previous New Error Pattern</value></data>
+  <data name="Vm_NewPattern_Title" xml:space="preserve"><value>New error pattern — {0}</value></data>
+  <data name="Vm_NewPattern_Message" xml:space="preserve"><value>Line {0}: {1}</value></data>
 </root>

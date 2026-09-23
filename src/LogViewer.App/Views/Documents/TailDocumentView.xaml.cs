@@ -18,6 +18,7 @@ public partial class TailDocumentView : UserControl
     private static readonly Brush ErrorMarkerBrush = Frozen(Color.FromRgb(0xE5, 0x39, 0x35));
     private static readonly Brush WarningMarkerBrush = Frozen(Color.FromRgb(0xFF, 0xB3, 0x00));
     private static readonly Brush BookmarkMarkerBrush = Frozen(Color.FromRgb(0x1E, 0x88, 0xE5));
+    private static readonly Brush NewPatternMarkerBrush = Frozen(Color.FromRgb(0xD8, 0x1B, 0x60));
     private static readonly int ErrorRank = LogLevelSeverity.Rank("Error")!.Value;
     private static readonly int WarningRank = LogLevelSeverity.Rank("Warning")!.Value;
 
@@ -58,7 +59,7 @@ public partial class TailDocumentView : UserControl
     }
 
     /// <summary>Rebuilds the overview strip from the currently visible (post-filter) lines: bookmarks first, then
-    /// errors, warnings and highlight matches — the strip keeps the highest-priority mark per pixel row.</summary>
+    /// new error patterns, errors, warnings and highlight matches — the strip keeps the highest-priority mark per pixel row.</summary>
     private void RefreshScrollMarkers()
     {
         var items = LineListView.Items;
@@ -77,17 +78,21 @@ public partial class TailDocumentView : UserControl
                     {
                         markers.Add(new ScrollMarker(position, BookmarkMarkerBrush, 0));
                     }
+                    else if (line.IsNewPattern)
+                    {
+                        markers.Add(new ScrollMarker(position, NewPatternMarkerBrush, 1));
+                    }
                     else if (line.SeverityRank is { } rank && rank >= ErrorRank)
                     {
-                        markers.Add(new ScrollMarker(position, ErrorMarkerBrush, 1));
+                        markers.Add(new ScrollMarker(position, ErrorMarkerBrush, 2));
                     }
                     else if (line.SeverityRank is { } warnRank && warnRank >= WarningRank)
                     {
-                        markers.Add(new ScrollMarker(position, WarningMarkerBrush, 2));
+                        markers.Add(new ScrollMarker(position, WarningMarkerBrush, 3));
                     }
                     else if (line.HighlightMarkerBrush is { } highlight)
                     {
-                        markers.Add(new ScrollMarker(position, highlight, 3));
+                        markers.Add(new ScrollMarker(position, highlight, 4));
                     }
                 }
 

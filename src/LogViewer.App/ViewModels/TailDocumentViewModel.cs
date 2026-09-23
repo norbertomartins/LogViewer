@@ -40,6 +40,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     private readonly NotificationAlertSettings _notificationAlertSettings;
     private readonly INotificationService _notificationService;
     private readonly AlertWindowTracker _alertWindowTracker = new();
+    private readonly NewPatternDetector _newPatternDetector = new();
+    private readonly SortedSet<long> _newPatternLineNumbers = new();
+    private bool _initialLoadSeen;
+    private DateTime _lastNewPatternNotifyAt = DateTime.MinValue;
+    private static readonly TimeSpan NewPatternNotifyThrottle = TimeSpan.FromSeconds(10);
     private IReadOnlyDictionary<Guid, HighlightRule> _rulesById;
     private DateTime _lastSoundAlertAt = DateTime.MinValue;
     private static readonly TimeSpan SoundAlertThrottle = TimeSpan.FromSeconds(3);
@@ -783,6 +788,45 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             Loc.Format("Vm_Alert_Message", rule.Name, rule.AlertThresholdCount, rule.AlertWindowSeconds, line.LineNumber));
     }
 
+    // --- New error patterns (anomaly detection) ----------------------------------------------------
+
+    /// <summary>Warning/Error message shapes seen for the first time in this document's current content.</summary>
+    [ObservableProperty]
+    private int _newPatternCount;
+
+    public string NewPatternBadge => NewPatternCount > 0 ? $"🆕 {NewPatternCount}" : "🆕";
+
+    partial void OnNewPatternCountChanged(int value) => OnPropertyChanged(nameof(NewPatternBadge));
+
+    /// <summary>Feeds one incoming line to the <see cref="NewPatternDetector"/>. Uses the structured level/message
+    /// when the line parsed, else a level word and the raw text — no extra parse on the hot path. A newly seen
+    /// shape is marked on the line, counted, and (after the initial file load, when the global opt-in is on)
+    /// notified at most once per <see cref="NewPatternNotifyThrottle"/>.</summary>
+    private void ObserveNewPattern(LogLineViewModel line)
+    {
+        var raw = TextForParsing(line.Text);
+        var severity = LogLevelSeverity.Rank(line.Structured?.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(raw);
+        if (!_newPatternDetector.Observe(line.Structured?.RenderedMessage ?? raw, severity))
+        {
+            return;
+        }
+
+        line.IsNewPattern = true;
+        _newPatternLineNumbers.Add(line.LineNumber);
+        NewPatternCount++;
+
+        var now = DateTime.UtcNow;
+        if (_initialLoadSeen
+            && _notificationAlertSettings.Enabled
+            && _notificationAlertSettings.NotifyOnNewErrorPatterns
+            && now - _lastNewPatternNotifyAt >= NewPatternNotifyThrottle)
+        {
+            _lastNewPatternNotifyAt = now;
+            var text = raw.Length > 160 ? raw[..160] + "…" : raw;
+            _notificationService.Notify(Loc.Format("Vm_NewPattern_Title", Title), Loc.Format("Vm_NewPattern_Message", line.LineNumber, text));
+        }
+    }
+
     /// <summary>Same detection chain <see cref="RecomputeTimeline"/> uses: prefer the already-parsed
     /// structured level (when structured view produced one for this line), otherwise parse the raw text
     /// independently of the structured-view toggle, falling back to scanning for a level word.</summary>
@@ -943,7 +987,10 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
                     highlighted.Add(existing.LineNumber);
                 }
 
-                rebuilt.Add(new LogLineViewModel(existing.LineNumber, existing.Text, structured, match, existing.IsBookmarked));
+                rebuilt.Add(new LogLineViewModel(existing.LineNumber, existing.Text, structured, match, existing.IsBookmarked)
+                {
+                    IsNewPattern = existing.IsNewPattern,
+                });
 
                 if (i % ChunkSize == ChunkSize - 1)
                 {
@@ -1079,8 +1126,12 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
             TryPlaySoundAlert(line, structured);
 
-            displayItems.Add(new LogLineViewModel(line.LineNumber, line.Text, structured, match, _bookmarks.IsBookmarked(line.LineNumber)));
+            var item = new LogLineViewModel(line.LineNumber, line.Text, structured, match, _bookmarks.IsBookmarked(line.LineNumber));
+            ObserveNewPattern(item);
+            displayItems.Add(item);
         }
+
+        _initialLoadSeen = true;
 
         _buffer.AppendRange(lines);
 
@@ -1125,6 +1176,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         Lines.Clear();
         _bookmarks.Clear();
         _highlightedLineNumbers.Clear();
+        _newPatternDetector.Reset();
+        _newPatternLineNumbers.Clear();
+        NewPatternCount = 0;
 
         var markerText = switchedFilePath is not null && _notifyOnFileSwitch
             ? $"── {Loc.Format("Vm_Doc_SwitchedToFile", Path.GetFileName(switchedFilePath))} ──"
@@ -1147,6 +1201,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         while (_highlightedLineNumbers.Count > 0 && _highlightedLineNumbers.Min < oldestRetained)
         {
             _highlightedLineNumbers.Remove(_highlightedLineNumbers.Min);
+        }
+
+        while (_newPatternLineNumbers.Count > 0 && _newPatternLineNumbers.Min < oldestRetained)
+        {
+            _newPatternLineNumbers.Remove(_newPatternLineNumbers.Min);
         }
     }
 
@@ -1328,7 +1387,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
 
         TimelineHasData = samples.Count >= 2;
-        var bins = LogVolumeBinner.Bin(samples);
+        var bins = VolumeSpikeDetector.Detect(LogVolumeBinner.Bin(samples));
 
         VolumeBins.Clear();
         var max = 1;
@@ -1404,18 +1463,26 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     private void PreviousHighlight() => JumpTo(FindHighlight(forward: false));
 
     [RelayCommand]
+    private void NextNewPattern() => JumpTo(FindIn(_newPatternLineNumbers, forward: true));
+
+    [RelayCommand]
+    private void PreviousNewPattern() => JumpTo(FindIn(_newPatternLineNumbers, forward: false));
+
+    [RelayCommand]
     private void NextBookmark() => JumpTo(_bookmarks.Next(CurrentAnchorLineNumber()));
 
     [RelayCommand]
     private void PreviousBookmark() => JumpTo(_bookmarks.Previous(CurrentAnchorLineNumber()));
 
-    private long? FindHighlight(bool forward)
+    private long? FindHighlight(bool forward) => FindIn(_highlightedLineNumbers, forward);
+
+    private long? FindIn(SortedSet<long> lineNumbers, bool forward)
     {
         var anchor = CurrentAnchorLineNumber();
 
         if (forward)
         {
-            var view = _highlightedLineNumbers.GetViewBetween(anchor + 1, long.MaxValue);
+            var view = lineNumbers.GetViewBetween(anchor + 1, long.MaxValue);
             return view.Count > 0 ? view.Min : null;
         }
 
@@ -1424,7 +1491,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             return null;
         }
 
-        var below = _highlightedLineNumbers.GetViewBetween(long.MinValue, anchor - 1);
+        var below = lineNumbers.GetViewBetween(long.MinValue, anchor - 1);
         return below.Count > 0 ? below.Max : null;
     }
 
