@@ -106,6 +106,16 @@ public sealed class TailSourceSettings
     /// <summary>Minimum log level kept by the level filter (e.g. "Warning"), or null for "any level".</summary>
     public string? MinLevel { get; set; }
 
+    /// <summary>Time-range filter bounds as typed (e.g. "-15m", "14:05"), re-evaluated when restored; null = unbounded.</summary>
+    public string? TimeFilterFromText { get; set; }
+
+    public string? TimeFilterToText { get; set; }
+
+    /// <summary>Active correlation-id filter (key name + value), or null.</summary>
+    public string? CorrelationFilterName { get; set; }
+
+    public string? CorrelationFilterValue { get; set; }
+
     /// <summary>Whether this document plays the global sound alert on Error/Fatal lines. Null means
     /// "use the default" (enabled); an explicit true/false is the user's manual per-window toggle.</summary>
     public bool? SoundAlertsEnabled { get; set; }

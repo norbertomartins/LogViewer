@@ -90,7 +90,9 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
         // list (built-in formats only), so no field-level migration is needed.
         // v11 -> v12: NotificationAlerts.NotifyOnNewErrorPatterns is new; its initializer (false) keeps pre-v12
         // behavior (no new-pattern notifications), so no field-level migration is needed.
-        settings.SchemaVersion = 12;
+        // v12 -> v13: FilterViews is new, and TailSourceSettings gained persisted time-range and correlation
+        // filters; initializers give pre-v13 files no views and inactive filters, so no field-level migration.
+        settings.SchemaVersion = 13;
         return settings;
     }
 

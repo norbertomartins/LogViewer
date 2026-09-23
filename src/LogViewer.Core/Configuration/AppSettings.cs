@@ -11,7 +11,7 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 12;
+    public int SchemaVersion { get; set; } = 13;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
 
@@ -33,6 +33,9 @@ public sealed class AppSettings
     /// <summary>User-defined regex line formats (see <see cref="CustomLogFormat"/>), offered alongside the built-in
     /// structured formats and tried first during auto-detection.</summary>
     public List<CustomLogFormat> CustomLogFormats { get; set; } = [];
+
+    /// <summary>Named filter combinations applicable to any document (see <see cref="FilterView"/>).</summary>
+    public List<FilterView> FilterViews { get; set; } = [];
 
     public WindowLayoutSettings Layout { get; set; } = new();
 

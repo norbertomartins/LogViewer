@@ -1153,6 +1153,13 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         Lines.AppendRange(displayItems);
         TrimEvictedLineNumbers();
 
+        if (_applyTimeFilterOnFirstLines && Lines.Count > 0)
+        {
+            // A restored/applied time filter with relative or time-of-day bounds needs lines to resolve against.
+            _applyTimeFilterOnFirstLines = false;
+            ApplyTimeFilter();
+        }
+
         if (IsFollowingTail)
         {
             ScrollToEndRequested?.Invoke();
@@ -1831,6 +1838,100 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     public bool PassesCorrelationFilter(LogLineViewModel line) =>
         CorrelationFilter is not { } id || line.Text.Contains(id.Value, StringComparison.OrdinalIgnoreCase);
+
+    // --- Named filter views ---------------------------------------------------------------------
+
+    private bool _applyTimeFilterOnFirstLines;
+
+    /// <summary>The app-wide saved filter views, for this document's "Filter views" menu.</summary>
+    public IReadOnlyList<FilterView> FilterViews { get; private set; } = [];
+
+    public bool HasFilterViews => FilterViews.Count > 0;
+
+    public void ApplyFilterViews(IReadOnlyList<FilterView> views)
+    {
+        FilterViews = views;
+        OnPropertyChanged(nameof(FilterViews));
+        OnPropertyChanged(nameof(HasFilterViews));
+    }
+
+    /// <summary>Raised to save the current filters as a named view (MainViewModel prompts for the name).</summary>
+    public event Action? SaveFilterViewRequested;
+
+    public event Action<FilterView>? DeleteFilterViewRequested;
+
+    [RelayCommand]
+    private void SaveFilterView() => SaveFilterViewRequested?.Invoke();
+
+    [RelayCommand]
+    private void DeleteFilterView(FilterView? view)
+    {
+        if (view is not null)
+        {
+            DeleteFilterViewRequested?.Invoke(view);
+        }
+    }
+
+    [RelayCommand]
+    private void ApplyFilterView(FilterView? view)
+    {
+        if (view is null)
+        {
+            return;
+        }
+
+        ApplyFilters(view);
+        StatusMessage = Loc.Format("Vm_FilterView_Applied", view.Name);
+    }
+
+    /// <summary>Snapshots every active display filter into a <see cref="FilterView"/> named <paramref name="name"/>.
+    /// Time bounds keep the text the user typed, so relative ranges stay relative.</summary>
+    public FilterView CaptureFilters(string name) => new()
+    {
+        Name = name,
+        TextFilterPattern = string.IsNullOrEmpty(TextFilterPattern) ? null : TextFilterPattern,
+        TextFilterIsRegex = TextFilterIsRegex,
+        TextFilterCaseSensitive = TextFilterCaseSensitive,
+        TextFilterExclude = TextFilterExclude,
+        MinLevel = IsLevelFilterActive ? MinLevel : null,
+        PropertyFilterField = ActiveFilterValue is null ? null : ActiveFilterField,
+        PropertyFilterValue = ActiveFilterValue,
+        CorrelationName = CorrelationFilter?.Name,
+        CorrelationValue = CorrelationFilter?.Value,
+        TimeFilterFromText = IsTimeFilterActive && TimeFilterFrom is not null ? TimeFilterFromText : null,
+        TimeFilterToText = IsTimeFilterActive && TimeFilterTo is not null ? TimeFilterToText : null,
+    };
+
+    /// <summary>Replaces this document's whole filter set with <paramref name="view"/>. A time range is applied
+    /// immediately when lines are present, otherwise as soon as the first lines arrive (session restore).</summary>
+    public void ApplyFilters(FilterView view)
+    {
+        TextFilterIsRegex = view.TextFilterIsRegex;
+        TextFilterCaseSensitive = view.TextFilterCaseSensitive;
+        TextFilterExclude = view.TextFilterExclude;
+        TextFilterPattern = view.TextFilterPattern;
+        MinLevel = string.IsNullOrEmpty(view.MinLevel) ? AnyLevel : view.MinLevel;
+        ActiveFilterField = view.PropertyFilterValue is null ? null : view.PropertyFilterField;
+        ActiveFilterValue = view.PropertyFilterValue;
+        CorrelationFilter = string.IsNullOrEmpty(view.CorrelationValue) ? null : new CorrelationId(view.CorrelationName ?? "ID", view.CorrelationValue);
+
+        TimeFilterFromText = view.TimeFilterFromText;
+        TimeFilterToText = view.TimeFilterToText;
+        if (string.IsNullOrWhiteSpace(view.TimeFilterFromText) && string.IsNullOrWhiteSpace(view.TimeFilterToText))
+        {
+            _applyTimeFilterOnFirstLines = false;
+            TimeFilterFrom = null;
+            TimeFilterTo = null;
+        }
+        else if (Lines.Any(l => l.LineNumber > 0))
+        {
+            ApplyTimeFilter();
+        }
+        else
+        {
+            _applyTimeFilterOnFirstLines = true;
+        }
+    }
 
     // --- Exceptions panel and whole-file browser --------------------------------------------------
 

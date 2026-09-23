@@ -642,4 +642,16 @@
   <data name="Palette_PrevNewPattern" xml:space="preserve"><value>Previous New Error Pattern</value></data>
   <data name="Vm_NewPattern_Title" xml:space="preserve"><value>New error pattern — {0}</value></data>
   <data name="Vm_NewPattern_Message" xml:space="preserve"><value>Line {0}: {1}</value></data>
+  <data name="Doc_FilterViews_Name" xml:space="preserve"><value>Filter views</value></data>
+  <data name="Doc_FilterViews_ToolTip" xml:space="preserve"><value>Save the current filters (text, level, property, correlation id, time range) as a named view, or apply a saved one to this document</value></data>
+  <data name="Doc_FilterViews_Save" xml:space="preserve"><value>Save Current Filters as View…</value></data>
+  <data name="Doc_FilterViews_Apply" xml:space="preserve"><value>Apply View</value></data>
+  <data name="Doc_FilterViews_Delete" xml:space="preserve"><value>Delete View</value></data>
+  <data name="Vm_FilterView_SaveTitle" xml:space="preserve"><value>Save Filter View</value></data>
+  <data name="Vm_FilterView_SavePrompt" xml:space="preserve"><value>Name for this combination of filters:</value></data>
+  <data name="Vm_FilterView_Saved" xml:space="preserve"><value>Saved filter view "{0}".</value></data>
+  <data name="Vm_FilterView_Applied" xml:space="preserve"><value>Applied filter view "{0}".</value></data>
+  <data name="Vm_FilterView_NothingToSave" xml:space="preserve"><value>No filter is active — nothing to save.</value></data>
+  <data name="Palette_SaveFilterView" xml:space="preserve"><value>Save Current Filters as View…</value></data>
+  <data name="Palette_ApplyFilterViewFmt" xml:space="preserve"><value>Apply Filter View: {0}</value></data>
 </root>

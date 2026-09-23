@@ -195,6 +195,20 @@ public sealed class Phase9UITests : IDisposable
         Assert.True(listHeight > windowHeight * 0.7, $"The log list is only {listHeight}px of a {windowHeight}px window.");
     }
 
+    [Fact]
+    public void FilterViewsMenu_OffersSaveApplyAndDelete()
+    {
+        var window = LaunchRestoring("checkout-service.log", "correlation");
+
+        var menu = UiHelpers.WaitFor(() => window.FindFirstDescendant(cf => cf.ByControlType(ControlType.MenuItem).And(cf.ByName("Filter views"))), "filter views menu").AsMenuItem();
+        menu.Expand();
+        var names = UiHelpers.WaitFor(() => menu.Items.Length >= 3 ? menu : null, "filter views items").AsMenuItem().Items.Select(i => i.Name).ToList();
+
+        Assert.Contains("Save Current Filters as View…", names);
+        Assert.Contains("Apply View", names);
+        Assert.Contains("Delete View", names);
+    }
+
     public void Dispose()
     {
         try

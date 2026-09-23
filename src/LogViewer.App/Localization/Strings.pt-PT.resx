@@ -642,4 +642,16 @@
   <data name="Palette_PrevNewPattern" xml:space="preserve"><value>Novo padrão de erro anterior</value></data>
   <data name="Vm_NewPattern_Title" xml:space="preserve"><value>Novo padrão de erro — {0}</value></data>
   <data name="Vm_NewPattern_Message" xml:space="preserve"><value>Linha {0}: {1}</value></data>
+  <data name="Doc_FilterViews_Name" xml:space="preserve"><value>Vistas de filtro</value></data>
+  <data name="Doc_FilterViews_ToolTip" xml:space="preserve"><value>Guardar os filtros atuais (texto, nível, propriedade, ID de correlação, intervalo de tempo) como vista com nome, ou aplicar uma vista guardada a este documento</value></data>
+  <data name="Doc_FilterViews_Save" xml:space="preserve"><value>Guardar filtros atuais como vista…</value></data>
+  <data name="Doc_FilterViews_Apply" xml:space="preserve"><value>Aplicar vista</value></data>
+  <data name="Doc_FilterViews_Delete" xml:space="preserve"><value>Eliminar vista</value></data>
+  <data name="Vm_FilterView_SaveTitle" xml:space="preserve"><value>Guardar vista de filtro</value></data>
+  <data name="Vm_FilterView_SavePrompt" xml:space="preserve"><value>Nome para esta combinação de filtros:</value></data>
+  <data name="Vm_FilterView_Saved" xml:space="preserve"><value>Vista de filtro "{0}" guardada.</value></data>
+  <data name="Vm_FilterView_Applied" xml:space="preserve"><value>Vista de filtro "{0}" aplicada.</value></data>
+  <data name="Vm_FilterView_NothingToSave" xml:space="preserve"><value>Nenhum filtro ativo — nada para guardar.</value></data>
+  <data name="Palette_SaveFilterView" xml:space="preserve"><value>Guardar filtros atuais como vista…</value></data>
+  <data name="Palette_ApplyFilterViewFmt" xml:space="preserve"><value>Aplicar vista de filtro: {0}</value></data>
 </root>
