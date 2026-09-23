@@ -43,6 +43,8 @@ architecture decisions.
 - Structured view (and format auto-detection) also works on a merged multi-file document — the per-file
   label prefix is stripped before parsing.
 - Colorization by structured property (applied only to the message, not the whole line).
+- Column view (▦): the structured events as a table — pick which properties become columns, sort by any column
+  (numbers numerically), filter by a cell's value (include/exclude) or by text, and jump from a row to its line.
 - Quick filter by `TraceId`/`SpanId` from a given line (click to filter on that value), a minimum log
   level filter, and a button to clear all active filters.
 - User-defined formats (Tools ▸ Custom Log Formats): a regex with named groups (`timestamp` or `date` +
@@ -104,6 +106,8 @@ architecture decisions.
 - Exceptions panel: every exception/stack trace (structured `@x`/`Exception` fields, plain-text .NET/Java
   traces, Python tracebacks) grouped by type + top frames, with counts, first/last occurrence, a sample
   trace, and jump/bookmark-all — over the live buffer or the whole file.
+- Stack traces are grouped with the log line above them: a "▸ +N" button on that line collapses/expands its
+  trace, and the ⊟ toolbar toggle collapses them all.
 
 **Search**
 - Full-text search over a file, independent of the in-memory ring buffer (finds matches already evicted

@@ -423,6 +423,25 @@
     chosen extension, with labels in the UI language.
   Tests: 339 Core / 38 Mcp / 225 App / 42 FlaUI, all green.
 
+- **Phase 15 — sixth ROADMAP.md batch.** One commit per item on `phase-15-roadmap`.
+  - **Multi-line entries in the view (3.4):** Core `MultiLineEntryTracker<TLine>` streams lines in ingestion order and
+    groups stack traces with the entry above, reusing `ExceptionGrouper`'s line shapes (.NET/Java frames, `--->`,
+    `Caused by:`, `... N more`, indented lines once a trace started, Python tracebacks up to the closing error line);
+    a bare exception header line under a log message is adopted into that entry once a frame follows it. Structured
+    events always start an entry, and a joining custom format's continuation lines are grouped the same way.
+    `TailDocumentViewModel.CreateLine` sets `LogLineViewModel.GroupHead`/`GroupedLineCount`; the row shows a
+    "▾" / "▸ +N" button and the ⊟ toolbar toggle collapses every entry. Collapsing is one more clause of the view's
+    `ICollectionView` filter (installed only while something is collapsed); a continuation whose head was evicted
+    stays visible. Navigation to a hidden line expands its entry; copy/export of a collapsed head includes its lines.
+  - **Column view (4.4):** a non-modal `StructuredGridView` (▦ / palette) over the document's structured events —
+    parsed with the document's format even when it shows raw lines, like the exceptions panel, and refreshed live.
+    Core `StructuredColumns` discovers properties (most common first; the top four shown until the user ticks
+    columns) and orders values (numbers numerically, missing last); `StructuredValueFilter` backs include/exclude
+    filters from a cell's context menu, plus a free-text search. The view-model sorts and filters (the DataGrid's own
+    sorting is cancelled) and publishes a new row list per change; columns are built in code-behind from the chosen
+    properties. A row jumps to its line, or to the whole-file browser once it left the buffer.
+  Tests: 348 Core / 38 Mcp / 234 App / 44 FlaUI, all green.
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was
