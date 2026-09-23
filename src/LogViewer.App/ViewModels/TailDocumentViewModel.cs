@@ -1164,6 +1164,12 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// <summary>Raised by <see cref="EditNoteCommand"/>; the shell prompts for the text and calls <see cref="SetNote"/>.</summary>
     public event Action<LogLineViewModel>? EditNoteRequested;
 
+    /// <summary>Raised by <see cref="ExportIncidentReportCommand"/>; the shell asks where to save and writes the report.</summary>
+    public event Action? IncidentReportRequested;
+
+    [RelayCommand]
+    private void ExportIncidentReport() => IncidentReportRequested?.Invoke();
+
     public void AttachAnnotationStore(ILineAnnotationStore store)
     {
         _annotationStore = store;

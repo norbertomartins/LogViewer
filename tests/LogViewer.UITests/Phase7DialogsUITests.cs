@@ -152,6 +152,29 @@ public sealed class Phase7DialogsUITests : IDisposable
         Assert.Equal(original[0], exported[0]);
     }
 
+    [Fact]
+    public void IncidentReport_SavesAnHtmlReportWithTheFilesExceptions()
+    {
+        var source = AppExeLocator.Sample("correlation", "checkout-service.log");
+        var window = LaunchRestoring(source);
+        var target = Path.Combine(Path.GetTempPath(), $"logviewer-uitest-report-{Guid.NewGuid():N}.html");
+        _tempFiles.Add(target);
+
+        var export = UiHelpers.WaitFor(
+            () => window.FindFirstDescendant(cf => cf.ByControlType(ControlType.MenuItem).And(cf.ByName("Export"))),
+            "Export menu").AsMenuItem();
+        export.Expand();
+        UiHelpers.WaitFor(() => export.Items.FirstOrDefault(i => i.Name == "Incident Report…"), "Incident Report item").AsMenuItem().Invoke();
+
+        CompleteFileDialog("Save As", target);
+
+        Assert.True(UiHelpers.WaitUntil(() => File.Exists(target) && new FileInfo(target).Length > 0), "The report was not written.");
+        var html = File.ReadAllText(target);
+        Assert.StartsWith("<!DOCTYPE html>", html);
+        Assert.Contains("checkout-service.log", html);
+        Assert.Contains("Exception", html);
+    }
+
     public void Dispose()
     {
         try

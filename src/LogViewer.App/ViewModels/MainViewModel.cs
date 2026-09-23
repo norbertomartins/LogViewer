@@ -13,6 +13,7 @@ using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
 using LogViewer.Core.ExternalTools;
 using LogViewer.Core.Highlighting;
+using LogViewer.Core.Reporting;
 using LogViewer.Core.Search;
 using LogViewer.Core.Services.Diagnostics;
 using LogViewer.Core.Structured;
@@ -669,6 +670,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.DeleteFilterViewRequested += DeleteFilterView;
         document.CorrelationFilterAllRequested += FilterAllDocumentsByCorrelation;
         document.EditNoteRequested += line => EditNote(document, line);
+        document.IncidentReportRequested += () => _ = ExportIncidentReportAsync(document);
         document.AttachAnnotationStore(_annotationStore);
 
         Documents.Add(document);
@@ -684,6 +686,64 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             document.SetNote(line, text);
         }
     }
+
+    /// <summary>Writes the document's bookmarks, notes and selected line (with context) plus the file's most frequent
+    /// exceptions to a Markdown or HTML file — whichever extension the user picked.</summary>
+    public async Task ExportIncidentReportAsync(TailDocumentViewModel document)
+    {
+        if (document.SearchableFilePath is not { } path || !File.Exists(path))
+        {
+            StatusMessage = Loc.Get("Vm_Report_NeedsFile");
+            return;
+        }
+
+        var suggested = $"{document.DisplayTitle}-incident-{DateTime.Now:yyyyMMdd-HHmm}.md";
+        var target = _dialogService.ShowSaveIncidentReportDialog(string.Concat(suggested.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c)));
+        if (target is null)
+        {
+            return;
+        }
+
+        StatusMessage = Loc.Get("Vm_Report_Building");
+        try
+        {
+            long[] selected = document.SelectedLine is { LineNumber: > 0 } line ? [line.LineNumber] : [];
+            var report = await IncidentReportBuilder.BuildAsync(path, document.DisplayTitle, document.BookmarkedLineNumbers, document.Notes, selected);
+            var isHtml = Path.GetExtension(target) is var ext
+                && (ext.Equals(".html", StringComparison.OrdinalIgnoreCase) || ext.Equals(".htm", StringComparison.OrdinalIgnoreCase));
+            var labels = ReportLabels();
+            var content = isHtml ? IncidentReportFormatter.ToHtml(report, labels) : IncidentReportFormatter.ToMarkdown(report, labels);
+            await File.WriteAllTextAsync(target, content);
+            StatusMessage = Loc.Format("Vm_Report_Done", report.Excerpts.Sum(e => e.Lines.Count(l => l.IsMarked)), report.ExceptionGroups.Count, Path.GetFileName(target));
+        }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+        {
+            StatusMessage = Loc.Format("Vm_Export_Failed", ex.Message);
+        }
+    }
+
+    private static IncidentReportLabels ReportLabels() => new()
+    {
+        Heading = Loc.Get("Report_Heading"),
+        File = Loc.Get("Report_File"),
+        Generated = Loc.Get("Report_Generated"),
+        LinesInFile = Loc.Get("Report_LinesInFile"),
+        Bookmarks = Loc.Get("Report_Bookmarks"),
+        Notes = Loc.Get("Report_Notes"),
+        MarkedLines = Loc.Get("Report_MarkedLines"),
+        NoMarkedLines = Loc.Get("Report_NoMarkedLines"),
+        LinesRange = Loc.Get("Report_LinesRange"),
+        Line = Loc.Get("Report_Line"),
+        Exceptions = Loc.Get("Report_Exceptions"),
+        NoExceptions = Loc.Get("Report_NoExceptions"),
+        ShowingTopGroups = Loc.Get("Report_ShowingTopGroups"),
+        Occurrences = Loc.Get("Report_Occurrences"),
+        FirstLine = Loc.Get("Report_FirstLine"),
+        LastLine = Loc.Get("Report_LastLine"),
+        FirstSeen = Loc.Get("Report_FirstSeen"),
+        LastSeen = Loc.Get("Report_LastSeen"),
+        TopFrame = Loc.Get("Report_TopFrame"),
+    };
 
     /// <summary>Persists a splitter-dragged detail-panel height and applies it to every other open
     /// document, so resizing one document's panel keeps every document in sync (equal-value assignments
@@ -1038,6 +1098,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             list.Add(new PaletteCommand(Loc.Get("Palette_ToggleTimeline"), activeCat, () => active.ToggleTimelineCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_ClearFilters"), activeCat, () => active.ClearFilterCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_ExportVisible"), activeCat, () => active.ExportVisibleCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_IncidentReport"), activeCat, () => active.ExportIncidentReportCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_CopyVisible"), activeCat, () => active.CopyVisibleCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_CopyVisibleJson"), activeCat, () => active.CopyVisibleAsJsonCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_CopyVisibleFormatted"), activeCat, () => active.CopyVisibleFormattedCommand.Execute(null)));

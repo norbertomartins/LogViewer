@@ -683,4 +683,29 @@
   <data name="Settings_McpAllowAnnotationWrites" xml:space="preserve"><value>Permitir ao agente de IA adicionar bookmarks e notas (nunca altera os ficheiros de log; é necessário reiniciar para aplicar)</value></data>
   <data name="Vm_Mcp_AgentBookmarked" xml:space="preserve"><value>O agente de IA marcou a linha {0} em {1}</value></data>
   <data name="Vm_Mcp_AgentNoted" xml:space="preserve"><value>O agente de IA adicionou uma nota à linha {0} em {1}</value></data>
+  <data name="Doc_IncidentReport_Header" xml:space="preserve"><value>Relatório de Incidente…</value></data>
+  <data name="Doc_IncidentReport_ToolTip" xml:space="preserve"><value>Guardar as linhas marcadas, anotadas e selecionada (com contexto) e as exceções mais frequentes em Markdown ou HTML</value></data>
+  <data name="Palette_IncidentReport" xml:space="preserve"><value>Exportar Relatório de Incidente…</value></data>
+  <data name="Vm_Report_NeedsFile" xml:space="preserve"><value>O relatório de incidente precisa de um documento associado a um ficheiro.</value></data>
+  <data name="Vm_Report_Building" xml:space="preserve"><value>A gerar o relatório de incidente…</value></data>
+  <data name="Vm_Report_Done" xml:space="preserve"><value>Relatório de incidente guardado ({0} linhas marcadas, {1} grupos de exceções): {2}</value></data>
+  <data name="Report_Heading" xml:space="preserve"><value>Relatório de incidente</value></data>
+  <data name="Report_File" xml:space="preserve"><value>Ficheiro</value></data>
+  <data name="Report_Generated" xml:space="preserve"><value>Gerado em</value></data>
+  <data name="Report_LinesInFile" xml:space="preserve"><value>Linhas no ficheiro</value></data>
+  <data name="Report_Bookmarks" xml:space="preserve"><value>Bookmarks</value></data>
+  <data name="Report_Notes" xml:space="preserve"><value>Notas</value></data>
+  <data name="Report_MarkedLines" xml:space="preserve"><value>Linhas marcadas</value></data>
+  <data name="Report_NoMarkedLines" xml:space="preserve"><value>Nenhuma linha com bookmark, nota ou selecionada.</value></data>
+  <data name="Report_LinesRange" xml:space="preserve"><value>Linhas {0}–{1}</value></data>
+  <data name="Report_Line" xml:space="preserve"><value>Linha {0}</value></data>
+  <data name="Report_Exceptions" xml:space="preserve"><value>Exceções</value></data>
+  <data name="Report_NoExceptions" xml:space="preserve"><value>Nenhuma exceção encontrada no ficheiro.</value></data>
+  <data name="Report_ShowingTopGroups" xml:space="preserve"><value>As {0} mais frequentes de {1} exceções distintas.</value></data>
+  <data name="Report_Occurrences" xml:space="preserve"><value>{0}×</value></data>
+  <data name="Report_FirstLine" xml:space="preserve"><value>Primeira linha</value></data>
+  <data name="Report_LastLine" xml:space="preserve"><value>Última linha</value></data>
+  <data name="Report_FirstSeen" xml:space="preserve"><value>Primeira ocorrência</value></data>
+  <data name="Report_LastSeen" xml:space="preserve"><value>Última ocorrência</value></data>
+  <data name="Report_TopFrame" xml:space="preserve"><value>Frame de topo</value></data>
 </root>

@@ -288,6 +288,9 @@
                               AutomationProperties.Name="{loc:Loc Doc_CopyVisibleJson_Header}" />
                     <MenuItem Header="{loc:Loc Doc_CopyVisibleFormatted_Header}" Command="{Binding CopyVisibleFormattedCommand}"
                               AutomationProperties.Name="{loc:Loc Doc_CopyVisibleFormatted_Header}" />
+                    <Separator />
+                    <MenuItem Header="{loc:Loc Doc_IncidentReport_Header}" Command="{Binding ExportIncidentReportCommand}"
+                              AutomationProperties.Name="{loc:Loc Doc_IncidentReport_Header}" ToolTip="{loc:Loc Doc_IncidentReport_ToolTip}" />
                 </MenuItem>
             </Menu>
             <ToggleButton Content="📊" Style="{StaticResource IconButton}" IsChecked="{Binding ShowTimeline}"

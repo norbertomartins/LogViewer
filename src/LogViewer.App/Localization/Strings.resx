@@ -683,4 +683,29 @@
   <data name="Settings_McpAllowAnnotationWrites" xml:space="preserve"><value>Let the AI agent add bookmarks and notes (never changes the log files; restart required to apply)</value></data>
   <data name="Vm_Mcp_AgentBookmarked" xml:space="preserve"><value>AI agent bookmarked line {0} in {1}</value></data>
   <data name="Vm_Mcp_AgentNoted" xml:space="preserve"><value>AI agent added a note to line {0} in {1}</value></data>
+  <data name="Doc_IncidentReport_Header" xml:space="preserve"><value>Incident Report…</value></data>
+  <data name="Doc_IncidentReport_ToolTip" xml:space="preserve"><value>Save the bookmarked, annotated and selected lines (with context) and the most frequent exceptions as Markdown or HTML</value></data>
+  <data name="Palette_IncidentReport" xml:space="preserve"><value>Export Incident Report…</value></data>
+  <data name="Vm_Report_NeedsFile" xml:space="preserve"><value>Incident reports need a document backed by a file.</value></data>
+  <data name="Vm_Report_Building" xml:space="preserve"><value>Building the incident report…</value></data>
+  <data name="Vm_Report_Done" xml:space="preserve"><value>Incident report saved ({0} marked lines, {1} exception groups): {2}</value></data>
+  <data name="Report_Heading" xml:space="preserve"><value>Incident report</value></data>
+  <data name="Report_File" xml:space="preserve"><value>File</value></data>
+  <data name="Report_Generated" xml:space="preserve"><value>Generated</value></data>
+  <data name="Report_LinesInFile" xml:space="preserve"><value>Lines in file</value></data>
+  <data name="Report_Bookmarks" xml:space="preserve"><value>Bookmarks</value></data>
+  <data name="Report_Notes" xml:space="preserve"><value>Notes</value></data>
+  <data name="Report_MarkedLines" xml:space="preserve"><value>Marked lines</value></data>
+  <data name="Report_NoMarkedLines" xml:space="preserve"><value>No bookmarked, annotated or selected lines.</value></data>
+  <data name="Report_LinesRange" xml:space="preserve"><value>Lines {0}–{1}</value></data>
+  <data name="Report_Line" xml:space="preserve"><value>Line {0}</value></data>
+  <data name="Report_Exceptions" xml:space="preserve"><value>Exceptions</value></data>
+  <data name="Report_NoExceptions" xml:space="preserve"><value>No exceptions found in the file.</value></data>
+  <data name="Report_ShowingTopGroups" xml:space="preserve"><value>The {0} most frequent of {1} distinct exceptions.</value></data>
+  <data name="Report_Occurrences" xml:space="preserve"><value>{0}×</value></data>
+  <data name="Report_FirstLine" xml:space="preserve"><value>First line</value></data>
+  <data name="Report_LastLine" xml:space="preserve"><value>Last line</value></data>
+  <data name="Report_FirstSeen" xml:space="preserve"><value>First seen</value></data>
+  <data name="Report_LastSeen" xml:space="preserve"><value>Last seen</value></data>
+  <data name="Report_TopFrame" xml:space="preserve"><value>Top frame</value></data>
 </root>
