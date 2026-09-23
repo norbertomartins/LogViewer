@@ -70,6 +70,8 @@ architecture decisions.
   create/export custom presets.
 - Bookmarks and next/previous navigation (highlight or bookmark) via keyboard shortcuts
   (`F3`/`Shift+F3`, `F2`/`Shift+F2`, `Ctrl+F2`).
+- Notes on lines (right-click ▸ Add / Edit Note…), kept per file across sessions and shown only while the line
+  still has the text the note was written on.
 
 **Live display filter**
 - Show-only / hide (exclude) filter over the raw line text, regex or plain substring, case-insensitive by
@@ -145,7 +147,9 @@ architecture decisions.
   the app is tailing: list open documents, search text, fetch context around a line, list structured
   properties, find the most recurring message patterns, identify which functions/call-sites are logging
   the most errors, group distinct exceptions/stack traces (`logs_exception_groups`), and reuse the
-  block-diff/similarity engine.
+  block-diff/similarity engine. It can also read the user's bookmarks and line notes (`logs_get_bookmarks`,
+  `logs_get_notes`), the alerts each document raised (`logs_get_alerts`), a time range (`logs_query_time_range`) and
+  follow a file with a cursor (`logs_get_new_lines_since`).
 
 ## Solution layout
 
