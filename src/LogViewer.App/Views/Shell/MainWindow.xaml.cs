@@ -289,7 +289,7 @@ public partial class MainWindow : Window
         {
             if (File.Exists(path))
             {
-                viewModel.OpenPath(path);
+                viewModel.OpenPathInteractive(path);
             }
             else if (Directory.Exists(path))
             {

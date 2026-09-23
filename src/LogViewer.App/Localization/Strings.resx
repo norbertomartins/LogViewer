@@ -661,4 +661,6 @@
   <data name="Formats_JoinContinuation" xml:space="preserve"><value>Join continuation lines</value></data>
   <data name="Formats_JoinContinuation_ToolTip" xml:space="preserve"><value>Lines the pattern does not match (stack traces, wrapped messages) belong to the entry above: they inherit its level for filtering and show in its detail panel.</value></data>
   <data name="Doc_Detail_Continuation" xml:space="preserve"><value>Continuation lines</value></data>
+  <data name="Palette_Cat_Archive" xml:space="preserve"><value>Archive {0}</value></data>
+  <data name="Palette_OpenAllEntriesFmt" xml:space="preserve"><value>Open all {0} files</value></data>
 </root>

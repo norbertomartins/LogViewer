@@ -661,4 +661,6 @@
   <data name="Formats_JoinContinuation" xml:space="preserve"><value>Juntar linhas de continuação</value></data>
   <data name="Formats_JoinContinuation_ToolTip" xml:space="preserve"><value>As linhas que o padrão não reconhece (stack traces, mensagens partidas) pertencem à entrada anterior: herdam o seu nível para filtros e aparecem no seu painel de detalhe.</value></data>
   <data name="Doc_Detail_Continuation" xml:space="preserve"><value>Linhas de continuação</value></data>
+  <data name="Palette_Cat_Archive" xml:space="preserve"><value>Arquivo {0}</value></data>
+  <data name="Palette_OpenAllEntriesFmt" xml:space="preserve"><value>Abrir os {0} ficheiros</value></data>
 </root>

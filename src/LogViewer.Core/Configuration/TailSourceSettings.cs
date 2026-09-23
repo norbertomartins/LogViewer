@@ -14,6 +14,9 @@ public sealed class TailSourceSettings
     /// <summary>File path (File) or watched directory (DirectoryWatch). Unused for EventLog.</summary>
     public string Path { get; set; } = string.Empty;
 
+    /// <summary>For a <c>.zip</c> <see cref="Path"/>: the entry that was opened (so restore reopens the same one).</summary>
+    public string? ArchiveEntry { get; set; }
+
     /// <summary>Codepage name override; null means auto-detect.</summary>
     public string? EncodingOverrideName { get; set; }
 

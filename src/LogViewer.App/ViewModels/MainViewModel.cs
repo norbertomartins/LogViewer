@@ -147,21 +147,79 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         foreach (var path in paths)
         {
-            OpenPath(path);
+            OpenPathInteractive(path);
         }
     }
 
-    public TailDocumentViewModel OpenPath(string path)
+    /// <summary>Opens a user-chosen file. A zip with several files first asks which one (or all of them) through the
+    /// command-palette picker; everything else goes straight to <see cref="OpenPath"/>.</summary>
+    public void OpenPathInteractive(string path)
+    {
+        IReadOnlyList<ArchiveEntry> entries = [];
+        try
+        {
+            if (CompressedLogFile.Detect(path) == CompressionKind.Zip)
+            {
+                entries = CompressedLogFile.ListZipEntries(path);
+            }
+        }
+        catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
+        {
+            StatusMessage = ex.Message;
+            return;
+        }
+
+        if (entries.Count <= 1)
+        {
+            OpenPath(path);
+            return;
+        }
+
+        const int MaxOpenAll = 20;
+        var archiveName = Path.GetFileName(path);
+        var category = Loc.Format("Palette_Cat_Archive", archiveName);
+        var choices = new List<PaletteCommand>
+        {
+            new(Loc.Format("Palette_OpenAllEntriesFmt", Math.Min(entries.Count, MaxOpenAll)), category, () =>
+            {
+                foreach (var entry in entries.Take(MaxOpenAll))
+                {
+                    OpenPath(path, entry.FullName);
+                }
+            }),
+        };
+        choices.AddRange(entries.Select(e => new PaletteCommand(
+            $"📦 {e.FullName}", category, () => OpenPath(path, e.FullName), $"{e.Length / 1024.0:N0} KB")));
+
+        _dialogService.ShowCommandPalette(choices)?.Execute();
+    }
+
+    /// <summary>Opens (or activates) a file-backed document. Compressed files are decompressed once to a temp copy;
+    /// for a zip, <paramref name="archiveEntry"/> picks the entry (default: the largest).</summary>
+    public TailDocumentViewModel OpenPath(string path, string? archiveEntry = null)
     {
         var fullPath = Path.GetFullPath(path);
-        if (!TryActivateExisting(fullPath, out var document))
+        if (archiveEntry is null && CompressedLogFile.Detect(fullPath) == CompressionKind.Zip)
         {
-            // A .gz archive can't be tailed incrementally — decompress it once and open the plain copy,
-            // keeping the original path for the recent-list and the tab title.
+            try
+            {
+                archiveEntry = CompressedLogFile.ListZipEntries(fullPath).FirstOrDefault()?.FullName;
+            }
+            catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
+            {
+                archiveEntry = null;
+            }
+        }
+
+        var dedupKey = ComputeDedupKey(TailSourceKind.File, fullPath, null, null, archiveEntry);
+        if (!TryActivateExisting(dedupKey, out var document))
+        {
+            // Compressed files (.gz/.bz2/.zst/.zip) can't be tailed incrementally — decompress once and open the
+            // plain copy, keeping the original path (and zip entry) for the recent-list and the tab title.
             string openPath;
             try
             {
-                openPath = CompressedLogFile.Materialize(fullPath);
+                openPath = CompressedLogFile.Materialize(fullPath, archiveEntry);
             }
             catch (Exception ex) when (ex is IOException or InvalidDataException or UnauthorizedAccessException)
             {
@@ -176,13 +234,15 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             var isStructuredView = FindExistingOverride(TailSourceKind.File, fullPath, pattern: null, eventLogChannel: null)
                 ?? detectedFormatId is not null;
             document = AddDocument(source, openPath,
-                title: isCompressed ? Path.GetFileName(fullPath) : null,
+                title: archiveEntry is not null ? $"{Path.GetFileName(fullPath)} › {archiveEntry}"
+                    : isCompressed ? Path.GetFileName(fullPath) : null,
                 isStructuredView: isStructuredView,
                 structuredFormatId: formatOverride ?? detectedFormatId,
                 structuredFormatManuallyChosen: formatOverride is not null);
+            document.SessionKey = dedupKey;
         }
 
-        RecordRecent(new TailSourceSettings { Kind = TailSourceKind.File, Path = fullPath });
+        RecordRecent(new TailSourceSettings { Kind = TailSourceKind.File, Path = fullPath, ArchiveEntry = archiveEntry });
         return document!;
     }
 
@@ -512,7 +572,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
     private bool TryActivateExisting(string dedupKey, out TailDocumentViewModel? existing)
     {
-        existing = Documents.FirstOrDefault(d => string.Equals(d.SourcePath, dedupKey, StringComparison.OrdinalIgnoreCase));
+        existing = Documents.FirstOrDefault(d => string.Equals(d.SessionKey, dedupKey, StringComparison.OrdinalIgnoreCase));
         if (existing is null)
         {
             return false;
@@ -989,12 +1049,12 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     public void SaveAndDispose()
     {
         _settings.Layout.LastWindowMode = Host.Mode;
-        _settings.Layout.ActiveSourceDedupKey = ActiveDocument?.SourcePath;
+        _settings.Layout.ActiveSourceDedupKey = ActiveDocument?.SessionKey;
 
         foreach (var document in Documents)
         {
             var entry = _settings.RecentSources.FirstOrDefault(r =>
-                string.Equals(ComputeDedupKey(r), document.SourcePath, StringComparison.OrdinalIgnoreCase));
+                string.Equals(ComputeDedupKey(r), document.SessionKey, StringComparison.OrdinalIgnoreCase));
             if (entry is null)
             {
                 continue;
@@ -1065,7 +1125,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 
         if (activeKey is not null)
         {
-            var active = Documents.FirstOrDefault(d => string.Equals(d.SourcePath, activeKey, StringComparison.OrdinalIgnoreCase));
+            var active = Documents.FirstOrDefault(d => string.Equals(d.SessionKey, activeKey, StringComparison.OrdinalIgnoreCase));
             if (active is not null)
             {
                 ActiveDocument = active;
@@ -1078,7 +1138,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         {
             var document = entry.Kind switch
             {
-                TailSourceKind.File when File.Exists(entry.Path) => OpenPath(entry.Path),
+                TailSourceKind.File when File.Exists(entry.Path) => OpenPath(entry.Path, entry.ArchiveEntry),
                 // Restored even when the directory is currently missing — DirectoryWatchTailSource itself
                 // waits for it to (re)appear and picks up matching files automatically once it does, so a
                 // folder that was deleted between sessions (or gets recreated by e.g. a deploy step after
@@ -1186,7 +1246,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         foreach (var document in Documents)
         {
             var entry = _settings.RecentSources.FirstOrDefault(r =>
-                string.Equals(ComputeDedupKey(r), document.SourcePath, StringComparison.OrdinalIgnoreCase));
+                string.Equals(ComputeDedupKey(r), document.SessionKey, StringComparison.OrdinalIgnoreCase));
             if (entry is null)
             {
                 continue;
@@ -1204,7 +1264,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             Sources = sources,
             WindowMode = Host.Mode,
             DockingLayoutXml = dockingLayoutXml ?? _settings.Layout.DockingLayoutXml,
-            ActiveSourceDedupKey = ActiveDocument?.SourcePath,
+            ActiveSourceDedupKey = ActiveDocument?.SessionKey,
         });
 
         _settingsStore.Save(_settings);
@@ -1291,10 +1351,11 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     }
 
     private static string ComputeDedupKey(TailSourceSettings entry) =>
-        ComputeDedupKey(entry.Kind, entry.Path, entry.WildcardPattern, entry.EventLogChannelName);
+        ComputeDedupKey(entry.Kind, entry.Path, entry.WildcardPattern, entry.EventLogChannelName, entry.ArchiveEntry);
 
-    private static string ComputeDedupKey(TailSourceKind kind, string path, string? pattern, string? eventLogChannel) => kind switch
+    private static string ComputeDedupKey(TailSourceKind kind, string path, string? pattern, string? eventLogChannel, string? archiveEntry = null) => kind switch
     {
+        TailSourceKind.File when archiveEntry is not null => $"{Path.GetFullPath(path)}!{archiveEntry}",
         TailSourceKind.File => Path.GetFullPath(path),
         TailSourceKind.DirectoryWatch => $"dirwatch:{Path.GetFullPath(path)}|{pattern}",
         TailSourceKind.EventLog => $"eventlog:{eventLogChannel}",

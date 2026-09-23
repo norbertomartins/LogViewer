@@ -20,7 +20,7 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
     {
         var dialog = new OpenFileDialog
         {
-            Filter = "Log files (*.log;*.txt)|*.log;*.txt|All files (*.*)|*.*",
+            Filter = "Log files (*.log;*.txt)|*.log;*.txt|Compressed logs (*.gz;*.bz2;*.zst;*.zip)|*.gz;*.bz2;*.zst;*.zip|All files (*.*)|*.*",
             Multiselect = true,
         };
 
