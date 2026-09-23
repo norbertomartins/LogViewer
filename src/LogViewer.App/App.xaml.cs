@@ -62,6 +62,11 @@ public partial class App : Application
 
         var settings = _serviceProvider.GetRequiredService<AppSettings>();
 
+        // Large files browsed in the whole-file view (or queried over MCP) keep their line index on disk, so
+        // reopening them only scans what was appended since.
+        LogViewer.Core.Indexing.FileLineIndex.PersistDirectory = System.IO.Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "LogViewer", "index-cache");
+
         // Must run before the first window is constructed — LocExtension resolves strings at XAML parse time.
         Localization.Loc.Initialize(settings.Language);
 
