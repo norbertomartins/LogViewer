@@ -167,7 +167,7 @@
                     Visibility="{Binding IsHidingPastLines, Converter={StaticResource BoolToVisibilityConverter}}" />
             <Separator />
             <TextBlock Text="🔍" VerticalAlignment="Center" Margin="2,0,3,0" />
-            <TextBox Width="140" VerticalAlignment="Center"
+            <TextBox Width="140" VerticalAlignment="Center" Style="{StaticResource ToolbarTextBoxStyle}"
                      AutomationProperties.Name="{loc:Loc Doc_TextFilter_Name}"
                      Text="{Binding TextFilterPattern, UpdateSourceTrigger=PropertyChanged, Delay=200}"
                      ToolTip="{loc:Loc Doc_TextFilter_ToolTip}" />
