@@ -6,7 +6,7 @@ temporal (Δ, ir para hora, filtro por intervalo), formatos personalizados por r
 correlação + agrupamento de exceções.
 
 Prioridade: **P1** = maior impacto / custo moderado, **P2** = útil, **P3** = oportunista.
-Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = feito (Fases 10–13, ver `PLAN.md`).
+Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = feito (Fases 10–14, ver `PLAN.md`).
 
 ---
 
@@ -65,24 +65,24 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 | 6.1 | ✅ `logs_get_bookmarks`, `logs_query_time_range` | P1 | S | O intervalo de tempo pode usar `FileLineIndex.FindFirstLineAtOrAfter` — barato mesmo em ficheiros enormes. Sempre com `ResponseLimits`. |
 | 6.2 | ✅ `logs_get_new_lines_since(cursor)` | P2 | M | Permite ao agente acompanhar o tail sem reler; o cursor é o número de linha absoluto. |
 | 6.3 | ✅ `logs_get_alerts` | P3 | S | Expor os disparos do `AlertWindowTracker`. |
-| 6.4 | Escrita controlada: adicionar bookmarks/anotações | P3 | M | Opt-in separado nas definições do MCP; nunca modificar ficheiros. |
+| 6.4 | ✅ Escrita controlada: adicionar bookmarks/anotações | P3 | M | Opt-in separado nas definições do MCP; nunca modificar ficheiros. |
 
 ## 7. Colaboração
 
 | # | Item | Prio | Esforço | Notas |
 |---|------|------|---------|-------|
 | 7.1 | ✅ Anotações/notas em linhas | P2 | M | Persistidas por ficheiro (caminho + nº de linha + hash do texto para detetar mudanças). |
-| 7.2 | Relatório de incidente | P3 | M | Exportar excerto (linhas selecionadas/bookmarks + anotações + grupos de exceções) para HTML ou Markdown. |
+| 7.2 | ✅ Relatório de incidente | P3 | M | Exportar excerto (linhas selecionadas/bookmarks + anotações + grupos de exceções) para HTML ou Markdown. |
 
 ---
 
 ## Ordem sugerida
 
 Feitos: todos os P1 (Fase 10); 2.1, 3.2, 3.3, 3.6, 3.7, 4.2, 6.2 (Fase 11); 3.5, 3.8, 4.3, 5.1, 5.2 (Fase 12);
-1.3, 1.4, 6.3, 7.1 (Fase 13). Falta do 1.2 o toast real, SSH/ETW contra hosts reais e o diálogo de contentores contra
-um Docker/Kubernetes real (nenhum dos dois está instalado na máquina de desenvolvimento). A seguir:
+1.3, 1.4, 6.3, 7.1 (Fase 13); 6.4, 7.2 (Fase 14). Falta do 1.2 o toast real, SSH/ETW contra hosts reais e o diálogo
+de contentores contra um Docker/Kubernetes real (nenhum dos dois está instalado na máquina de desenvolvimento). A seguir:
 
-1. **7.2 + 6.4** — relatório de incidente (bookmarks + notas + grupos de exceções → Markdown/HTML) e escrita
-   controlada de bookmarks/notas pelo MCP; as notas (7.1) são a base de ambos.
-2. **3.4 / 4.4** — entradas multi-linha agrupadas na vista (base já existe com o 3.5) e vista em colunas (maiores).
+1. **3.4** — entradas multi-linha agrupadas na vista principal (expandir/colapsar stack traces; a deteção já existe
+   com o 3.5 e o `ExceptionGrouper`).
+2. **4.4** — vista em colunas para logs estruturados (grelha ordenável/filtrável pelas propriedades).
 3. **2.3, 2.4, 5.3** — conforme a necessidade.
