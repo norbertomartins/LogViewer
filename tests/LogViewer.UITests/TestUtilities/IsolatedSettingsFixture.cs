@@ -87,6 +87,19 @@ public sealed class IsolatedSettingsFixture : IDisposable
         }
         """;
 
+    /// <summary>Same as <see cref="RestoringFile"/>, but with the built-in Dark theme active — so a UI
+    /// test can assert against actually-rendered dark-palette colors without driving the Settings dialog.</summary>
+    public static string RestoringFileInDarkTheme(string absoluteFilePath) =>
+        $$"""
+        {
+          "SchemaVersion": 7,
+          "RestorePreviousSessionOnStartup": true,
+          "Mcp": { "Enabled": false },
+          "ActiveThemeId": "builtin-dark",
+          "RecentSources": [ { "Kind": 0, "Path": {{System.Text.Json.JsonSerializer.Serialize(absoluteFilePath)}} } ]
+        }
+        """;
+
     public void Dispose()
     {
         if (File.Exists(_settingsPath))

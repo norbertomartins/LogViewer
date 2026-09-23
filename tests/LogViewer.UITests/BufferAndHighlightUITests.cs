@@ -131,7 +131,7 @@ public sealed class BufferAndHighlightUITests : IDisposable
 
         Thread.Sleep(500);
 
-        if (ScreenCaptureIsUnavailable(window))
+        if (PixelColorHelpers.ScreenCaptureIsUnavailable(window))
         {
             // Same class of environment limitation as the "locked/disconnected RDP session" case
             // MainWindowUITests.FileMenu_ContainsEveryOpenSourceEntry already tolerates: pixel capture
@@ -163,8 +163,8 @@ public sealed class BufferAndHighlightUITests : IDisposable
             plainRow = RowsContainingText(list, "plain").FirstOrDefault(r => !RowText(r).Contains("ERROR") && !RowText(r).Contains("WARN"));
 
             if (errorRow is not null && plainRow is not null
-                && RectLooksSane(errorRow.Properties.BoundingRectangle.Value, windowRect)
-                && RectLooksSane(plainRow.Properties.BoundingRectangle.Value, windowRect))
+                && PixelColorHelpers.RectLooksSane(errorRow.Properties.BoundingRectangle.Value, windowRect)
+                && PixelColorHelpers.RectLooksSane(plainRow.Properties.BoundingRectangle.Value, windowRect))
             {
                 stable = true;
                 break;
@@ -184,11 +184,11 @@ public sealed class BufferAndHighlightUITests : IDisposable
         using var windowImage = image;
 
         Assert.True(
-            RowRegionContainsColor(windowImage, window, errorRow, IsReddish),
+            PixelColorHelpers.RegionContainsColor(windowImage, window, errorRow, IsReddish),
             "Expected the ERROR row's background to contain a reddish pixel (matches the seeded #C0392B rule) — it doesn't, " +
             "meaning this line lost its highlight after several ring-buffer rotations.");
         Assert.False(
-            RowRegionContainsColor(windowImage, window, plainRow, IsReddish),
+            PixelColorHelpers.RegionContainsColor(windowImage, window, plainRow, IsReddish),
             "Expected the plain row's background to contain no reddish pixels.");
     }
 
@@ -211,68 +211,6 @@ public sealed class BufferAndHighlightUITests : IDisposable
 
     private static string RowText(AutomationElement row) =>
         string.Join(' ', row.FindAllDescendants(cf => cf.ByControlType(ControlType.Text)).Select(t => t.Name));
-
-    /// <summary>True when a row's reported bounds are plausibly inside the window — false for the
-    /// disconnected/reused-peer symptom of a stale AutomationElement (e.g. Y off by over a thousand
-    /// pixels), which showed up here even on a freshly re-queried element.</summary>
-    private static bool RectLooksSane(System.Drawing.Rectangle rowRect, System.Drawing.Rectangle windowRect) =>
-        rowRect.Top >= windowRect.Top - 5 && rowRect.Bottom <= windowRect.Bottom + 5
-        && rowRect.Left >= windowRect.Left - 5 && rowRect.Height is > 0 and < 200;
-
-    /// <summary>A handful of sampled pixels that are all pure black means the desktop isn't actually being
-    /// composited/captured in this session (e.g. a disconnected RDP session) rather than the app genuinely
-    /// rendering an all-black window — no real WPF window is literally 0,0,0 everywhere (title bar text,
-    /// borders, etc. always break that up).</summary>
-    private static bool ScreenCaptureIsUnavailable(AutomationElement window)
-    {
-        using var image = Capture.Element(window);
-        var bitmap = image.Bitmap;
-        var points = new (int X, int Y)[]
-        {
-            (bitmap.Width / 4, bitmap.Height / 4),
-            (bitmap.Width / 2, bitmap.Height / 2),
-            (3 * bitmap.Width / 4, 3 * bitmap.Height / 4),
-        };
-        return points.All(p => bitmap.GetPixel(p.X, p.Y) is { R: 0, G: 0, B: 0 });
-    }
-
-    /// <summary>Scans a row's rectangular region within an already-captured whole-window image for any
-    /// pixel matching <paramref name="predicate"/>, converting the row's screen-coordinate
-    /// <c>BoundingRectangle</c> into pixel offsets within that image (accounting for a DPI scale factor
-    /// between logical bounds and physical pixels). Scanning the whole row rather than one computed pixel
-    /// tolerates DPI-rounding imprecision that could otherwise land exactly on a text glyph or border
-    /// pixel instead of the row's own background.</summary>
-    private static bool RowRegionContainsColor(CaptureImage windowImage, AutomationElement window, AutomationElement row, Func<Color, bool> predicate)
-    {
-        var bitmap = windowImage.Bitmap;
-        var windowRect = window.Properties.BoundingRectangle.Value;
-        var rowRect = row.Properties.BoundingRectangle.Value;
-        var scaleX = bitmap.Width / windowRect.Width;
-        var scaleY = bitmap.Height / windowRect.Height;
-
-        // Inset well inside the row's nominal bounds: horizontally, skip the bookmark-glyph/line-number
-        // columns on the left (narrow text, not what we're checking) and stay short of the right edge;
-        // vertically, keep to the middle band. This tolerates a few pixels of DPI-rounding error without
-        // the scan bleeding into a neighboring row or the window chrome.
-        var rowHeight = (rowRect.Bottom - rowRect.Top) * scaleY;
-        var left = Math.Clamp((int)((rowRect.Left - windowRect.Left) * scaleX + (rowRect.Width * scaleX * 0.15)), 0, bitmap.Width - 1);
-        var right = Math.Clamp((int)((rowRect.Right - windowRect.Left) * scaleX - 5), 0, bitmap.Width - 1);
-        var top = Math.Clamp((int)((rowRect.Top - windowRect.Top) * scaleY + rowHeight * 0.3), 0, bitmap.Height - 1);
-        var bottom = Math.Clamp((int)((rowRect.Bottom - windowRect.Top) * scaleY - rowHeight * 0.3), 0, bitmap.Height - 1);
-
-        for (var y = top; y <= bottom; y++)
-        {
-            for (var x = left; x <= right; x += 3)
-            {
-                if (predicate(bitmap.GetPixel(x, y)))
-                {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
 
     private static bool IsReddish(Color c) => c.R > c.G + 40 && c.R > c.B + 40;
 
