@@ -271,6 +271,58 @@
   was attempted but couldn't attach to the dev-run `LogViewer.App.exe` (not resolvable as a launchable app
   by display name).
 
+- **Phase 9 — navigation at scale, custom formats, correlation, exceptions.** Four features picked from
+  a review of what mature log viewers do that this one didn't; the remaining ideas from that review are
+  tracked in `ROADMAP.md`.
+  - **9a — whole-file browser for large files.** Everything outside the 50k-line ring buffer used to be
+    reachable only through search. `FileLineIndex` (new `src/LogViewer.Core/Indexing/`) is a sparse
+    line-number → byte-offset index: one checkpoint every 1024 lines (~800 KB for 100M lines), built
+    incrementally (`UpdateAsync` only scans new bytes; a shrunk file is re-indexed), encoding-aware
+    (UTF-8/ANSI fast path via `Span.IndexOf`, aligned matching for UTF-16/32), with `ReadLines(first,
+    count)` and `FindFirstLineAtOrAfter(time, extractor)` (binary search over checkpoints, then a forward
+    scan). Line numbers match `FileTailSource`/full-text search exactly. On the WPF side,
+    `VirtualFileLineList` is a data-virtualized `IList` (pages of 256 lines, 32-page LRU) — a plain
+    `IList` with no sort/filter is never enumerated by `ListCollectionView`, so only visible pages are
+    read. `FileBrowserViewModel`/`View` (📜 toolbar button, row context menu, palette) adds go-to-line,
+    go-to-time, follow-end (re-indexes every 2s), highlight rules, and "show in live view". The Search
+    dialog and the Exceptions panel fall back to it when a line has left the buffer.
+  - **9b — time navigation.** `TimestampQuery` (Core) parses absolute, time-of-day and relative
+    (`-5m`, `-1h30m`, `+30s`) input in the *log's* offset (the newest line's), not the machine's.
+    `TimeDeltaFormatter` renders the Δ column. `TailDocumentViewModel` resolves timestamps lazily —
+    only while Δ or a time filter is on — in display order, so an untimestamped continuation line
+    (stack frame) inherits the previous line's time (`LogLineViewModel.EffectiveTimestamp`) and stays
+    with its entry under a time filter. New: Δ toggle, "Set as Time Reference", 🕐 popup (go to time,
+    From/To range filter), and a "Filter to This Interval" context menu on timeline bars. Go-to-time
+    older than the buffer opens the whole-file browser at that time.
+  - **9c — user-defined regex formats.** `CustomLogFormat` + `RegexLogLineParser` (Core/Structured):
+    named groups map onto `StructuredLogEvent` (`timestamp`/`ts`/`time`, `date`+`time`, `level`,
+    `message`, `exception`, `traceid`, `spanid`, `template`; the rest become properties); optional exact
+    `TimestampFormat` (`|`-separated), otherwise ISO-like/`,`-millis/Unix-epoch detection; 100ms match
+    timeout. `LogLineParsers` gained a swappable custom-format set (`SetCustomFormats`, custom ids first
+    in `FormatIds` so they win auto-detection, `CustomFormatsChanged` event); open documents refresh
+    their picker (now id + display name) and rebuild their parser when their format is edited.
+    `CustomFormatsEditorViewModel`/`View` (Tools ▸ Custom Log Formats, palette) with live sample preview
+    prefilled from the active document and bundled `CustomLogFormatExamples`. `AppSettings.CustomLogFormats`,
+    schema **v10→v11** (no-op migration). MCP tools get custom formats for free via the shared registry.
+  - **9d — correlation filter + exception grouping.** `CorrelationIdExtractor` (Core/Analysis) pulls ids
+    from structured trace fields/properties and free text (`key=value`/JSON keys ending in a known id
+    suffix, W3C `traceparent`, GUIDs); `LogLineViewModel.CorrelationIds` computes them lazily when the row's
+    context menu opens (menu items built in code-behind — submenu popups can't reach the
+    `PlacementTarget` binding route reliably), and `CorrelationFilter` is a substring match on the raw
+    line, so it works on plain-text and merged documents. `ExceptionGrouper` detects structured
+    exceptions, .NET/Java traces (`at …`, `Caused by:`, `... N more`) and Python tracebacks, and groups by
+    type + top 3 frames with line numbers/paths/compiler digits stripped (message with numbers/GUIDs masked
+    when there are no frames); a header with no following frame is ignored, so prose mentioning an
+    exception name isn't counted. `ExceptionGroupsViewModel`/`View` (💥 toolbar button) over the live buffer
+    or the whole file; new MCP tool `logs_exception_groups` (`LogExceptionTools`, `ResponseLimits`-clamped,
+    line numbers capped at 20 per group).
+  Verified via 54 new Core tests, 1 new MCP test, 10 new App tests (real `TailDocumentViewModel`s over temp
+  files) and 4 new FlaUI UI tests driving the built exe (toolbar buttons present; the whole-file browser,
+  Exceptions panel and Custom Log Formats editor open and render rows) — 303 Core / 22 Mcp / 197 App, all
+  green. **Not exercised interactively**: the correlation submenu and the 🕐 popup (right-click and popup
+  interaction aren't reachable through UIA patterns in the RDP test session), multi-GB files beyond the
+  synthetic fixtures, and the pt-PT strings' layout fit.
+
 ### Phase 5 verification caveat
 Every tool class is unit tested directly (bypassing the HTTP transport) against real fixture files, and
 the whole solution builds. Beyond that, a real end-to-end pass was run non-interactively: the app was

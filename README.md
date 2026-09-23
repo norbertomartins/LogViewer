@@ -42,6 +42,14 @@ architecture decisions.
 - Colorization by structured property (applied only to the message, not the whole line).
 - Quick filter by `TraceId`/`SpanId` from a given line (click to filter on that value), a minimum log
   level filter, and a button to clear all active filters.
+- User-defined formats (Tools ▸ Custom Log Formats): a regex with named groups (`timestamp` or `date` +
+  `time`, `level`, `message`, `exception`, `traceid`, …; any other group becomes a filterable property),
+  an optional exact timestamp format, a live preview over sample lines prefilled from the active document,
+  and ready-made examples (log4j/logback, Python logging, nginx/Apache access logs). Custom formats join
+  the per-document format picker and are tried first during auto-detection (and by the MCP tools).
+- "Filter by correlation ID" on any line's context menu: trace/request/correlation/operation/session ids,
+  W3C `traceparent` headers and GUIDs are extracted from the line (structured or plain text) and one click
+  shows every line containing that id — works on plain-text and merged documents too.
 
 **Command palette and session profiles**
 - Command palette (Ctrl+P): fuzzy-searchable list of every menu action, a "Go to…" entry per open
@@ -71,6 +79,24 @@ architecture decisions.
 - Smart auto-scroll lock: scrolling up off the tail pauses follow so new lines don't yank the viewport
   down; a "N new lines — resume follow" banner counts what arrived while paused, and scrolling back to
   the bottom re-arms follow automatically.
+
+**Time navigation**
+- Δ column: time elapsed since the previous timestamped line, or since a chosen reference line ("Set as
+  Time Reference").
+- Go to time (`2026-09-23 14:05`, `14:05:30`, or relative to the newest line: `-5m`, `-1h30m`) and a
+  time-range filter (From/To); stack-trace continuation lines inherit their entry's timestamp so they stay
+  with it. Right-click a timeline bar to filter to that interval.
+
+**Large files**
+- Whole-file browser: a sparse line index (one checkpoint every 1024 lines) plus a data-virtualized list
+  lets you scroll, go to line and go to time anywhere in a multi-GB file with flat memory use — including
+  lines long gone from the live ring buffer. Keeps indexing as the file grows; search results and
+  go-to-time requests older than the buffer open it automatically.
+
+**Exceptions**
+- Exceptions panel: every exception/stack trace (structured `@x`/`Exception` fields, plain-text .NET/Java
+  traces, Python tracebacks) grouped by type + top frames, with counts, first/last occurrence, a sample
+  trace, and jump/bookmark-all — over the live buffer or the whole file.
 
 **Search**
 - Full-text search over a file, independent of the in-memory ring buffer (finds matches already evicted
@@ -115,7 +141,8 @@ architecture decisions.
   port in Settings) that lets an AI agent (Claude Desktop, Claude Code, or any MCP client) query the logs
   the app is tailing: list open documents, search text, fetch context around a line, list structured
   properties, find the most recurring message patterns, identify which functions/call-sites are logging
-  the most errors, and reuse the block-diff/similarity engine.
+  the most errors, group distinct exceptions/stack traces (`logs_exception_groups`), and reuse the
+  block-diff/similarity engine.
 
 ## Solution layout
 
