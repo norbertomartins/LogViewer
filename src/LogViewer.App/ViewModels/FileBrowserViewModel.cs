@@ -241,13 +241,7 @@ public sealed partial class FileBrowserViewModel : ObservableObject, IDisposable
     /// <summary>Parsed timestamp for the document's structured format when there is one (it may know a date layout
     /// the generic extractor doesn't), else a timestamp pulled from the raw text. A fresh parser per call: the
     /// search runs on a background thread and parsers aren't required to be thread-safe.</summary>
-    private Func<string, DateTimeOffset?> CreateTimestampExtractor()
-    {
-        var parser = LogLineParsers.Create(_formatId);
-        return text => parser is not null && parser.TryParse(text, out var evt) && evt?.Timestamp is { } ts
-            ? ts
-            : MergedTimestampExtractor.TryExtract(text);
-    }
+    private Func<string, DateTimeOffset?> CreateTimestampExtractor() => TimeRangeReader.CreateExtractor(_formatId);
 
     // --- Search within the whole file -------------------------------------------------------------
 
