@@ -708,4 +708,9 @@
   <data name="Report_FirstSeen" xml:space="preserve"><value>First seen</value></data>
   <data name="Report_LastSeen" xml:space="preserve"><value>Last seen</value></data>
   <data name="Report_TopFrame" xml:space="preserve"><value>Top frame</value></data>
+  <data name="Doc_CollapseEntries_Name" xml:space="preserve"><value>Collapse stack traces</value></data>
+  <data name="Doc_CollapseEntries_ToolTip" xml:space="preserve"><value>Show each multi-line entry (a log line and its stack trace) as one row; ▸ expands it</value></data>
+  <data name="Doc_ToggleEntry_Name" xml:space="preserve"><value>Expand or collapse entry</value></data>
+  <data name="Doc_ToggleEntry_ToolTip" xml:space="preserve"><value>Show or hide the lines of this entry (its stack trace)</value></data>
+  <data name="Doc_Ctx_ToggleEntry" xml:space="preserve"><value>Expand/Collapse Entry</value></data>
 </root>

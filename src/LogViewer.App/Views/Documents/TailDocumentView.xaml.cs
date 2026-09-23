@@ -182,8 +182,10 @@ public partial class TailDocumentView : UserControl
         var hideBeforeLineNumber = _viewModel?.HideBeforeLineNumber;
         var hasTimeFilter = _viewModel?.IsTimeFilterActive ?? false;
         var hasCorrelationFilter = _viewModel?.IsCorrelationFilterActive ?? false;
+        var hasCollapsedEntries = _viewModel?.HasCollapsedEntries ?? false;
 
-        if (value is null && minLevelRank is null && !hasTextFilter && hideBeforeLineNumber is null && !hasTimeFilter && !hasCorrelationFilter)
+        if (value is null && minLevelRank is null && !hasTextFilter && hideBeforeLineNumber is null && !hasTimeFilter && !hasCorrelationFilter
+            && !hasCollapsedEntries)
         {
             view.Filter = null;
             return;
@@ -195,7 +197,8 @@ public partial class TailDocumentView : UserControl
             && (!hasTextFilter || _viewModel!.PassesTextFilter(line.Text))
             && (hideBeforeLineNumber is null || line.LineNumber >= hideBeforeLineNumber)
             && (!hasTimeFilter || _viewModel!.PassesTimeFilter(line))
-            && (!hasCorrelationFilter || _viewModel!.PassesCorrelationFilter(line));
+            && (!hasCorrelationFilter || _viewModel!.PassesCorrelationFilter(line))
+            && (!hasCollapsedEntries || !_viewModel!.IsHiddenByCollapse(line));
     }
 
     /// <summary>Exports or copies the effective line set — the user's <see cref="ListView.SelectedItems"/>
@@ -209,8 +212,8 @@ public partial class TailDocumentView : UserControl
             return;
         }
 
-        var lines = (LineListView.SelectedItems.Count > 0 ? LineListView.SelectedItems : LineListView.Items)
-            .OfType<LogLineViewModel>().ToList();
+        var lines = _viewModel.WithCollapsedContinuations(
+            (LineListView.SelectedItems.Count > 0 ? LineListView.SelectedItems : LineListView.Items).OfType<LogLineViewModel>().ToList());
 
         switch (target)
         {

@@ -81,6 +81,33 @@ public sealed partial class LogLineViewModel : ObservableObject
     /// entry (e.g. an ERROR line and its stack trace) alike.</summary>
     public string? InheritedLevel { get; init; }
 
+    /// <summary>The first line of the multi-line entry (e.g. the log line a stack trace belongs to) this line continues,
+    /// or null when the line starts an entry. Settable because a bare exception header line is only known to belong to
+    /// the entry above once a stack frame follows it.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsInGroup))]
+    private LogLineViewModel? _groupHead;
+
+    /// <summary>On an entry's first line: how many continuation lines follow it.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsGroupHead))]
+    [NotifyPropertyChangedFor(nameof(IsInGroup))]
+    [NotifyPropertyChangedFor(nameof(GroupToggleText))]
+    private int _groupedLineCount;
+
+    /// <summary>On an entry's first line: whether its continuation lines are hidden in the view.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(GroupToggleText))]
+    private bool _isGroupCollapsed;
+
+    public bool IsGroupHead => GroupedLineCount > 0;
+
+    /// <summary>True when this line is part of a multi-line entry — its first line or one of its continuation lines.</summary>
+    public bool IsInGroup => IsGroupHead || GroupHead is not null;
+
+    /// <summary>The row's expand/collapse button: "▸ +12" while collapsed, "▾" while expanded.</summary>
+    public string GroupToggleText => IsGroupCollapsed ? $"▸ +{GroupedLineCount}" : "▾";
+
     private int? _severityRank;
     private bool _severityResolved;
 
