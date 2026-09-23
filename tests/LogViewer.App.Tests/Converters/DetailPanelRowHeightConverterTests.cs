@@ -29,6 +29,14 @@ public sealed class DetailPanelRowHeightConverterTests
     }
 
     [Fact]
+    public void Convert_WhenTheDetailPathCannotResolve_CollapsesToZero()
+    {
+        // No selected line: the "SelectedLine.Structured" binding yields UnsetValue rather than null.
+        var result = (GridLength)_converter.Convert([180d, DependencyProperty.UnsetValue], typeof(GridLength), null, null!);
+        Assert.Equal(0d, result.Value);
+    }
+
+    [Fact]
     public void Convert_WithNoBindingsAtAll_CollapsesToZero()
     {
         var result = (GridLength)_converter.Convert([], typeof(GridLength), null, null!);
