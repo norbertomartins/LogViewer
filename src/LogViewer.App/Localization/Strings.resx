@@ -658,4 +658,7 @@
   <data name="Vm_Correlation_AllDocuments" xml:space="preserve"><value>Filtered every document by "{0}" — {1} of {2} have matching lines.</value></data>
   <data name="Exceptions_Live" xml:space="preserve"><value>Live</value></data>
   <data name="Exceptions_Live_ToolTip" xml:space="preserve"><value>Regroup automatically as new lines arrive (live buffer scope only)</value></data>
+  <data name="Formats_JoinContinuation" xml:space="preserve"><value>Join continuation lines</value></data>
+  <data name="Formats_JoinContinuation_ToolTip" xml:space="preserve"><value>Lines the pattern does not match (stack traces, wrapped messages) belong to the entry above: they inherit its level for filtering and show in its detail panel.</value></data>
+  <data name="Doc_Detail_Continuation" xml:space="preserve"><value>Continuation lines</value></data>
 </root>

@@ -25,6 +25,7 @@ public sealed class RegexLogLineParser : ILogLineParser
     {
         FormatId = format.Id;
         DisplayName = string.IsNullOrWhiteSpace(format.Name) ? format.Id : format.Name;
+        JoinsContinuationLines = format.JoinContinuationLines;
         _regex = regex;
         _groupNames = regex.GetGroupNames().Where(n => !int.TryParse(n, out _)).ToArray();
         _timestampFormats = string.IsNullOrWhiteSpace(format.TimestampFormat)
@@ -36,6 +37,9 @@ public sealed class RegexLogLineParser : ILogLineParser
     public string FormatId { get; }
 
     public string DisplayName { get; }
+
+    /// <summary>See <see cref="CustomLogFormat.JoinContinuationLines"/>.</summary>
+    public bool JoinsContinuationLines { get; }
 
     /// <summary>Builds a parser, or returns false with a user-readable <paramref name="error"/> when the pattern is
     /// empty, doesn't compile, or has no named groups (it would then carry nothing beyond the raw line).</summary>
