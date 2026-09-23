@@ -6,7 +6,7 @@ temporal (Δ, ir para hora, filtro por intervalo), formatos personalizados por r
 correlação + agrupamento de exceções.
 
 Prioridade: **P1** = maior impacto / custo moderado, **P2** = útil, **P3** = oportunista.
-Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = feito (Fase 10, ver `PLAN.md`).
+Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = feito (Fases 10–11, ver `PLAN.md`).
 
 ---
 
@@ -23,7 +23,7 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 
 | # | Item | Prio | Esforço | Notas |
 |---|------|------|---------|-------|
-| 2.1 | Persistir o índice de linhas em disco (cache por caminho + tamanho + mtime) | P2 | M | Evita reindexar ficheiros enormes a cada abertura do navegador; invalidar se o ficheiro encolher ou o início mudar. |
+| 2.1 | ✅ Persistir o índice de linhas em disco (cache por caminho + tamanho + mtime) | P2 | M | Evita reindexar ficheiros enormes a cada abertura do navegador; invalidar se o ficheiro encolher ou o início mudar. |
 | 2.2 | ✅ Pesquisa no navegador do ficheiro completo | P1 | M | Reutilizar `FileFullTextSearchService` com resultados incrementais e barra de progresso; "seguinte/anterior" salta no `VirtualFileLineList`. |
 | 2.3 | Filtros no navegador do ficheiro completo | P2 | L | Pede um índice de "linhas que passam o filtro" construído em background (lista de números de linha) em vez de filtrar a vista. |
 | 2.4 | Índice partilhado entre documento e navegador | P3 | M | O `FileTailSource` já conhece offsets: poderia alimentar o índice ao ler, dispensando o scan inicial para ficheiros abertos desde o início. |
@@ -33,12 +33,12 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 | # | Item | Prio | Esforço | Notas |
 |---|------|------|---------|-------|
 | 3.1 | ✅ Marcadores na barra de scroll (erros, avisos, bookmarks, realces, novos padrões) | P1 | M | Faixa própria ao lado da lista (`ScrollMarkerStrip`). Resultados da pesquisa ainda não aparecem na faixa. |
-| 3.2 | Vistas de filtro nomeadas, reutilizáveis entre documentos | P2 | M | Guardar combinações (texto + nível + intervalo + correlação) com nome; aplicar a qualquer documento. Hoje persistem só por documento/perfil. Bump de schema. |
-| 3.3 | Persistir filtro de tempo e de correlação nos perfis de sessão | P3 | S | Hoje são ad-hoc (não persistidos). Bump de schema em `TailSourceSettings`. |
+| 3.2 | ✅ Vistas de filtro nomeadas, reutilizáveis entre documentos | P2 | M | Guardar combinações (texto + nível + intervalo + correlação) com nome; aplicar a qualquer documento. Hoje persistem só por documento/perfil. Bump de schema. |
+| 3.3 | ✅ Persistir filtro de tempo e de correlação nos perfis de sessão | P3 | S | Hoje são ad-hoc (não persistidos). Bump de schema em `TailSourceSettings`. |
 | 3.4 | Agrupar entradas multi-linha na vista principal | P2 | L | Tratar stack traces como uma única entrada (expandir/colapsar) usando a mesma deteção do `ExceptionGrouper`. |
 | 3.5 | Continuação multi-linha nos formatos personalizados | P2 | M | Opção "linhas que não correspondem pertencem à entrada anterior" no `CustomLogFormat`. |
-| 3.6 | Espaço vazio de ~220 px por baixo do documento numa sessão nova | P2 | S | Pré-existente (reproduzido na versão anterior à Fase 9): a área do AvalonDock não ocupa a altura toda com o layout por omissão. |
-| 3.7 | Caixa de filtro de texto invisível na barra do documento | P2 | S | Pré-existente: a `TextBox` ao lado de 🔍 não tem borda/fundo visíveis no tema claro — só se nota ao clicar. |
+| 3.6 | ✅ Espaço vazio de ~220 px por baixo do documento | P2 | S | Causa: sem linha selecionada, o conversor da altura do painel de detalhe recebia `UnsetValue` (não `null`) e reservava 220 px. |
+| 3.7 | ✅ Caixa de filtro de texto invisível na barra do documento | P2 | S | Estilo explícito `ToolbarTextBoxStyle` (o `ToolBar` impõe um estilo sem borda). |
 | 3.8 | Resultados de pesquisa na faixa de marcadores | P3 | S | Complemento do 3.1. |
 
 ## 4. Análise
@@ -46,7 +46,7 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 | # | Item | Prio | Esforço | Notas |
 |---|------|------|---------|-------|
 | 4.1 | ✅ Deteção de anomalias | P1 | M | Assinalar padrões (`IPatternFrequencyAnalyzer`) vistos pela primeira vez e picos de volume face à média móvel; integrar com a timeline (barra destacada) e com os alertas existentes. |
-| 4.2 | Correlação entre documentos | P2 | M | "Filtrar por este ID em todos os documentos abertos" ou abrir uma vista merged filtrada pelo ID. |
+| 4.2 | ✅ Correlação entre documentos | P2 | M | "Filtrar por este ID em todos os documentos abertos" ou abrir uma vista merged filtrada pelo ID. |
 | 4.3 | Painel de exceções em tempo real | P3 | S | Atualizar grupos à medida que chegam linhas (hoje é um snapshot com "Atualizar"). |
 | 4.4 | Vista em colunas para logs estruturados | P2 | L | Grelha com colunas escolhidas das propriedades, ordenável e filtrável por valor. |
 
@@ -63,7 +63,7 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 | # | Item | Prio | Esforço | Notas |
 |---|------|------|---------|-------|
 | 6.1 | ✅ `logs_get_bookmarks`, `logs_query_time_range` | P1 | S | O intervalo de tempo pode usar `FileLineIndex.FindFirstLineAtOrAfter` — barato mesmo em ficheiros enormes. Sempre com `ResponseLimits`. |
-| 6.2 | `logs_get_new_lines_since(cursor)` | P2 | M | Permite ao agente acompanhar o tail sem reler; o cursor é o número de linha absoluto. |
+| 6.2 | ✅ `logs_get_new_lines_since(cursor)` | P2 | M | Permite ao agente acompanhar o tail sem reler; o cursor é o número de linha absoluto. |
 | 6.3 | `logs_get_alerts` | P3 | S | Expor os disparos do `AlertWindowTracker`. |
 | 6.4 | Escrita controlada: adicionar bookmarks/anotações | P3 | M | Opt-in separado nas definições do MCP; nunca modificar ficheiros. |
 
@@ -78,10 +78,10 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 
 ## Ordem sugerida
 
-Os P1 estão feitos (Fase 10), exceto o resto da verificação manual (1.2). A seguir:
+Feitos: todos os P1 (Fase 10) e 2.1, 3.2, 3.3, 3.6, 3.7, 4.2, 6.2 (Fase 11). Falta do 1.2 o toast real e SSH/ETW
+contra hosts reais. A seguir:
 
-1. **3.6 + 3.7** — dois defeitos visuais pequenos, mas visíveis em qualquer sessão.
-2. **3.2 + 3.3** — vistas de filtro nomeadas e persistência dos filtros de tempo/correlação (um único bump de schema).
-3. **2.1** — cache do índice em disco, para ficheiros enormes reabertos com frequência.
-4. **4.2 + 6.2** — correlação entre documentos e `logs_get_new_lines_since` para agentes.
-5. O resto conforme a necessidade.
+1. **4.3 + 3.8** — painel de exceções em tempo real e resultados de pesquisa na faixa de marcadores (pequenos).
+2. **3.5** — continuação multi-linha nos formatos personalizados.
+3. **5.1 + 5.2** — mais formatos de arquivo e o diálogo de `kubectl`/`docker logs`.
+4. **3.4 / 4.4** — entradas multi-linha agrupadas e vista em colunas (maiores).
