@@ -93,6 +93,10 @@ public sealed partial class LogLineViewModel : ObservableObject
         }
     }
 
+    /// <summary>True when this line was the first occurrence of a Warning/Error message shape in its document
+    /// (<see cref="Core.Analysis.NewPatternDetector"/>). Set once at ingestion and carried over on reprocess.</summary>
+    public bool IsNewPattern { get; set; }
+
     /// <summary>The winning highlight rule's color for the scroll-marker strip (its background, or its foreground
     /// when the rule leaves the background at the default), or null when no rule matched.</summary>
     public Brush? HighlightMarkerBrush { get; private set; }

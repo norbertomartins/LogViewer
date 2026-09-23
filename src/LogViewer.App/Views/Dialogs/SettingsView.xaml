@@ -97,6 +97,10 @@
             <CheckBox IsChecked="{Binding NotificationAlertsEnabled}" Margin="0,0,0,10">
                 <TextBlock Text="{loc:Loc Settings_NotificationAlertsEnable}" TextWrapping="Wrap" />
             </CheckBox>
+            <CheckBox IsChecked="{Binding NotifyOnNewErrorPatterns}" Margin="0,0,0,10"
+                      IsEnabled="{Binding NotificationAlertsEnabled}">
+                <TextBlock Text="{loc:Loc Settings_NotifyOnNewErrorPatterns}" TextWrapping="Wrap" />
+            </CheckBox>
         </StackPanel>
         </ScrollViewer>
 
