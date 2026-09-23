@@ -1,3 +1,4 @@
+using LogViewer.Core.Annotations;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.Documents;
 using LogViewer.Mcp.Tests.TestUtilities;
@@ -83,6 +84,32 @@ public sealed class LogNavigationToolsTests
         var reset = await tools.GetNewLinesSince(fixture.FilePath, appended.NextCursor, 10, CancellationToken.None);
         Assert.True(reset.FileWasReset);
         Assert.Equal(["new"], reset.Lines.Select(l => l.Text));
+    }
+
+    [Fact]
+    public async Task GetNotes_ReturnsEachNoteWithItsLineText()
+    {
+        using var fixture = new TempFileFixture();
+        fixture.WriteAllText("first\nsecond\nthird\n");
+        var notes = new[]
+        {
+            new LineAnnotation(3, LineAnnotationStore.HashText("third"), "root cause", Start),
+            new LineAnnotation(1, LineAnnotationStore.HashText("first"), "deploy started", Start),
+            new LineAnnotation(2, LineAnnotationStore.HashText("what line 2 used to say"), "old note", Start),
+        };
+        var docs = new List<OpenDocumentInfo>
+        {
+            new(fixture.FilePath, fixture.FilePath, "b.log", TailSourceKind.File, true, false, Notes: notes),
+            new("other", null, "no notes", TailSourceKind.Process, false, false),
+        };
+        var tools = new LogNavigationTools(new FakeCatalog(docs));
+
+        var result = await tools.GetNotes(10, CancellationToken.None);
+
+        var doc = Assert.Single(result);
+        Assert.Equal(["deploy started", "old note", "root cause"], doc.Notes.Select(n => n.Note));
+        Assert.Equal(["first", "second", "third"], doc.Notes.Select(n => n.Text));
+        Assert.Equal([false, true, false], doc.Notes.Select(n => n.LineChanged));
     }
 
     [Fact]

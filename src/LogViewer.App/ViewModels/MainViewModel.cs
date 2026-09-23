@@ -7,6 +7,7 @@ using LogViewer.App.Localization;
 using LogViewer.App.Models;
 using LogViewer.App.Services;
 using LogViewer.Core.Analysis;
+using LogViewer.Core.Annotations;
 using LogViewer.Core.BlockDiff;
 using LogViewer.Core.Configuration;
 using LogViewer.Core.EventLogging;
@@ -24,6 +25,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
 {
     private readonly ISettingsStore _settingsStore;
     private readonly IDialogService _dialogService;
+    private readonly ILineAnnotationStore _annotationStore;
     private readonly IFullTextSearchService _fileSearchService;
     private readonly IEventLogSearchService _eventLogSearchService;
     private readonly ISimilarBlockFinder _blockFinder;
@@ -61,8 +63,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         IPatternFrequencyAnalyzer patternAnalyzer,
         ThemeService themeService,
         ISoundAlertPlayer soundAlertPlayer,
-        INotificationService notificationService)
+        INotificationService notificationService,
+        ILineAnnotationStore annotationStore)
     {
+        _annotationStore = annotationStore;
         _settingsStore = settingsStore;
         _dialogService = dialogService;
         _fileSearchService = fileSearchService;
@@ -664,10 +668,21 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.SaveFilterViewRequested += () => SaveFilterView(document);
         document.DeleteFilterViewRequested += DeleteFilterView;
         document.CorrelationFilterAllRequested += FilterAllDocumentsByCorrelation;
+        document.EditNoteRequested += line => EditNote(document, line);
+        document.AttachAnnotationStore(_annotationStore);
 
         Documents.Add(document);
         ActiveDocument = document;
         return document;
+    }
+
+    private void EditNote(TailDocumentViewModel document, LogLineViewModel line)
+    {
+        var text = _dialogService.ShowTextPrompt(Loc.Get("Note_Title"), Loc.Format("Note_Prompt", line.LineNumber), line.Note);
+        if (text is not null)
+        {
+            document.SetNote(line, text);
+        }
     }
 
     /// <summary>Persists a splitter-dragged detail-panel height and applies it to every other open

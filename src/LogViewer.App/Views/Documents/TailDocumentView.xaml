@@ -18,7 +18,11 @@
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.Delta" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" Margin="0,0,4,0" />
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,4,0">
+                    <TextBlock Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
+                    <TextBlock Text="📝" ToolTip="{Binding Note}" AutomationProperties.Name="{loc:Loc Doc_Note_Name}"
+                               Visibility="{Binding HasNote, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </StackPanel>
                 <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" Margin="0,0,8,0" />
                 <!-- Δ column: empty and collapsed (zero width via the shared Auto group) unless the document's
                      "time delta" toggle is on and this line has its own timestamp. -->
@@ -49,7 +53,11 @@
                     <ColumnDefinition Width="Auto" SharedSizeGroup="LogCol.SpanDuration" />
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
-                <TextBlock Grid.Column="0" Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" Margin="0,0,4,0" />
+                <StackPanel Grid.Column="0" Orientation="Horizontal" Margin="0,0,4,0">
+                    <TextBlock Text="{Binding IsBookmarked, Converter={StaticResource BookmarkGlyphConverter}}" />
+                    <TextBlock Text="📝" ToolTip="{Binding Note}" AutomationProperties.Name="{loc:Loc Doc_Note_Name}"
+                               Visibility="{Binding HasNote, Converter={StaticResource BoolToVisibilityConverter}}" />
+                </StackPanel>
                 <TextBlock Grid.Column="1" Text="{Binding LineNumber}" Opacity="0.6" Margin="0,0,8,0" />
                 <TextBlock Grid.Column="2" Text="{Binding DeltaDisplay}" Opacity="0.7" Margin="0,0,8,0"
                            Visibility="{Binding DeltaDisplay, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
@@ -511,6 +519,14 @@
                                 <MenuItem Header="{loc:Loc Doc_Ctx_FilterByCorrelation}" Tag="CorrelationMenu" />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_FilterAllByCorrelation}" Tag="CorrelationAllMenu" />
                                 <Separator />
+                                <MenuItem Header="{loc:Loc Doc_Ctx_EditNote}"
+                                          Command="{Binding PlacementTarget.Tag.EditNoteCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          Visibility="{Binding PlacementTarget.Tag.CanAnnotate, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                <MenuItem Header="{loc:Loc Doc_Ctx_RemoveNote}"
+                                          Command="{Binding PlacementTarget.Tag.RemoveNoteCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
+                                          Visibility="{Binding PlacementTarget.DataContext.HasNote, RelativeSource={RelativeSource AncestorType=ContextMenu}, Converter={StaticResource BoolToVisibilityConverter}}" />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_SetTimeReference}"
                                           Command="{Binding PlacementTarget.Tag.SetTimeReferenceCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />

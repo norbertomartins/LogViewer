@@ -29,7 +29,8 @@ public sealed class WpfOpenDocumentCatalog(MainViewModel mainViewModel) : IOpenD
                 ReferenceEquals(d, active),
                 d.IsStructuredView,
                 d.BookmarkedLineNumbers,
-                d.Alerts.Snapshot()))
+                d.Alerts.Snapshot(),
+                d.Notes))
             .ToList();
     }
 }
