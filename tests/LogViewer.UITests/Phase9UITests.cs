@@ -176,6 +176,31 @@ public sealed class Phase9UITests : IDisposable
     }
 
     [Fact]
+    public void ColumnView_ShowsTheEventsWithPropertyColumns_AndSearchNarrowsThem()
+    {
+        var window = LaunchRestoring("orders-service.clef");
+
+        ToolbarButton(window, "Column view").AsButton().Invoke();
+
+        var grid = WaitForTopLevelWindow("Columns");
+        var table = UiHelpers.WaitFor(() => grid.TryByAutomationId("StructuredGrid"), "structured grid");
+        Assert.True(UiHelpers.WaitUntil(() => table.FindAllChildren(cf => cf.ByControlType(ControlType.DataItem)).Length > 0),
+            "The column view showed no rows.");
+        Assert.True(UiHelpers.WaitUntil(() => table.FindFirstDescendant(cf => cf.ByControlType(ControlType.HeaderItem).And(cf.ByName("OrderId"))) is not null),
+            "The most common property (OrderId) was not shown as a column.");
+
+        string Status() => grid.TryByAutomationId("GridStatus")?.Name ?? string.Empty;
+        Assert.True(UiHelpers.WaitUntil(() => Status().StartsWith("Showing", StringComparison.Ordinal)), $"Unexpected status '{Status()}'.");
+        var before = Status();
+
+        var search = UiHelpers.WaitFor(() => grid.FindFirstDescendant(cf => cf.ByControlType(ControlType.Edit).And(cf.ByName("Search:"))), "search box").AsTextBox();
+        search.Text = "SKU-881";
+
+        Assert.True(UiHelpers.WaitUntil(() => Status() != before && Status().StartsWith("Showing", StringComparison.Ordinal)),
+            $"Searching did not narrow the rows (status '{Status()}').");
+    }
+
+    [Fact]
     public void RowContextMenu_FilterByCorrelationId_FiltersToThatRequest()
     {
         var window = LaunchRestoring("checkout-service.log", "correlation");

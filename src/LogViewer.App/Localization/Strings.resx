@@ -713,4 +713,25 @@
   <data name="Doc_ToggleEntry_Name" xml:space="preserve"><value>Expand or collapse entry</value></data>
   <data name="Doc_ToggleEntry_ToolTip" xml:space="preserve"><value>Show or hide the lines of this entry (its stack trace)</value></data>
   <data name="Doc_Ctx_ToggleEntry" xml:space="preserve"><value>Expand/Collapse Entry</value></data>
+  <data name="Doc_ColumnView_Name" xml:space="preserve"><value>Column view</value></data>
+  <data name="Doc_ColumnView_ToolTip" xml:space="preserve"><value>Show the structured events as a table: pick property columns, sort, filter by value</value></data>
+  <data name="Palette_ColumnView" xml:space="preserve"><value>Column View…</value></data>
+  <data name="Grid_TitleFmt" xml:space="preserve"><value>Columns — {0}</value></data>
+  <data name="Grid_Search" xml:space="preserve"><value>Search:</value></data>
+  <data name="Grid_Live_ToolTip" xml:space="preserve"><value>Reload the table as new lines arrive</value></data>
+  <data name="Grid_ClearFilters" xml:space="preserve"><value>Clear filters</value></data>
+  <data name="Grid_RemoveFilter_ToolTip" xml:space="preserve"><value>Remove this filter</value></data>
+  <data name="Grid_Columns" xml:space="preserve"><value>Columns</value></data>
+  <data name="Grid_Col_Line" xml:space="preserve"><value>Line</value></data>
+  <data name="Grid_Col_Time" xml:space="preserve"><value>Time</value></data>
+  <data name="Grid_Col_Level" xml:space="preserve"><value>Level</value></data>
+  <data name="Grid_Col_Message" xml:space="preserve"><value>Message</value></data>
+  <data name="Grid_Ctx_FilterByValue" xml:space="preserve"><value>Filter by This Value</value></data>
+  <data name="Grid_Ctx_ExcludeValue" xml:space="preserve"><value>Exclude This Value</value></data>
+  <data name="Grid_Ctx_FilterByValueFmt" xml:space="preserve"><value>Filter: {0} = {1}</value></data>
+  <data name="Grid_Ctx_ExcludeValueFmt" xml:space="preserve"><value>Exclude: {0} ≠ {1}</value></data>
+  <data name="Grid_Ctx_GoToLine" xml:space="preserve"><value>Go to Line</value></data>
+  <data name="Grid_Ctx_CopyValue" xml:space="preserve"><value>Copy Value</value></data>
+  <data name="Vm_Grid_NoEvents" xml:space="preserve"><value>No structured events in the buffer: no line matches this document’s structured format (you can change it in the toolbar).</value></data>
+  <data name="Vm_Grid_Summary" xml:space="preserve"><value>Showing {0:N0} of {1:N0} events</value></data>
 </root>

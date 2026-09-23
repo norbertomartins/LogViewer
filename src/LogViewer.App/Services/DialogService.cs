@@ -343,6 +343,17 @@ public sealed class DialogService(ThemeService themeService, IContainerCli conta
         window.Show();
     }
 
+    public void ShowStructuredGridDialog(TailDocumentViewModel document)
+    {
+        var window = new StructuredGridView
+        {
+            DataContext = new StructuredGridViewModel(document),
+            Owner = Application.Current?.MainWindow,
+        };
+
+        window.Show();
+    }
+
     public IReadOnlyList<CustomLogFormat>? ShowCustomFormatsEditor(IReadOnlyList<CustomLogFormat> formats, IReadOnlyList<string> sampleLines)
     {
         var viewModel = new CustomFormatsEditorViewModel(formats, sampleLines);
