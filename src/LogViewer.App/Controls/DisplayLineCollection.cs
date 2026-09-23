@@ -68,6 +68,10 @@ public sealed class DisplayLineCollection : IReadOnlyList<LogLineViewModel>, INo
     public LogLineViewModel? FindByLineNumber(long lineNumber) =>
         _indexByLineNumber.TryGetValue(lineNumber, out var index) ? _items[index] : null;
 
+    /// <summary>Position of <paramref name="line"/> in the collection (O(1) via the line-number index), or -1.</summary>
+    public int IndexOf(LogLineViewModel line) =>
+        _indexByLineNumber.TryGetValue(line.LineNumber, out var index) && ReferenceEquals(_items[index], line) ? index : -1;
+
     private void RebuildIndex()
     {
         _indexByLineNumber.Clear();

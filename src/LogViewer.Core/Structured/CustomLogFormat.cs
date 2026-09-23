@@ -33,5 +33,9 @@ public sealed class CustomLogFormat
     /// time zone — most hand-rolled text logs are written in the server's local time.</summary>
     public bool TimestampIsUtc { get; set; }
 
+    /// <summary>When true, a line the pattern doesn't match (a stack-trace frame, a wrapped message) belongs to the
+    /// entry above it: it inherits that entry's level for filtering and is shown with it in the detail panel.</summary>
+    public bool JoinContinuationLines { get; set; }
+
     public CustomLogFormat Clone() => (CustomLogFormat)MemberwiseClone();
 }

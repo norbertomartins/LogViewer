@@ -73,6 +73,14 @@ public sealed partial class LogLineViewModel : ObservableObject
     /// the timestamp of the closest timestamped line above it, so time filters keep multi-line entries whole.</summary>
     public DateTimeOffset? EffectiveTimestamp { get; private set; }
 
+    /// <summary>For a continuation line of a multi-line entry (custom format with "join continuation lines"): the
+    /// line number of the entry it belongs to, else null.</summary>
+    public long? ContinuationOf { get; init; }
+
+    /// <summary>The owning entry's level for a continuation line, so level filters and markers treat the whole
+    /// entry (e.g. an ERROR line and its stack trace) alike.</summary>
+    public string? InheritedLevel { get; init; }
+
     private int? _severityRank;
     private bool _severityResolved;
 
@@ -85,7 +93,7 @@ public sealed partial class LogLineViewModel : ObservableObject
         {
             if (!_severityResolved)
             {
-                _severityRank = LogLevelSeverity.Rank(Structured?.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(Text);
+                _severityRank = LogLevelSeverity.Rank(Structured?.Level ?? InheritedLevel) ?? LogLevelNormalizer.GuessSeverityFromLine(Text);
                 _severityResolved = true;
             }
 

@@ -18,6 +18,7 @@ public sealed partial class CustomFormatItemViewModel : ObservableObject
         _ignoreCase = format.IgnoreCase;
         _timestampFormat = format.TimestampFormat;
         _timestampIsUtc = format.TimestampIsUtc;
+        _joinContinuationLines = format.JoinContinuationLines;
         Validate();
     }
 
@@ -37,6 +38,9 @@ public sealed partial class CustomFormatItemViewModel : ObservableObject
 
     [ObservableProperty]
     private bool _timestampIsUtc;
+
+    [ObservableProperty]
+    private bool _joinContinuationLines;
 
     /// <summary>Why the pattern can't be used, or null when it compiles and has named groups.</summary>
     [ObservableProperty]
@@ -64,6 +68,7 @@ public sealed partial class CustomFormatItemViewModel : ObservableObject
         IgnoreCase = IgnoreCase,
         TimestampFormat = string.IsNullOrWhiteSpace(TimestampFormat) ? null : TimestampFormat.Trim(),
         TimestampIsUtc = TimestampIsUtc,
+        JoinContinuationLines = JoinContinuationLines,
     };
 }
 
@@ -161,7 +166,12 @@ public sealed partial class CustomFormatsEditorViewModel : ObservableObject
     }
 
     [RelayCommand]
-    private void AddFormat() => Add(new CustomLogFormat { Name = Loc.Get("Vm_Formats_NewName"), Pattern = @"^(?<timestamp>\S+ \S+) (?<level>\w+) (?<message>.*)$" });
+    private void AddFormat() => Add(new CustomLogFormat
+    {
+        Name = Loc.Get("Vm_Formats_NewName"),
+        Pattern = @"^(?<timestamp>\S+ \S+) (?<level>\w+) (?<message>.*)$",
+        JoinContinuationLines = true,
+    });
 
     [RelayCommand]
     private void AddFromExample(CustomLogFormat? example)

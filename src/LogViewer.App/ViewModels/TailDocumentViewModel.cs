@@ -973,6 +973,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         {
             var isStructuredView = IsStructuredView;
             var selectedLineNumber = SelectedLine?.LineNumber;
+            _continuationOwner = null;
             var snapshot = Lines.ToList();
             var rebuilt = new List<LogLineViewModel>(snapshot.Count);
             var highlighted = new SortedSet<long>();
@@ -987,10 +988,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
                     highlighted.Add(existing.LineNumber);
                 }
 
-                rebuilt.Add(new LogLineViewModel(existing.LineNumber, existing.Text, structured, match, existing.IsBookmarked)
-                {
-                    IsNewPattern = existing.IsNewPattern,
-                });
+                var rebuiltLine = CreateLine(existing.LineNumber, existing.Text, structured, match, existing.IsBookmarked);
+                rebuiltLine.IsNewPattern = existing.IsNewPattern;
+                rebuilt.Add(rebuiltLine);
 
                 if (i % ChunkSize == ChunkSize - 1)
                 {
@@ -1083,6 +1083,60 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         }
     }
 
+    // --- Multi-line entries (custom formats with "join continuation lines") ------------------------
+
+    /// <summary>The last structured entry seen, in ingestion order — owner of any following unmatched lines.</summary>
+    private (long LineNumber, string? Level)? _continuationOwner;
+
+    private bool JoinsContinuationLines => IsStructuredView && _lineParser is RegexLogLineParser { JoinsContinuationLines: true };
+
+    /// <summary>Builds a display line; with a joining custom format, an unmatched line after an entry is tagged as
+    /// that entry's continuation and inherits its level. Must be called in line order (it tracks the owner).</summary>
+    private LogLineViewModel CreateLine(long lineNumber, string text, StructuredLogEvent? structured, HighlightMatch? match, bool isBookmarked)
+    {
+        if (structured is not null)
+        {
+            _continuationOwner = (lineNumber, structured.Level);
+        }
+        else if (JoinsContinuationLines && _continuationOwner is { } owner && text.Length > 0)
+        {
+            return new LogLineViewModel(lineNumber, text, structured, match, isBookmarked)
+            {
+                ContinuationOf = owner.LineNumber,
+                InheritedLevel = owner.Level,
+            };
+        }
+
+        return new LogLineViewModel(lineNumber, text, structured, match, isBookmarked);
+    }
+
+    /// <summary>The continuation lines (stack frames, wrapped text) of the selected entry, for the detail panel.</summary>
+    [ObservableProperty]
+    private string? _selectedEntryContinuation;
+
+    partial void OnSelectedLineChanged(LogLineViewModel? value)
+    {
+        if (value?.Structured is null)
+        {
+            SelectedEntryContinuation = null;
+            return;
+        }
+
+        var continuation = new List<string>();
+        var index = Lines.IndexOf(value);
+        for (var i = index + 1; index >= 0 && i < Lines.Count && continuation.Count < 500; i++)
+        {
+            if (Lines[i].ContinuationOf != value.LineNumber)
+            {
+                break;
+            }
+
+            continuation.Add(Lines[i].Text);
+        }
+
+        SelectedEntryContinuation = continuation.Count > 0 ? string.Join(Environment.NewLine, continuation) : null;
+    }
+
     // --- Search hits shown on the scroll-marker strip ---------------------------------------------
 
     private readonly HashSet<long> _searchHitLineNumbers = [];
@@ -1149,7 +1203,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
             TryPlaySoundAlert(line, structured);
 
-            var item = new LogLineViewModel(line.LineNumber, line.Text, structured, match, _bookmarks.IsBookmarked(line.LineNumber));
+            var item = CreateLine(line.LineNumber, line.Text, structured, match, _bookmarks.IsBookmarked(line.LineNumber));
             ObserveNewPattern(item);
             displayItems.Add(item);
         }
@@ -1209,6 +1263,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         _newPatternDetector.Reset();
         _newPatternLineNumbers.Clear();
         NewPatternCount = 0;
+        _continuationOwner = null;
 
         var markerText = switchedFilePath is not null && _notifyOnFileSwitch
             ? $"── {Loc.Format("Vm_Doc_SwitchedToFile", Path.GetFileName(switchedFilePath))} ──"

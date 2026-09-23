@@ -11,12 +11,14 @@ public static class CustomLogFormatExamples
             Id = CustomLogFormat.IdPrefix + "example-log4j",
             Name = "log4j / logback / NLog",
             Pattern = @"^(?<timestamp>\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:[.,]\d+)?)\s+\[(?<thread>[^\]]+)\]\s+(?<level>[A-Za-z]+)\s+(?<logger>\S+)\s+-\s+(?<message>.*)$",
+            JoinContinuationLines = true,
         },
         new()
         {
             Id = CustomLogFormat.IdPrefix + "example-python",
             Name = "Python logging",
             Pattern = @"^(?<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2},\d{3}) - (?<logger>\S+) - (?<level>[A-Z]+) - (?<message>.*)$",
+            JoinContinuationLines = true,
         },
         new()
         {
@@ -31,6 +33,7 @@ public static class CustomLogFormatExamples
             Name = "Timestamp + level + message",
             Pattern = @"^(?<timestamp>\d{4}-\d{2}-\d{2}[ T][\d:.,]+(?:Z|[+-]\d{2}:?\d{2})?)\s+\[?(?<level>TRACE|DEBUG|INFO|NOTICE|WARN(?:ING)?|ERROR|FATAL|CRIT(?:ICAL)?)\]?\s+(?<message>.*)$",
             IgnoreCase = true,
+            JoinContinuationLines = true,
         },
     ];
 }

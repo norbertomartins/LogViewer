@@ -186,7 +186,7 @@ public partial class TailDocumentView : UserControl
 
         view.Filter = item => item is LogLineViewModel line
             && (value is null || string.Equals(StructuredFieldResolver.Resolve(line.Structured, field!), value, StringComparison.Ordinal))
-            && (minLevelRank is null || ((LogLevelSeverity.Rank(line.Structured?.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(line.Text)) is { } rank && rank >= minLevelRank))
+            && (minLevelRank is null || (line.SeverityRank is { } rank && rank >= minLevelRank))
             && (!hasTextFilter || _viewModel!.PassesTextFilter(line.Text))
             && (hideBeforeLineNumber is null || line.LineNumber >= hideBeforeLineNumber)
             && (!hasTimeFilter || _viewModel!.PassesTimeFilter(line))

@@ -67,6 +67,8 @@
             <DockPanel Grid.Row="4" Grid.Column="1" Margin="0,0,0,4">
                 <CheckBox DockPanel.Dock="Right" Content="{loc:Loc Formats_IgnoreCase}" IsChecked="{Binding SelectedFormat.IgnoreCase}"
                           VerticalAlignment="Center" Margin="12,0,0,0" />
+                <CheckBox DockPanel.Dock="Right" Content="{loc:Loc Formats_JoinContinuation}" IsChecked="{Binding SelectedFormat.JoinContinuationLines}"
+                          VerticalAlignment="Center" Margin="12,0,0,0" ToolTip="{loc:Loc Formats_JoinContinuation_ToolTip}" />
                 <CheckBox DockPanel.Dock="Right" Content="{loc:Loc Formats_Utc}" IsChecked="{Binding SelectedFormat.TimestampIsUtc}"
                           VerticalAlignment="Center" Margin="12,0,0,0" ToolTip="{loc:Loc Formats_Utc_ToolTip}" />
                 <TextBox FontFamily="Consolas" Text="{Binding SelectedFormat.TimestampFormat, UpdateSourceTrigger=PropertyChanged, Delay=250}"

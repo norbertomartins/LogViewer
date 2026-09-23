@@ -600,6 +600,13 @@
                              FontFamily="Consolas" FontSize="11" AcceptsReturn="True" MaxHeight="120"
                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
                              Visibility="{Binding Exception, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                    <!-- Unmatched lines that belong to this entry (custom formats with "join continuation lines"). -->
+                    <TextBlock Text="{loc:Loc Doc_Detail_Continuation}" FontWeight="Bold" Margin="0,8,0,2"
+                               Visibility="{Binding DataContext.SelectedEntryContinuation, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
+                    <TextBox Text="{Binding DataContext.SelectedEntryContinuation, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=OneWay}"
+                             IsReadOnly="True" TextWrapping="NoWrap" FontFamily="Consolas" FontSize="11" AcceptsReturn="True" MaxHeight="160"
+                             VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto"
+                             Visibility="{Binding DataContext.SelectedEntryContinuation, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
                 </StackPanel>
             </ScrollViewer>
         </Border>
