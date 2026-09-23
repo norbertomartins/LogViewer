@@ -319,6 +319,8 @@
             </Popup>
             <Button Content="📜" Style="{StaticResource IconButton}" Command="{Binding BrowseWholeFileCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_BrowseFile_Name}" ToolTip="{loc:Loc Doc_BrowseFile_ToolTip}" />
+            <Button Content="💥" Style="{StaticResource IconButton}" Command="{Binding ShowExceptionGroupsCommand}"
+                    AutomationProperties.Name="{loc:Loc Doc_Exceptions_Name}" ToolTip="{loc:Loc Doc_Exceptions_ToolTip}" />
             <Button Content="📈" Style="{StaticResource IconButton}" Command="{Binding ShowStatsCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Stats_Name}" ToolTip="{loc:Loc Doc_Stats_ToolTip}" />
             <Button Content="🕸" Style="{StaticResource IconButton}" Command="{Binding ShowTraceTreeCommand}"
@@ -442,6 +444,7 @@
                          it's already part of a multi-selection, which is preserved) makes them act on
                          whatever the user actually right-clicked, same as most list UIs. -->
                     <EventSetter Event="PreviewMouseRightButtonDown" Handler="OnLineItemPreviewRightClick" />
+                    <EventSetter Event="ContextMenuOpening" Handler="OnLineItemContextMenuOpening" />
                     <Setter Property="ContextMenu">
                         <Setter.Value>
                             <ContextMenu>
@@ -454,6 +457,10 @@
                                 <MenuItem Header="{loc:Loc Doc_Ctx_FilterByThreadId}"
                                           Command="{Binding PlacementTarget.Tag.FilterByThreadIdCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"
                                           CommandParameter="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                <!-- Populated in code-behind (OnLineItemContextMenuOpening) from the clicked line's
+                                     LogLineViewModel.CorrelationIds — extracted lazily, only when the menu opens. Works on
+                                     plain-text and merged documents too: the filter is a substring match on the raw line. -->
+                                <MenuItem Header="{loc:Loc Doc_Ctx_FilterByCorrelation}" Tag="CorrelationMenu" />
                                 <Separator />
                                 <MenuItem Header="{loc:Loc Doc_Ctx_SetTimeReference}"
                                           Command="{Binding PlacementTarget.Tag.SetTimeReferenceCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"

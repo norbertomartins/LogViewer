@@ -66,8 +66,9 @@ public partial class TailDocumentView : UserControl
         var hasTextFilter = _viewModel?.IsTextFilterActive ?? false;
         var hideBeforeLineNumber = _viewModel?.HideBeforeLineNumber;
         var hasTimeFilter = _viewModel?.IsTimeFilterActive ?? false;
+        var hasCorrelationFilter = _viewModel?.IsCorrelationFilterActive ?? false;
 
-        if (value is null && minLevelRank is null && !hasTextFilter && hideBeforeLineNumber is null && !hasTimeFilter)
+        if (value is null && minLevelRank is null && !hasTextFilter && hideBeforeLineNumber is null && !hasTimeFilter && !hasCorrelationFilter)
         {
             view.Filter = null;
             return;
@@ -78,7 +79,8 @@ public partial class TailDocumentView : UserControl
             && (minLevelRank is null || ((LogLevelSeverity.Rank(line.Structured?.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(line.Text)) is { } rank && rank >= minLevelRank))
             && (!hasTextFilter || _viewModel!.PassesTextFilter(line.Text))
             && (hideBeforeLineNumber is null || line.LineNumber >= hideBeforeLineNumber)
-            && (!hasTimeFilter || _viewModel!.PassesTimeFilter(line));
+            && (!hasTimeFilter || _viewModel!.PassesTimeFilter(line))
+            && (!hasCorrelationFilter || _viewModel!.PassesCorrelationFilter(line));
     }
 
     /// <summary>Exports or copies the effective line set — the user's <see cref="ListView.SelectedItems"/>
@@ -187,6 +189,36 @@ public partial class TailDocumentView : UserControl
             LineListView.SelectedItems.Clear();
             item.IsSelected = true;
         }
+    }
+
+    /// <summary>Fills the row's "Filter by correlation ID" submenu with the ids found on that line. Built here rather
+    /// than via ItemsSource bindings because a submenu's items live in a nested popup, where bindings back to the
+    /// ContextMenu's PlacementTarget (the only route to the document view-model) don't resolve reliably.</summary>
+    private void OnLineItemContextMenuOpening(object sender, ContextMenuEventArgs e)
+    {
+        if (sender is not ListViewItem { DataContext: LogLineViewModel line, ContextMenu: { } menu } || _viewModel is null)
+        {
+            return;
+        }
+
+        var correlationMenu = menu.Items.OfType<MenuItem>().FirstOrDefault(m => Equals(m.Tag, "CorrelationMenu"));
+        if (correlationMenu is null)
+        {
+            return;
+        }
+
+        correlationMenu.Items.Clear();
+        foreach (var id in line.CorrelationIds)
+        {
+            correlationMenu.Items.Add(new MenuItem
+            {
+                Header = $"{id.Name} = {id.Value}",
+                Command = _viewModel.FilterByCorrelationCommand,
+                CommandParameter = id,
+            });
+        }
+
+        correlationMenu.IsEnabled = correlationMenu.Items.Count > 0;
     }
 
     private void OnScrollToEndRequested()

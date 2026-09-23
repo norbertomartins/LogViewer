@@ -1,0 +1,84 @@
+<Window x:Class="LogViewer.App.Views.Dialogs.ExceptionGroupsView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="clr-namespace:LogViewer.App.Localization"
+        Title="{Binding Title, StringFormat={loc:Loc Exceptions_TitleFmt}}"
+        Width="980" Height="680"
+        WindowStartupLocation="CenterOwner">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="120" />
+            <RowDefinition Height="5" />
+            <RowDefinition Height="220" MinHeight="80" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,8">
+            <TextBlock Text="{loc:Loc Exceptions_Scope}" VerticalAlignment="Center" Margin="0,0,8,0" />
+            <RadioButton Content="{loc:Loc Exceptions_ScopeBuffer}" IsChecked="{Binding IsWholeFile, Converter={StaticResource InverseBoolConverter}}"
+                         VerticalAlignment="Center" Margin="0,0,12,0" GroupName="Scope" />
+            <RadioButton Content="{loc:Loc Exceptions_ScopeFile}" IsChecked="{Binding IsWholeFile}"
+                         IsEnabled="{Binding CanScanWholeFile}" VerticalAlignment="Center" GroupName="Scope" />
+            <ProgressBar Width="120" Height="10" Margin="16,0,0,0" IsIndeterminate="True"
+                         Visibility="{Binding IsAnalyzing, Converter={StaticResource BoolToVisibilityConverter}}" />
+        </StackPanel>
+
+        <ListView Grid.Row="1" ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
+                  AutomationProperties.AutomationId="ExceptionGroupsList">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <EventSetter Event="MouseDoubleClick" Handler="OnGroupDoubleClick" />
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="{loc:Loc Stats_Col_Count}" Width="60" DisplayMemberBinding="{Binding Count}" />
+                    <GridViewColumn Header="{loc:Loc Exceptions_Col_Type}" Width="220" DisplayMemberBinding="{Binding ExceptionType}" />
+                    <GridViewColumn Header="{loc:Loc Exceptions_Col_Message}" Width="260" DisplayMemberBinding="{Binding SampleMessage}" />
+                    <GridViewColumn Header="{loc:Loc Exceptions_Col_TopFrame}" Width="220" DisplayMemberBinding="{Binding TopFrame}" />
+                    <GridViewColumn Header="{loc:Loc Stats_Col_FirstLine}" Width="70" DisplayMemberBinding="{Binding FirstLineNumber}" />
+                    <GridViewColumn Header="{loc:Loc Exceptions_Col_LastLine}" Width="70" DisplayMemberBinding="{Binding LastLineNumber}" />
+                    <GridViewColumn Header="{loc:Loc Exceptions_Col_LastSeen}" Width="150"
+                                    DisplayMemberBinding="{Binding LastSeen, StringFormat='{}{0:yyyy-MM-dd HH:mm:ss}'}" />
+                </GridView>
+            </ListView.View>
+        </ListView>
+
+        <GridSplitter Grid.Row="2" HorizontalAlignment="Stretch" ResizeDirection="Rows" />
+
+        <Grid Grid.Row="3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <DockPanel Grid.Column="0" Margin="0,0,8,0">
+                <TextBlock DockPanel.Dock="Top" Text="{loc:Loc Exceptions_Occurrences}" FontWeight="Bold" Margin="0,0,0,4" />
+                <ListBox x:Name="OccurrencesList" ItemsSource="{Binding SelectedGroup.LineNumbers}"
+                         AutomationProperties.AutomationId="ExceptionOccurrencesList">
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <EventSetter Event="MouseDoubleClick" Handler="OnOccurrenceDoubleClick" />
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+            </DockPanel>
+            <DockPanel Grid.Column="1">
+                <TextBlock DockPanel.Dock="Top" Text="{loc:Loc Exceptions_Sample}" FontWeight="Bold" Margin="0,0,0,4" />
+                <TextBox Text="{Binding SelectedGroup.SampleText, Mode=OneWay}" IsReadOnly="True"
+                         FontFamily="Consolas" FontSize="11" TextWrapping="NoWrap"
+                         VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" />
+            </DockPanel>
+        </Grid>
+
+        <DockPanel Grid.Row="4" Margin="0,10,0,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                <Button Content="{loc:Loc Exceptions_BookmarkAll}" Command="{Binding BookmarkOccurrencesCommand}" Margin="0,0,6,0" Padding="8,2" />
+                <Button Content="{loc:Loc Exceptions_CopySample}" Command="{Binding CopySampleCommand}" Margin="0,0,6,0" Padding="8,2" />
+                <Button Content="{loc:Loc Common_Refresh}" Command="{Binding AnalyzeCommand}" Width="90" Margin="0,0,6,0" />
+                <Button Content="{loc:Loc Common_Close}" Width="80" Click="OnCloseClick" IsCancel="True" />
+            </StackPanel>
+            <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" TextWrapping="Wrap" />
+        </DockPanel>
+    </Grid>
+</Window>

@@ -312,6 +312,17 @@ public sealed class DialogService(ThemeService themeService) : IDialogService
         window.Show();
     }
 
+    public void ShowExceptionGroupsDialog(TailDocumentViewModel document)
+    {
+        var window = new ExceptionGroupsView
+        {
+            DataContext = new ExceptionGroupsViewModel(document),
+            Owner = Application.Current?.MainWindow,
+        };
+
+        window.Show();
+    }
+
     public IReadOnlyList<CustomLogFormat>? ShowCustomFormatsEditor(IReadOnlyList<CustomLogFormat> formats, IReadOnlyList<string> sampleLines)
     {
         var viewModel = new CustomFormatsEditorViewModel(formats, sampleLines);

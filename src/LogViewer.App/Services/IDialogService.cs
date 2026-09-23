@@ -105,6 +105,9 @@ public interface IDialogService
     /// <summary>Opens the non-modal virtualized whole-file browser backed by <paramref name="viewModel"/>.</summary>
     void ShowFileBrowserDialog(FileBrowserViewModel viewModel);
 
+    /// <summary>Opens the non-modal grouped-exceptions panel over <paramref name="document"/>.</summary>
+    void ShowExceptionGroupsDialog(TailDocumentViewModel document);
+
     /// <summary>Opens the modal custom-log-format editor over <paramref name="formats"/>, with the preview prefilled
     /// from <paramref name="sampleLines"/>. Returns the edited list, or null if cancelled.</summary>
     IReadOnlyList<CustomLogFormat>? ShowCustomFormatsEditor(IReadOnlyList<CustomLogFormat> formats, IReadOnlyList<string> sampleLines);

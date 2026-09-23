@@ -545,7 +545,10 @@
   <data name="Doc_BrowseFile_Name" xml:space="preserve"><value>Ver ficheiro completo</value></data>
   <data name="Doc_BrowseFile_ToolTip" xml:space="preserve"><value>Percorrer o ficheiro inteiro, incluindo linhas que já saíram do buffer ao vivo (indexado, funciona com ficheiros de vários GB)</value></data>
   <data name="Doc_Ctx_BrowseFileHere" xml:space="preserve"><value>Abrir no ficheiro completo aqui</value></data>
+  <data name="Doc_Ctx_FilterByCorrelation" xml:space="preserve"><value>Filtrar por ID de correlação</value></data>
   <data name="Doc_Ctx_SetTimeReference" xml:space="preserve"><value>Definir como referência de tempo (Δ)</value></data>
+  <data name="Doc_Exceptions_Name" xml:space="preserve"><value>Exceções</value></data>
+  <data name="Doc_Exceptions_ToolTip" xml:space="preserve"><value>Agrupar exceções/stack traces idênticas (tipo + frames do topo)</value></data>
   <data name="Doc_TimeDelta_Name" xml:space="preserve"><value>Coluna de diferença de tempo</value></data>
   <data name="Doc_TimeDelta_ToolTip" xml:space="preserve"><value>Mostrar o tempo decorrido desde a linha anterior (ou desde a linha de referência)</value></data>
   <data name="Doc_TimeNav_Name" xml:space="preserve"><value>Navegação temporal</value></data>
@@ -563,6 +566,19 @@
   <data name="Doc_Time_To" xml:space="preserve"><value>Até</value></data>
   <data name="Doc_Time_ToName" xml:space="preserve"><value>Fim do intervalo</value></data>
   <data name="Doc_Timeline_FilterToBin" xml:space="preserve"><value>Filtrar por este intervalo</value></data>
+  <data name="Exceptions_BookmarkAll" xml:space="preserve"><value>Marcar ocorrências</value></data>
+  <data name="Exceptions_Col_LastLine" xml:space="preserve"><value>Última linha</value></data>
+  <data name="Exceptions_Col_LastSeen" xml:space="preserve"><value>Última vez</value></data>
+  <data name="Exceptions_Col_Message" xml:space="preserve"><value>Mensagem</value></data>
+  <data name="Exceptions_Col_TopFrame" xml:space="preserve"><value>Frame do topo</value></data>
+  <data name="Exceptions_Col_Type" xml:space="preserve"><value>Exceção</value></data>
+  <data name="Exceptions_CopySample" xml:space="preserve"><value>Copiar exemplo</value></data>
+  <data name="Exceptions_Occurrences" xml:space="preserve"><value>Ocorrências (linha)</value></data>
+  <data name="Exceptions_Sample" xml:space="preserve"><value>Stack trace de exemplo</value></data>
+  <data name="Exceptions_Scope" xml:space="preserve"><value>Âmbito:</value></data>
+  <data name="Exceptions_ScopeBuffer" xml:space="preserve"><value>Buffer ao vivo</value></data>
+  <data name="Exceptions_ScopeFile" xml:space="preserve"><value>Ficheiro completo</value></data>
+  <data name="Exceptions_TitleFmt" xml:space="preserve"><value>Exceções — {0}</value></data>
   <data name="Formats_Add" xml:space="preserve"><value>Adicionar</value></data>
   <data name="Formats_Col_Properties" xml:space="preserve"><value>Propriedades</value></data>
   <data name="Formats_Col_Timestamp" xml:space="preserve"><value>Data/hora</value></data>
@@ -582,6 +598,7 @@
   <data name="Menu_Tools_CustomFormats" xml:space="preserve"><value>_Formatos de log personalizados...</value></data>
   <data name="Palette_BrowseFile" xml:space="preserve"><value>Ver ficheiro completo…</value></data>
   <data name="Palette_CustomFormats" xml:space="preserve"><value>Formatos de log personalizados…</value></data>
+  <data name="Palette_Exceptions" xml:space="preserve"><value>Mostrar exceções…</value></data>
   <data name="Palette_ToggleTimeDelta" xml:space="preserve"><value>Alternar coluna de diferença de tempo</value></data>
   <data name="Vm_Browser_Failed" xml:space="preserve"><value>Não foi possível ler o ficheiro: {0}</value></data>
   <data name="Vm_Browser_Indexing" xml:space="preserve"><value>A indexar o ficheiro…</value></data>
@@ -596,7 +613,11 @@
   <data name="Vm_Doc_TimeNotFound" xml:space="preserve"><value>Nenhuma linha em ou depois de {0}.</value></data>
   <data name="Vm_Doc_TimeOutsideBuffer" xml:space="preserve"><value>Essa hora é anterior ao buffer ao vivo — foi aberta a vista do ficheiro completo.</value></data>
   <data name="Vm_Doc_TimeReferenceSet" xml:space="preserve"><value>Δ passa a medir a partir da linha {0}.</value></data>
+  <data name="Vm_Exceptions_Analyzing" xml:space="preserve"><value>A procurar exceções…</value></data>
+  <data name="Vm_Exceptions_Bookmarked" xml:space="preserve"><value>{0} ocorrência(s) marcadas.</value></data>
+  <data name="Vm_Exceptions_None" xml:space="preserve"><value>Nenhuma exceção encontrada.</value></data>
   <data name="Vm_Browser_OpenedAtLine" xml:space="preserve"><value>Essa linha já saiu do buffer ao vivo — foi aberta na vista do ficheiro completo.</value></data>
+  <data name="Vm_Exceptions_Summary" xml:space="preserve"><value>{0} exceção(ões) distintas, {1} ocorrência(s).</value></data>
   <data name="Vm_Formats_CopyName" xml:space="preserve"><value>{0} (cópia)</value></data>
   <data name="Vm_Formats_NewName" xml:space="preserve"><value>Novo formato</value></data>
   <data name="Vm_Formats_SampleSummary" xml:space="preserve"><value>{0} de {1} linhas de exemplo reconhecidas.</value></data>

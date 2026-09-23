@@ -545,7 +545,10 @@
   <data name="Doc_BrowseFile_Name" xml:space="preserve"><value>Browse whole file</value></data>
   <data name="Doc_BrowseFile_ToolTip" xml:space="preserve"><value>Browse the entire file, including lines no longer in the live buffer (indexed, works with multi-GB files)</value></data>
   <data name="Doc_Ctx_BrowseFileHere" xml:space="preserve"><value>Open in Whole-File View Here</value></data>
+  <data name="Doc_Ctx_FilterByCorrelation" xml:space="preserve"><value>Filter by Correlation ID</value></data>
   <data name="Doc_Ctx_SetTimeReference" xml:space="preserve"><value>Set as Time Reference (Δ)</value></data>
+  <data name="Doc_Exceptions_Name" xml:space="preserve"><value>Exceptions</value></data>
+  <data name="Doc_Exceptions_ToolTip" xml:space="preserve"><value>Group identical exceptions/stack traces (type + top frames)</value></data>
   <data name="Doc_TimeDelta_Name" xml:space="preserve"><value>Time delta column</value></data>
   <data name="Doc_TimeDelta_ToolTip" xml:space="preserve"><value>Show the time elapsed since the previous line (or since the reference line)</value></data>
   <data name="Doc_TimeNav_Name" xml:space="preserve"><value>Time navigation</value></data>
@@ -563,6 +566,19 @@
   <data name="Doc_Time_To" xml:space="preserve"><value>To</value></data>
   <data name="Doc_Time_ToName" xml:space="preserve"><value>Time range end</value></data>
   <data name="Doc_Timeline_FilterToBin" xml:space="preserve"><value>Filter to This Interval</value></data>
+  <data name="Exceptions_BookmarkAll" xml:space="preserve"><value>Bookmark Occurrences</value></data>
+  <data name="Exceptions_Col_LastLine" xml:space="preserve"><value>Last Line</value></data>
+  <data name="Exceptions_Col_LastSeen" xml:space="preserve"><value>Last Seen</value></data>
+  <data name="Exceptions_Col_Message" xml:space="preserve"><value>Message</value></data>
+  <data name="Exceptions_Col_TopFrame" xml:space="preserve"><value>Top Frame</value></data>
+  <data name="Exceptions_Col_Type" xml:space="preserve"><value>Exception</value></data>
+  <data name="Exceptions_CopySample" xml:space="preserve"><value>Copy Sample</value></data>
+  <data name="Exceptions_Occurrences" xml:space="preserve"><value>Occurrences (line)</value></data>
+  <data name="Exceptions_Sample" xml:space="preserve"><value>Sample stack trace</value></data>
+  <data name="Exceptions_Scope" xml:space="preserve"><value>Scope:</value></data>
+  <data name="Exceptions_ScopeBuffer" xml:space="preserve"><value>Live buffer</value></data>
+  <data name="Exceptions_ScopeFile" xml:space="preserve"><value>Whole file</value></data>
+  <data name="Exceptions_TitleFmt" xml:space="preserve"><value>Exceptions — {0}</value></data>
   <data name="Formats_Add" xml:space="preserve"><value>Add</value></data>
   <data name="Formats_Col_Properties" xml:space="preserve"><value>Properties</value></data>
   <data name="Formats_Col_Timestamp" xml:space="preserve"><value>Timestamp</value></data>
@@ -582,6 +598,7 @@
   <data name="Menu_Tools_CustomFormats" xml:space="preserve"><value>Custom Log _Formats...</value></data>
   <data name="Palette_BrowseFile" xml:space="preserve"><value>Browse Whole File…</value></data>
   <data name="Palette_CustomFormats" xml:space="preserve"><value>Custom Log Formats…</value></data>
+  <data name="Palette_Exceptions" xml:space="preserve"><value>Show Exceptions…</value></data>
   <data name="Palette_ToggleTimeDelta" xml:space="preserve"><value>Toggle Time Delta Column</value></data>
   <data name="Vm_Browser_Failed" xml:space="preserve"><value>Could not read the file: {0}</value></data>
   <data name="Vm_Browser_Indexing" xml:space="preserve"><value>Indexing file…</value></data>
@@ -596,7 +613,11 @@
   <data name="Vm_Doc_TimeNotFound" xml:space="preserve"><value>No line at or after {0}.</value></data>
   <data name="Vm_Doc_TimeOutsideBuffer" xml:space="preserve"><value>That time is older than the live buffer — opened the whole-file view.</value></data>
   <data name="Vm_Doc_TimeReferenceSet" xml:space="preserve"><value>Δ now measures from line {0}.</value></data>
+  <data name="Vm_Exceptions_Analyzing" xml:space="preserve"><value>Looking for exceptions…</value></data>
+  <data name="Vm_Exceptions_Bookmarked" xml:space="preserve"><value>Bookmarked {0} occurrence(s).</value></data>
+  <data name="Vm_Exceptions_None" xml:space="preserve"><value>No exceptions found.</value></data>
   <data name="Vm_Browser_OpenedAtLine" xml:space="preserve"><value>That line has left the live buffer — opened it in the whole-file view.</value></data>
+  <data name="Vm_Exceptions_Summary" xml:space="preserve"><value>{0} distinct exception(s), {1} occurrence(s).</value></data>
   <data name="Vm_Formats_CopyName" xml:space="preserve"><value>{0} Copy</value></data>
   <data name="Vm_Formats_NewName" xml:space="preserve"><value>New format</value></data>
   <data name="Vm_Formats_SampleSummary" xml:space="preserve"><value>{0} of {1} sample lines matched.</value></data>

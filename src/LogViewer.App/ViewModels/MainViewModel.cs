@@ -583,6 +583,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.FindSimilarBlockRequested += line => ShowSimilarBlockDialog(document, line);
         document.StatsRequested += () => ShowDocumentStatsDialog(document);
         document.TraceTreeRequested += traceId => ShowTraceTreeDialog(document, traceId);
+        document.ExceptionGroupsRequested += () => _dialogService.ShowExceptionGroupsDialog(document);
         document.FileBrowserRequested += target => ShowFileBrowser(document, target);
 
         Documents.Add(document);
@@ -888,6 +889,7 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             list.Add(new PaletteCommand(Loc.Get("Palette_Customize"), activeCat, () => active.CustomizeCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_Stats"), activeCat, () => active.ShowStatsCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_TraceTree"), activeCat, () => active.ShowTraceTreeCommand.Execute(null)));
+            list.Add(new PaletteCommand(Loc.Get("Palette_Exceptions"), activeCat, () => active.ShowExceptionGroupsCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_BrowseFile"), activeCat, () => active.BrowseWholeFileCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_ToggleTimeDelta"), activeCat, () => active.ToggleTimeDeltaCommand.Execute(null)));
             list.Add(new PaletteCommand(Loc.Get("Palette_NextHighlight"), activeCat, () => active.NextHighlightCommand.Execute(null)));
