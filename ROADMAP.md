@@ -6,7 +6,7 @@ temporal (Δ, ir para hora, filtro por intervalo), formatos personalizados por r
 correlação + agrupamento de exceções.
 
 Prioridade: **P1** = maior impacto / custo moderado, **P2** = útil, **P3** = oportunista.
-Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = feito (Fases 10–11, ver `PLAN.md`).
+Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = feito (Fases 10–12, ver `PLAN.md`).
 
 ---
 
@@ -36,10 +36,10 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 | 3.2 | ✅ Vistas de filtro nomeadas, reutilizáveis entre documentos | P2 | M | Guardar combinações (texto + nível + intervalo + correlação) com nome; aplicar a qualquer documento. Hoje persistem só por documento/perfil. Bump de schema. |
 | 3.3 | ✅ Persistir filtro de tempo e de correlação nos perfis de sessão | P3 | S | Hoje são ad-hoc (não persistidos). Bump de schema em `TailSourceSettings`. |
 | 3.4 | Agrupar entradas multi-linha na vista principal | P2 | L | Tratar stack traces como uma única entrada (expandir/colapsar) usando a mesma deteção do `ExceptionGrouper`. |
-| 3.5 | Continuação multi-linha nos formatos personalizados | P2 | M | Opção "linhas que não correspondem pertencem à entrada anterior" no `CustomLogFormat`. |
+| 3.5 | ✅ Continuação multi-linha nos formatos personalizados | P2 | M | Opção "linhas que não correspondem pertencem à entrada anterior" no `CustomLogFormat`. |
 | 3.6 | ✅ Espaço vazio de ~220 px por baixo do documento | P2 | S | Causa: sem linha selecionada, o conversor da altura do painel de detalhe recebia `UnsetValue` (não `null`) e reservava 220 px. |
 | 3.7 | ✅ Caixa de filtro de texto invisível na barra do documento | P2 | S | Estilo explícito `ToolbarTextBoxStyle` (o `ToolBar` impõe um estilo sem borda). |
-| 3.8 | Resultados de pesquisa na faixa de marcadores | P3 | S | Complemento do 3.1. |
+| 3.8 | ✅ Resultados de pesquisa na faixa de marcadores | P3 | S | Complemento do 3.1. |
 
 ## 4. Análise
 
@@ -47,15 +47,15 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 |---|------|------|---------|-------|
 | 4.1 | ✅ Deteção de anomalias | P1 | M | Assinalar padrões (`IPatternFrequencyAnalyzer`) vistos pela primeira vez e picos de volume face à média móvel; integrar com a timeline (barra destacada) e com os alertas existentes. |
 | 4.2 | ✅ Correlação entre documentos | P2 | M | "Filtrar por este ID em todos os documentos abertos" ou abrir uma vista merged filtrada pelo ID. |
-| 4.3 | Painel de exceções em tempo real | P3 | S | Atualizar grupos à medida que chegam linhas (hoje é um snapshot com "Atualizar"). |
+| 4.3 | ✅ Painel de exceções em tempo real | P3 | S | Atualizar grupos à medida que chegam linhas (hoje é um snapshot com "Atualizar"). |
 | 4.4 | Vista em colunas para logs estruturados | P2 | L | Grelha com colunas escolhidas das propriedades, ordenável e filtrável por valor. |
 
 ## 5. Formatos e fontes
 
 | # | Item | Prio | Esforço | Notas |
 |---|------|------|---------|-------|
-| 5.1 | Arquivos `.zip`, `.bz2`, `.zst` | P2 | M | Mesmo padrão do `CompressedLogFile` (descompactar para temp). `.zip` com vários ficheiros pede escolha. |
-| 5.2 | Diálogo dedicado para `kubectl logs -f` / `docker logs -f` | P2 | M | O `ProcessTailSource` já funciona; falta UX para escolher contexto/namespace/pod/container. |
+| 5.1 | ✅ Arquivos `.zip`, `.bz2`, `.zst` | P2 | M | Mesmo padrão do `CompressedLogFile` (descompactar para temp). `.zip` com vários ficheiros pede escolha. |
+| 5.2 | ✅ Diálogo dedicado para `kubectl logs -f` / `docker logs -f` | P2 | M | O `ProcessTailSource` já funciona; falta UX para escolher contexto/namespace/pod/container. |
 | 5.3 | EventLog remoto via WinRM | P3 | L | Adiado na Fase 7 (não existe cliente WS-Man leve para .NET). |
 
 ## 6. MCP
@@ -78,10 +78,11 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 
 ## Ordem sugerida
 
-Feitos: todos os P1 (Fase 10) e 2.1, 3.2, 3.3, 3.6, 3.7, 4.2, 6.2 (Fase 11). Falta do 1.2 o toast real e SSH/ETW
-contra hosts reais. A seguir:
+Feitos: todos os P1 (Fase 10); 2.1, 3.2, 3.3, 3.6, 3.7, 4.2, 6.2 (Fase 11); 3.5, 3.8, 4.3, 5.1, 5.2 (Fase 12).
+Falta do 1.2 o toast real, SSH/ETW contra hosts reais e o diálogo de contentores contra um Docker/Kubernetes real
+(nenhum dos dois está instalado na máquina de desenvolvimento). A seguir:
 
-1. **4.3 + 3.8** — painel de exceções em tempo real e resultados de pesquisa na faixa de marcadores (pequenos).
-2. **3.5** — continuação multi-linha nos formatos personalizados.
-3. **5.1 + 5.2** — mais formatos de arquivo e o diálogo de `kubectl`/`docker logs`.
-4. **3.4 / 4.4** — entradas multi-linha agrupadas e vista em colunas (maiores).
+1. **1.3 + 1.4** — testes FlaUI para os diálogos da Fase 7 e um benchmark do índice com um ficheiro de vários GB.
+2. **6.3 + 7.1** — `logs_get_alerts` e anotações em linhas.
+3. **3.4 / 4.4** — entradas multi-linha agrupadas na vista (base já existe com o 3.5) e vista em colunas (maiores).
+4. **2.3, 2.4, 6.4, 7.2, 5.3** — conforme a necessidade.
