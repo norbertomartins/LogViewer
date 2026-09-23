@@ -1,6 +1,7 @@
 using System.Windows.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LogViewer.App.Services;
+using LogViewer.Core.Analysis;
 using LogViewer.Core.Highlighting;
 using LogViewer.Core.Structured;
 
@@ -78,6 +79,14 @@ public sealed partial class LogLineViewModel : ObservableObject
         EffectiveTimestamp = effective;
         IsTimestampResolved = true;
     }
+
+    private IReadOnlyList<CorrelationId>? _correlationIds;
+
+    /// <summary>Correlation ids (trace/request/correlation ids, GUIDs …) found on this line — computed on first
+    /// access, i.e. when the user opens the row's context menu, never on the hot tail path.</summary>
+    public IReadOnlyList<CorrelationId> CorrelationIds => _correlationIds ??= CorrelationIdExtractor.Extract(Text, Structured);
+
+    public bool HasCorrelationIds => CorrelationIds.Count > 0;
 
     /// <summary>True when this line parsed as a structured event. Used by the structured row template to
     /// keep highlight colors (especially background) off the Bookmark/LineNumber/Timestamp/Level/ThreadId

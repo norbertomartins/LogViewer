@@ -196,7 +196,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     public int? MinLevelRank => IsLevelFilterActive ? LogLevelSeverity.Rank(MinLevel) : null;
 
     public bool IsFilterActive => ActiveFilterValue is not null || IsLevelFilterActive || IsTextFilterActive || IsHidingPastLines
-        || IsTimeFilterActive;
+        || IsTimeFilterActive || IsCorrelationFilterActive;
 
     // --- Visual "clean" — hides lines already displayed without touching the file or the ring buffer ---
 
@@ -422,6 +422,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
                 parts.Add(Loc.Format("Vm_Doc_TimeFilterPart", FormatFilterTime(TimeFilterFrom) ?? "…", FormatFilterTime(TimeFilterTo) ?? "…"));
             }
 
+            if (CorrelationFilter is { } correlation)
+            {
+                parts.Add($"{correlation.Name} ~ {correlation.Value}");
+            }
+
             return parts.Count > 0 ? Loc.Get("Vm_Doc_FilteredByPrefix") + string.Join(Loc.Get("Vm_Doc_FilterJoiner"), parts) : null;
         }
     }
@@ -446,6 +451,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         OnPropertyChanged(nameof(IsTextFilterActive));
         OnPropertyChanged(nameof(IsHidingPastLines));
         OnPropertyChanged(nameof(IsTimeFilterActive));
+        OnPropertyChanged(nameof(IsCorrelationFilterActive));
         FilterChanged?.Invoke();
     }
 
@@ -1367,6 +1373,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         ActiveFilterField = null;
         ActiveFilterValue = null;
         MinLevel = AnyLevel;
+        CorrelationFilter = null;
         ClearTimeFilter();
     }
 
@@ -1722,7 +1729,39 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         TimeReferenceLineNumber = null;
     }
 
-    // --- Whole-file browser --------------------------------------------------------------------
+    // --- Correlation-id filter ------------------------------------------------------------------
+
+    /// <summary>When set, only lines containing this id (anywhere in the raw text — so it also works on plain-text
+    /// and merged documents) are shown.</summary>
+    [ObservableProperty]
+    private CorrelationId? _correlationFilter;
+
+    public bool IsCorrelationFilterActive => CorrelationFilter is not null;
+
+    partial void OnCorrelationFilterChanged(CorrelationId? value) => RaiseFilterChanged();
+
+    [RelayCommand]
+    private void FilterByCorrelation(CorrelationId? id)
+    {
+        if (id is not null)
+        {
+            CorrelationFilter = id;
+        }
+    }
+
+    [RelayCommand]
+    private void ClearCorrelationFilter() => CorrelationFilter = null;
+
+    public bool PassesCorrelationFilter(LogLineViewModel line) =>
+        CorrelationFilter is not { } id || line.Text.Contains(id.Value, StringComparison.OrdinalIgnoreCase);
+
+    // --- Exceptions panel and whole-file browser --------------------------------------------------
+
+    /// <summary>Raised to open the grouped-exceptions panel over this document.</summary>
+    public event Action? ExceptionGroupsRequested;
+
+    [RelayCommand]
+    private void ShowExceptionGroups() => ExceptionGroupsRequested?.Invoke();
 
     /// <summary>Raised to open the virtualized whole-file browser, optionally positioned at a line or a time.</summary>
     public event Action<FileBrowserTarget?>? FileBrowserRequested;
