@@ -6,7 +6,7 @@ temporal (Δ, ir para hora, filtro por intervalo), formatos personalizados por r
 correlação + agrupamento de exceções.
 
 Prioridade: **P1** = maior impacto / custo moderado, **P2** = útil, **P3** = oportunista.
-Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = feito (Fases 10–14, ver `PLAN.md`).
+Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = feito (Fases 10–15, ver `PLAN.md`).
 
 ---
 
@@ -35,7 +35,7 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 | 3.1 | ✅ Marcadores na barra de scroll (erros, avisos, bookmarks, realces, novos padrões) | P1 | M | Faixa própria ao lado da lista (`ScrollMarkerStrip`). Resultados da pesquisa ainda não aparecem na faixa. |
 | 3.2 | ✅ Vistas de filtro nomeadas, reutilizáveis entre documentos | P2 | M | Guardar combinações (texto + nível + intervalo + correlação) com nome; aplicar a qualquer documento. Hoje persistem só por documento/perfil. Bump de schema. |
 | 3.3 | ✅ Persistir filtro de tempo e de correlação nos perfis de sessão | P3 | S | Hoje são ad-hoc (não persistidos). Bump de schema em `TailSourceSettings`. |
-| 3.4 | Agrupar entradas multi-linha na vista principal | P2 | L | Tratar stack traces como uma única entrada (expandir/colapsar) usando a mesma deteção do `ExceptionGrouper`. |
+| 3.4 | ✅ Agrupar entradas multi-linha na vista principal | P2 | L | Tratar stack traces como uma única entrada (expandir/colapsar) usando a mesma deteção do `ExceptionGrouper`. |
 | 3.5 | ✅ Continuação multi-linha nos formatos personalizados | P2 | M | Opção "linhas que não correspondem pertencem à entrada anterior" no `CustomLogFormat`. |
 | 3.6 | ✅ Espaço vazio de ~220 px por baixo do documento | P2 | S | Causa: sem linha selecionada, o conversor da altura do painel de detalhe recebia `UnsetValue` (não `null`) e reservava 220 px. |
 | 3.7 | ✅ Caixa de filtro de texto invisível na barra do documento | P2 | S | Estilo explícito `ToolbarTextBoxStyle` (o `ToolBar` impõe um estilo sem borda). |
@@ -48,7 +48,7 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 | 4.1 | ✅ Deteção de anomalias | P1 | M | Assinalar padrões (`IPatternFrequencyAnalyzer`) vistos pela primeira vez e picos de volume face à média móvel; integrar com a timeline (barra destacada) e com os alertas existentes. |
 | 4.2 | ✅ Correlação entre documentos | P2 | M | "Filtrar por este ID em todos os documentos abertos" ou abrir uma vista merged filtrada pelo ID. |
 | 4.3 | ✅ Painel de exceções em tempo real | P3 | S | Atualizar grupos à medida que chegam linhas (hoje é um snapshot com "Atualizar"). |
-| 4.4 | Vista em colunas para logs estruturados | P2 | L | Grelha com colunas escolhidas das propriedades, ordenável e filtrável por valor. |
+| 4.4 | ✅ Vista em colunas para logs estruturados | P2 | L | Grelha com colunas escolhidas das propriedades, ordenável e filtrável por valor. |
 
 ## 5. Formatos e fontes
 
@@ -79,10 +79,10 @@ Esforço: **S** ≈ ≤1 dia, **M** ≈ 2–4 dias, **L** ≈ 1 semana+. ✅ = f
 ## Ordem sugerida
 
 Feitos: todos os P1 (Fase 10); 2.1, 3.2, 3.3, 3.6, 3.7, 4.2, 6.2 (Fase 11); 3.5, 3.8, 4.3, 5.1, 5.2 (Fase 12);
-1.3, 1.4, 6.3, 7.1 (Fase 13); 6.4, 7.2 (Fase 14). Falta do 1.2 o toast real, SSH/ETW contra hosts reais e o diálogo
-de contentores contra um Docker/Kubernetes real (nenhum dos dois está instalado na máquina de desenvolvimento). A seguir:
+1.3, 1.4, 6.3, 7.1 (Fase 13); 6.4, 7.2 (Fase 14); 3.4, 4.4 (Fase 15). Falta do 1.2 o toast real, SSH/ETW contra
+hosts reais e o diálogo de contentores contra um Docker/Kubernetes real (nenhum dos dois está instalado na máquina de
+desenvolvimento). Restam:
 
-1. **3.4** — entradas multi-linha agrupadas na vista principal (expandir/colapsar stack traces; a deteção já existe
-   com o 3.5 e o `ExceptionGrouper`).
-2. **4.4** — vista em colunas para logs estruturados (grelha ordenável/filtrável pelas propriedades).
-3. **2.3, 2.4, 5.3** — conforme a necessidade.
+1. **2.3** — filtros no navegador do ficheiro completo (índice em background das linhas que passam o filtro).
+2. **2.4** — índice de linhas partilhado entre o documento e o navegador (evita o scan inicial).
+3. **5.3** — EventLog remoto via WinRM (sem cliente WS-Man leve para .NET; só se houver necessidade real).
