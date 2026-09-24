@@ -77,6 +77,13 @@ public partial class App : Application
         var themeService = _serviceProvider.GetRequiredService<ThemeService>();
         themeService.Apply(themeService.ResolveActiveTheme(settings));
 
+        Controls.ColorPickerButton.LoadCustomColors(settings.CustomColors);
+        Controls.ColorPickerButton.CustomColorsChanged += () =>
+        {
+            settings.CustomColors = [.. Controls.ColorPickerButton.CustomColors];
+            _serviceProvider.GetRequiredService<ISettingsStore>().Save(settings);
+        };
+
         var mainViewModel = _serviceProvider.GetRequiredService<MainViewModel>();
         var mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
         mainWindow.DataContext = mainViewModel;
