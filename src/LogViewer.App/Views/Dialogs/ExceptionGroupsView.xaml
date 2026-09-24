@@ -30,7 +30,7 @@
         <ListView Grid.Row="1" ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
                   AutomationProperties.AutomationId="ExceptionGroupsList">
             <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Static GridView.GridViewItemContainerStyleKey}}">
                     <EventSetter Event="MouseDoubleClick" Handler="OnGroupDoubleClick" />
                 </Style>
             </ListView.ItemContainerStyle>
@@ -60,7 +60,7 @@
                 <ListBox x:Name="OccurrencesList" ItemsSource="{Binding SelectedGroup.LineNumbers}"
                          AutomationProperties.AutomationId="ExceptionOccurrencesList">
                     <ListBox.ItemContainerStyle>
-                        <Style TargetType="ListBoxItem">
+                        <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
                             <EventSetter Event="MouseDoubleClick" Handler="OnOccurrenceDoubleClick" />
                         </Style>
                     </ListBox.ItemContainerStyle>

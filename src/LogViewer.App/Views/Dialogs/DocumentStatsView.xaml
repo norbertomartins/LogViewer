@@ -39,7 +39,7 @@
 
         <ListView Grid.Row="1" ItemsSource="{Binding TopPatterns}">
             <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Static GridView.GridViewItemContainerStyleKey}}">
                     <EventSetter Event="MouseDoubleClick" Handler="OnPatternDoubleClick" />
                 </Style>
             </ListView.ItemContainerStyle>
