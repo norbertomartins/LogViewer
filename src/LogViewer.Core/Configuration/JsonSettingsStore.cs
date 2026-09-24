@@ -96,7 +96,9 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
         // behavior (open the file itself), so no field-level migration is needed.
         // v14 -> v15: Mcp.AllowAnnotationWrites is new; its initializer (false) keeps pre-v15 behavior (read-only MCP
         // tools), so no field-level migration is needed.
-        settings.SchemaVersion = 15;
+        // v15 -> v16: CustomColors is new (the color picker's remembered custom colors); the initializer gives pre-v16
+        // files an empty list, so no field-level migration is needed.
+        settings.SchemaVersion = 16;
         return settings;
     }
 

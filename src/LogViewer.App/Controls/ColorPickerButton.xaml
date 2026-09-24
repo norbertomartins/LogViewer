@@ -4,10 +4,56 @@
              xmlns:local="clr-namespace:LogViewer.App.Controls"
              xmlns:loc="clr-namespace:LogViewer.App.Localization"
              x:Name="Root">
+    <UserControl.Resources>
+        <!-- A swatch is just its color: hovering or focusing it only draws a frame around it (the default button
+             template repainted the whole swatch), and the current color gets a double ring. -->
+        <Style x:Key="SwatchButtonStyle" TargetType="Button">
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FocusVisualStyle" Value="{x:Null}" />
+            <Setter Property="ToolTip" Value="{Binding Hex}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding Hex}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Frame" BorderThickness="2" BorderBrush="Transparent" Background="Transparent">
+                            <Border x:Name="Swatch" Background="{Binding Brush}" BorderThickness="1"
+                                    BorderBrush="#66808080" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" />
+                                <Setter TargetName="Swatch" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.MenuBrushKey}}" />
+                            </DataTrigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="Frame" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <DataTemplate x:Key="SwatchTemplate">
+            <Button Style="{StaticResource SwatchButtonStyle}" Click="OnSwatchClick" />
+        </DataTemplate>
+
+        <Style x:Key="SectionHeaderStyle" TargetType="TextBlock">
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="Opacity" Value="0.75" />
+            <Setter Property="Margin" Value="2,6,0,2" />
+        </Style>
+    </UserControl.Resources>
+
     <Grid>
         <ToggleButton x:Name="Toggle" Width="26" Height="22" Padding="0"
                       IsChecked="{Binding IsPopupOpen, ElementName=Root, Mode=TwoWay}"
-                      ToolTip="{loc:Loc ColorPicker_ToolTip}">
+                      ToolTip="{loc:Loc ColorPicker_ToolTip}"
+                      AutomationProperties.AutomationId="ColorPickerToggle">
             <Border BorderBrush="Gray" BorderThickness="1"
                     Background="{Binding SelectedHex, ElementName=Root, Converter={StaticResource HexToBrushConverter}}"
                     Width="16" Height="14" />
@@ -15,27 +61,131 @@
 
         <Popup x:Name="ColorPopup" PlacementTarget="{Binding ElementName=Toggle}" Placement="Bottom"
                IsOpen="{Binding IsChecked, ElementName=Toggle, Mode=TwoWay}" StaysOpen="False"
-               AllowsTransparency="True">
+               AllowsTransparency="True" Opened="OnPopupOpened">
             <Border Background="{DynamicResource {x:Static SystemColors.MenuBrushKey}}"
                     BorderBrush="{DynamicResource {x:Static SystemColors.ActiveBorderBrushKey}}"
-                    BorderThickness="1" Padding="6">
-                <ItemsControl ItemsSource="{x:Static local:ColorPickerButton.Palette}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <UniformGrid Columns="10" />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Button Width="18" Height="18" Margin="1" Padding="0"
-                                    Background="{Binding Converter={StaticResource HexToBrushConverter}}"
-                                    BorderBrush="Gray" BorderThickness="1"
-                                    ToolTip="{Binding}"
-                                    Tag="{Binding}"
-                                    Click="OnSwatchClick" />
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
+                    TextElement.Foreground="{DynamicResource {x:Static SystemColors.MenuTextBrushKey}}"
+                    BorderThickness="1" Padding="6" KeyDown="OnPopupKeyDown"
+                    AutomationProperties.AutomationId="ColorPickerPopup">
+                <StackPanel>
+                    <TextBlock Text="{loc:Loc ColorPicker_Suggested}" Style="{StaticResource SectionHeaderStyle}" Margin="2,0,0,2" />
+                    <ItemsControl ItemsSource="{x:Static local:ColorPickerButton.SuggestedSwatches}"
+                                  ItemTemplate="{StaticResource SwatchTemplate}" HorizontalAlignment="Left">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="10" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+
+                    <TextBlock Text="{loc:Loc ColorPicker_WebColors}" Style="{StaticResource SectionHeaderStyle}" />
+                    <ItemsControl x:Name="WebColors" ItemsSource="{x:Static local:ColorPickerButton.WebSwatches}"
+                                  ItemTemplate="{StaticResource SwatchTemplate}" HorizontalAlignment="Left">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <UniformGrid Columns="{x:Static local:ColorPalette.WebSafeColumns}" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                    </ItemsControl>
+
+                    <DockPanel Margin="0,6,0,2" LastChildFill="False">
+                        <TextBlock Text="{loc:Loc ColorPicker_Custom}" Style="{StaticResource SectionHeaderStyle}"
+                                   Margin="2,0,0,0" VerticalAlignment="Center" />
+                        <ToggleButton x:Name="EditorToggle" DockPanel.Dock="Right" Padding="8,1" FontSize="11"
+                                      Content="{loc:Loc ColorPicker_CustomEdit}" Checked="OnEditorOpened"
+                                      AutomationProperties.AutomationId="ColorPickerCustomToggle" />
+                    </DockPanel>
+                    <Grid>
+                        <ItemsControl ItemsSource="{x:Static local:ColorPickerButton.CustomSwatches}"
+                                      ItemTemplate="{StaticResource SwatchTemplate}" HorizontalAlignment="Left">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <UniformGrid Columns="{x:Static local:ColorPalette.MaxCustomColors}" Rows="1" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                        </ItemsControl>
+                        <TextBlock x:Name="NoCustomColorsHint" Text="{loc:Loc ColorPicker_NoCustomColors}" FontSize="11"
+                                   Opacity="0.6" Margin="2,2,0,2" TextWrapping="Wrap" />
+                    </Grid>
+
+                    <!-- Custom color editor: saturation (across) × brightness (down) for the hue chosen on the bar below. -->
+                    <Grid x:Name="Editor" Margin="0,6,0,0"
+                          Visibility="{Binding IsChecked, ElementName=EditorToggle, Converter={StaticResource BoolToVisibilityConverter}}">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid x:Name="SvArea" Height="120" Cursor="Cross" ClipToBounds="True" Background="Transparent"
+                              MouseLeftButtonDown="OnSvMouseDown" MouseMove="OnSvMouseMove" MouseLeftButtonUp="OnDragEnd"
+                              AutomationProperties.AutomationId="ColorPickerSvArea">
+                            <Rectangle x:Name="HueFill" Fill="Red" />
+                            <Rectangle>
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FFFFFFFF" Offset="0" />
+                                        <GradientStop Color="#00FFFFFF" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <Rectangle>
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                        <GradientStop Color="#00000000" Offset="0" />
+                                        <GradientStop Color="#FF000000" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <Canvas IsHitTestVisible="False">
+                                <Ellipse x:Name="SvThumb" Width="12" Height="12" Stroke="White" StrokeThickness="2">
+                                    <Ellipse.Effect>
+                                        <DropShadowEffect ShadowDepth="0" BlurRadius="2" Color="Black" Opacity="0.9" />
+                                    </Ellipse.Effect>
+                                </Ellipse>
+                            </Canvas>
+                        </Grid>
+
+                        <Grid x:Name="HueBar" Grid.Row="1" Height="14" Margin="0,6,0,0" Cursor="Hand" Background="Transparent"
+                              MouseLeftButtonDown="OnHueMouseDown" MouseMove="OnHueMouseMove" MouseLeftButtonUp="OnDragEnd"
+                              AutomationProperties.AutomationId="ColorPickerHueBar">
+                            <Rectangle Margin="0,2">
+                                <Rectangle.Fill>
+                                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                        <GradientStop Color="#FF0000" Offset="0" />
+                                        <GradientStop Color="#FFFF00" Offset="0.1667" />
+                                        <GradientStop Color="#00FF00" Offset="0.3333" />
+                                        <GradientStop Color="#00FFFF" Offset="0.5" />
+                                        <GradientStop Color="#0000FF" Offset="0.6667" />
+                                        <GradientStop Color="#FF00FF" Offset="0.8333" />
+                                        <GradientStop Color="#FF0000" Offset="1" />
+                                    </LinearGradientBrush>
+                                </Rectangle.Fill>
+                            </Rectangle>
+                            <Canvas IsHitTestVisible="False">
+                                <Border x:Name="HueThumb" Width="6" Height="14" BorderBrush="White" BorderThickness="1.5"
+                                        Background="Transparent">
+                                    <Border.Effect>
+                                        <DropShadowEffect ShadowDepth="0" BlurRadius="2" Color="Black" Opacity="0.9" />
+                                    </Border.Effect>
+                                </Border>
+                            </Canvas>
+                        </Grid>
+
+                        <StackPanel Grid.Column="1" Grid.RowSpan="2" Width="96" Margin="8,0,0,0">
+                            <Border x:Name="Preview" Height="36" BorderBrush="#66808080" BorderThickness="1" />
+                            <TextBlock Text="{loc:Loc ColorPicker_Hex}" FontSize="11" Margin="0,6,0,2" />
+                            <TextBox x:Name="HexBox" TextChanged="OnHexTextChanged" MaxLength="9"
+                                     AutomationProperties.AutomationId="ColorPickerHexBox" />
+                            <Button x:Name="UseCustomButton" Content="{loc:Loc ColorPicker_UseColor}" Margin="0,6,0,0"
+                                    Click="OnUseCustomColor"
+                                    AutomationProperties.AutomationId="ColorPickerUseCustom" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
             </Border>
         </Popup>
     </Grid>

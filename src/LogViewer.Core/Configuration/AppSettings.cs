@@ -11,7 +11,7 @@ namespace LogViewer.Core.Configuration;
 /// </summary>
 public sealed class AppSettings
 {
-    public int SchemaVersion { get; set; } = 15;
+    public int SchemaVersion { get; set; } = 16;
 
     public WindowModeKind DefaultWindowMode { get; set; } = WindowModeKind.Tabbed;
 
@@ -44,6 +44,9 @@ public sealed class AppSettings
 
     /// <summary>User-created themes (via duplicate-and-edit). Built-in themes are never stored here.</summary>
     public List<AppTheme> CustomThemes { get; set; } = [];
+
+    /// <summary>Colors picked with the color picker's custom-color editor ("#RRGGBB", most recent first).</summary>
+    public List<string> CustomColors { get; set; } = [];
 
     public int RingBufferCapacity { get; set; } = 50_000;
 

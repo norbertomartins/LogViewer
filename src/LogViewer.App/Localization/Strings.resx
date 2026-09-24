@@ -245,6 +245,13 @@
 
   <!-- ==== ColorPickerButton ==== -->
   <data name="ColorPicker_ToolTip" xml:space="preserve"><value>Pick a color</value></data>
+  <data name="ColorPicker_Suggested" xml:space="preserve"><value>Suggested</value></data>
+  <data name="ColorPicker_WebColors" xml:space="preserve"><value>Web colors</value></data>
+  <data name="ColorPicker_Custom" xml:space="preserve"><value>Custom colors</value></data>
+  <data name="ColorPicker_CustomEdit" xml:space="preserve"><value>Custom…</value></data>
+  <data name="ColorPicker_NoCustomColors" xml:space="preserve"><value>Colors you create with "Custom…" appear here.</value></data>
+  <data name="ColorPicker_Hex" xml:space="preserve"><value>Hex</value></data>
+  <data name="ColorPicker_UseColor" xml:space="preserve"><value>Use color</value></data>
 
   <!-- ==== Settings dialog ==== -->
   <data name="Settings_Title" xml:space="preserve"><value>Settings</value></data>
