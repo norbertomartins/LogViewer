@@ -84,7 +84,7 @@
             <ListView Grid.Row="8" Grid.ColumnSpan="2" ItemsSource="{Binding SampleResults}"
                       AutomationProperties.AutomationId="CustomFormatSampleResults">
                 <ListView.ItemContainerStyle>
-                    <Style TargetType="ListViewItem">
+                    <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Static GridView.GridViewItemContainerStyleKey}}">
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Matched}" Value="False">
                                 <Setter Property="Opacity" Value="0.5" />
