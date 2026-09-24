@@ -59,9 +59,14 @@ public sealed class ThemeService
         SetBrush(resources, ThemeColorKeys.LogBackground, theme);
         SetBrush(resources, ThemeColorKeys.LogForeground, theme);
         SetSystemColorOverrides(resources, isDark);
+        SetFluentSelectionOverrides(resources, isDark);
 
         var titleBarDefault = isDark ? Color.FromRgb(0x3F, 0x3F, 0x46) : Color.FromRgb(0x3A, 0x6E, 0xA5);
         SetSystemBrush(resources, "Theme.TitleBarBackground", titleBarDefault);
+
+        // A light gray in dark mode: visible on any dark log background without the glare of an accent fill.
+        var selectionBorder = isDark ? Color.FromRgb(0xA0, 0xA0, 0xA0) : SystemColors.HighlightColor;
+        SetSystemBrush(resources, "Theme.SelectionBorder", selectionBorder);
 
         DefaultLogForeground.Color = ParseColor(theme, ThemeColorKeys.LogForeground, Colors.Black);
         DefaultLogBackground.Color = ParseColor(theme, ThemeColorKeys.LogBackground, Colors.White);
@@ -96,6 +101,30 @@ public sealed class ThemeService
         SetSystemBrush(resources, SystemColors.MenuHighlightBrushKey, highlight);
         SetSystemBrush(resources, SystemColors.HighlightBrushKey, highlight);
         SetSystemBrush(resources, SystemColors.HighlightTextBrushKey, highlightText);
+    }
+
+    /// <summary>
+    /// Fluent's DataGrid row template fills a selected row with a light accent and black text even in dark mode, which
+    /// glares next to everything else (column view, Windows Services). In dark mode the row gets the accent fill a
+    /// selected ListBoxItem uses there, with white text; light mode keeps Fluent's.
+    /// </summary>
+    private static void SetFluentSelectionOverrides(ResourceDictionary resources, bool isDark)
+    {
+        const string RowBackgroundKey = "DataGridRowSelectedBackgroundThemeBrush";
+        const string RowForegroundKey = "DataGridRowSelectedForegroundThemeBrush";
+
+        if (!isDark)
+        {
+            resources.Remove(RowBackgroundKey);
+            resources.Remove(RowForegroundKey);
+            return;
+        }
+
+        var selection = Application.Current.TryFindResource("ListBoxItemSelectedBackgroundThemeBrush") is SolidColorBrush listSelection
+            ? listSelection.Color
+            : Color.FromRgb(0x26, 0x4F, 0x78);
+        SetSystemBrush(resources, RowBackgroundKey, selection);
+        SetSystemBrush(resources, RowForegroundKey, Colors.White);
     }
 
     private static void SetSystemBrush(ResourceDictionary resources, object key, Color color)

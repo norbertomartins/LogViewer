@@ -49,6 +49,10 @@
              theme doesn't leave the old light-mode blue clashing with an otherwise dark UI. -->
         <SolidColorBrush x:Key="Theme.TitleBarBackground" Color="#FF3A6EA5" />
 
+        <!-- Outline of the selected row in log-style lists (document, Compare Files, Similar Block). Separate from
+             SystemColors.HighlightBrushKey, whose dark value (menu hover gray) all but vanished on a dark log background. -->
+        <SolidColorBrush x:Key="Theme.SelectionBorder" Color="#FF0078D7" />
+
         <!-- WPF's Fluent ListView chrome (still experimental in this SDK) doesn't paint its content-area
              fill from the Background property at all, so Theme.LogBackground never reached the space
              below the last row no matter how Background was set. This minimal template takes that one
@@ -119,7 +123,7 @@
                                 <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
                             </Trigger>
                             <Trigger Property="IsSelected" Value="True">
-                                <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                                <Setter Property="BorderBrush" Value="{DynamicResource Theme.SelectionBorder}" />
                                 <Setter Property="BorderThickness" Value="2" />
                             </Trigger>
                         </ControlTemplate.Triggers>
