@@ -81,13 +81,21 @@
                 <TextBlock Grid.Column="4" Text="{Binding Structured.Level}" FontWeight="Bold" Margin="0,0,8,0"
                            Foreground="{Binding Structured.Level, Converter={StaticResource LevelToBrushConverter}}" />
                 <TextBlock Grid.Column="5" Text="{Binding ThreadId}" Opacity="0.6" Margin="0,0,8,0" />
-                <!-- SerilogTracing span-completion events carry a duration — shown as a small "⏱" badge;
+                <!-- SerilogTracing span-completion events carry a duration — shown as a small "⏱" badge over
+                     a background heat bar (amber → red, log-scaled) so slow spans stand out at a glance;
                      empty (zero-width, since the column is Auto-sized) for ordinary log lines. -->
-                <TextBlock Grid.Column="6" Opacity="0.75" Margin="0,0,8,0"
-                           Visibility="{Binding SpanDurationDisplay, Converter={StaticResource NullOrEmptyToVisibilityConverter}}"
-                           ToolTip="{loc:Loc Doc_SpanDuration_ToolTip}">
-                    <Run Text="⏱ " /><Run Text="{Binding SpanDurationDisplay, Mode=OneWay}" />
-                </TextBlock>
+                <Grid Grid.Column="6" Margin="0,0,8,0"
+                      Visibility="{Binding SpanDurationDisplay, Converter={StaticResource NullOrEmptyToVisibilityConverter}}">
+                    <Rectangle Fill="{Binding SpanDurationRatio, Converter={StaticResource DurationRatioToBrushConverter}}"
+                               HorizontalAlignment="Left" VerticalAlignment="Stretch" RadiusX="2" RadiusY="2">
+                        <Rectangle.Width>
+                            <Binding Path="SpanDurationRatio" Converter="{StaticResource DurationRatioToLengthConverter}" ConverterParameter="48" />
+                        </Rectangle.Width>
+                    </Rectangle>
+                    <TextBlock Opacity="0.85" ToolTip="{loc:Loc Doc_SpanDuration_ToolTip}">
+                        <Run Text="⏱ " /><Run Text="{Binding SpanDurationDisplay, Mode=OneWay}" />
+                    </TextBlock>
+                </Grid>
                 <!-- Column 7: rendered message — colorized when the converter produces inlines,
                      plain text otherwise (no template, or colorization disabled). Margin guarantees a
                      visible gap after Level/ThreadId even when their columns are exactly as wide as the text.

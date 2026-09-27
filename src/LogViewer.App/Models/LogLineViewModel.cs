@@ -57,6 +57,17 @@ public sealed partial class LogLineViewModel : ObservableObject
     /// event, or null otherwise — shown as its own structured-view column badge.</summary>
     public string? SpanDurationDisplay => Structured is { SpanDuration: { } duration } ? SpanDurationFormatter.Format(duration) : null;
 
+    /// <summary>0–1 "heat" ratio for the SpanDuration column's background bar, log-scaled so a few-ms span
+    /// barely registers while multi-second spans fill the bar — spans at or above <see cref="HeatCeilingMs"/>
+    /// saturate at 1. A fixed ceiling (rather than the document's own max) keeps this cheap to compute per
+    /// line, with no cross-line aggregation on the hot tail path. Null when the line has no span duration.</summary>
+    public double? SpanDurationRatio => Structured is { SpanDuration: { } duration }
+        ? Math.Clamp(Math.Log10(duration.TotalMilliseconds + 1) / HeatCeilingLog, 0, 1)
+        : null;
+
+    private const double HeatCeilingMs = 5000;
+    private static readonly double HeatCeilingLog = Math.Log10(HeatCeilingMs + 1);
+
     /// <summary>Formatted time since the previous timestamped line (or since the document's time reference
     /// line) for the optional "Δ" column; null when the column is off or this line carries no timestamp of its own.</summary>
     [ObservableProperty]
