@@ -8,12 +8,14 @@ namespace LogViewer.Core.Tailing;
 /// </summary>
 public sealed class LineSplitter
 {
+    private readonly Encoding _encoding;
     private readonly Decoder _decoder;
     private readonly StringBuilder _pending = new();
     private char[] _charBuffer = new char[4096];
 
     public LineSplitter(Encoding encoding)
     {
+        _encoding = encoding;
         _decoder = encoding.GetDecoder();
     }
 
@@ -29,23 +31,22 @@ public sealed class LineSplitter
             return lines;
         }
 
-        var maxCharCount = _decoder.GetCharCount(bytes, flush: false);
+        // Upper bound (covers chars the decoder still holds from a split sequence) — sizing the buffer from it avoids
+        // a separate GetCharCount pass, which would decode every chunk twice.
+        var maxCharCount = _encoding.GetMaxCharCount(bytes.Length);
         if (_charBuffer.Length < maxCharCount)
         {
             _charBuffer = new char[maxCharCount];
         }
 
-        var charCount = _decoder.GetChars(bytes, _charBuffer.AsSpan(0, maxCharCount), flush: false);
+        var charCount = _decoder.GetChars(bytes, _charBuffer, flush: false);
         var span = _charBuffer.AsSpan(0, charCount);
 
         var start = 0;
-        for (var i = 0; i < span.Length; i++)
+        int offset;
+        while ((offset = span[start..].IndexOf('\n')) >= 0)
         {
-            if (span[i] != '\n')
-            {
-                continue;
-            }
-
+            var i = start + offset;
             var segment = span[start..i];
             if (!segment.IsEmpty && segment[^1] == '\r')
             {

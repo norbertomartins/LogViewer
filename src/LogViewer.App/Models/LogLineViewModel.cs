@@ -139,6 +139,17 @@ public sealed partial class LogLineViewModel : ObservableObject
         }
     }
 
+    /// <summary>Supplies <see cref="SeverityRank"/> already computed off the UI thread (same formula), so the first
+    /// read doesn't run the level-word regex. Ignored for continuation lines, whose rank comes from the inherited level.</summary>
+    public void SeedSeverityRank(int? rank)
+    {
+        if (InheritedLevel is null)
+        {
+            _severityRank = rank;
+            _severityResolved = true;
+        }
+    }
+
     /// <summary>True when this line was the first occurrence of a Warning/Error message shape in its document
     /// (<see cref="Core.Analysis.NewPatternDetector"/>). Set once at ingestion and carried over on reprocess.</summary>
     public bool IsNewPattern { get; set; }
@@ -153,6 +164,22 @@ public sealed partial class LogLineViewModel : ObservableObject
     /// <summary>The winning highlight rule's color for the scroll-marker strip (its background, or its foreground
     /// when the rule leaves the background at the default), or null when no rule matched.</summary>
     public Brush? HighlightMarkerBrush { get; private set; }
+
+    // Owning document's text-filter match result for this line, valid while _textFilterVersion equals its current version.
+    private int _textFilterVersion;
+    private bool _textFilterMatched;
+
+    public bool TryGetCachedTextFilterMatch(int version, out bool matched)
+    {
+        matched = _textFilterMatched;
+        return _textFilterVersion == version;
+    }
+
+    public void CacheTextFilterMatch(int version, bool matched)
+    {
+        _textFilterVersion = version;
+        _textFilterMatched = matched;
+    }
 
     public void SetResolvedTimestamp(DateTimeOffset? own, DateTimeOffset? effective)
     {

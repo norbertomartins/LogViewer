@@ -37,13 +37,15 @@ public sealed class W3cExtendedLogLineParser : ILogLineParser
             return false;
         }
 
-        if (_fields is null || line.Length == 0)
+        // One read: a document may parse on its tail thread and UI thread at once, and a #Fields line swaps the layout.
+        var fields = _fields;
+        if (fields is null || line.Length == 0)
         {
             return false;
         }
 
         var values = SplitRow(line);
-        if (values.Count < _fields.Length)
+        if (values.Count < fields.Length)
         {
             return false;
         }
@@ -51,9 +53,9 @@ public sealed class W3cExtendedLogLineParser : ILogLineParser
         var properties = new Dictionary<string, string>(StringComparer.Ordinal);
         string? date = null, time = null, method = null, stem = null, status = null, query = null, level = null, taken = null;
 
-        for (var i = 0; i < _fields.Length; i++)
+        for (var i = 0; i < fields.Length; i++)
         {
-            var key = _fields[i];
+            var key = fields[i];
             var value = values[i] == "-" ? string.Empty : values[i];
             properties[key] = value;
 

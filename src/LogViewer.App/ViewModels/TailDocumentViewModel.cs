@@ -34,7 +34,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     private readonly HighlightEngine _highlightEngine = new();
     private readonly BookmarkManager _bookmarks = new();
     private readonly SortedSet<long> _highlightedLineNumbers = new();
-    private readonly UiDispatcherLineSink _sink;
+    private readonly UiDispatcherLineSink<PreparedLine> _sink;
     private readonly Dictionary<Guid, DateTime> _lastAutoTriggerAt = new();
     private readonly SoundAlertSettings _soundAlertSettings;
     private readonly ISoundAlertPlayer _soundAlertPlayer;
@@ -267,6 +267,15 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     private System.Text.RegularExpressions.Regex? _compiledTextFilter;
 
+    // Bumped whenever the pattern/mode/case changes, invalidating every line's cached match result.
+    private int _textFilterVersion = 1;
+
+    // Regex mode with a pattern that has no regex metacharacters: matched as a plain substring, skipping both the
+    // RegexOptions.Compiled IL-emit cost on every pattern change and the regex engine per line.
+    private bool _textFilterRegexIsLiteral;
+
+    private static readonly System.Buffers.SearchValues<char> RegexMetaChars = System.Buffers.SearchValues.Create(@"\*+?|{}[]()^$.");
+
     public bool IsTextFilterActive => !string.IsNullOrEmpty(TextFilterPattern);
 
     // --- Embedded pattern tester for the filter box (mirrors the one in the highlight editor) --------
@@ -328,8 +337,15 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
     private void RebuildTextFilter()
     {
+        _textFilterVersion++;
         _compiledTextFilter = null;
-        if (TextFilterIsRegex && !string.IsNullOrEmpty(TextFilterPattern))
+        _textFilterRegexIsLiteral = TextFilterIsRegex && !string.IsNullOrEmpty(TextFilterPattern)
+            && TextFilterPattern.AsSpan().IndexOfAny(RegexMetaChars) < 0;
+        if (_textFilterRegexIsLiteral)
+        {
+            StatusMessage = null;
+        }
+        else if (TextFilterIsRegex && !string.IsNullOrEmpty(TextFilterPattern))
         {
             try
             {
@@ -350,17 +366,47 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// <summary>Whether a line's raw text passes the live text filter — true when no filter is set.</summary>
     public bool PassesTextFilter(string lineText)
     {
+        if (string.IsNullOrEmpty(TextFilterPattern) || !TryMatchTextFilter(lineText, out var matched))
+        {
+            return true;
+        }
+
+        return TextFilterExclude ? !matched : matched;
+    }
+
+    /// <summary><see cref="PassesTextFilter(string)"/> for a displayed line, caching the match result on the line
+    /// per <see cref="_textFilterVersion"/>: the view re-runs its filter over every retained line on each tail
+    /// flush's Reset, and without the cache that meant one regex evaluation per retained line ~10 times a second.</summary>
+    public bool PassesTextFilter(LogLineViewModel line)
+    {
         if (string.IsNullOrEmpty(TextFilterPattern))
         {
             return true;
         }
 
-        bool matched;
-        if (TextFilterIsRegex)
+        if (!line.TryGetCachedTextFilterMatch(_textFilterVersion, out var matched))
+        {
+            if (!TryMatchTextFilter(line.Text, out matched))
+            {
+                return true;
+            }
+
+            line.CacheTextFilterMatch(_textFilterVersion, matched);
+        }
+
+        return TextFilterExclude ? !matched : matched;
+    }
+
+    /// <summary>Matches the pattern (ignoring <see cref="TextFilterExclude"/>); false when the result is unknown —
+    /// an invalid regex or a match timeout — in which case the line is shown rather than hidden.</summary>
+    private bool TryMatchTextFilter(string lineText, out bool matched)
+    {
+        matched = false;
+        if (TextFilterIsRegex && !_textFilterRegexIsLiteral)
         {
             if (_compiledTextFilter is null)
             {
-                return true; // invalid pattern — don't hide everything
+                return false; // invalid pattern — don't hide everything
             }
 
             try
@@ -369,16 +415,16 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             }
             catch (System.Text.RegularExpressions.RegexMatchTimeoutException)
             {
-                return true;
+                return false;
             }
         }
         else
         {
             var comparison = TextFilterCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
-            matched = lineText.Contains(TextFilterPattern, comparison);
+            matched = lineText.Contains(TextFilterPattern!, comparison);
         }
 
-        return TextFilterExclude ? !matched : matched;
+        return true;
     }
 
     [RelayCommand]
@@ -533,11 +579,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             SearchableEventLog = (eventLogChannelName, eventLogFilters ?? []);
         }
 
-        _sink = new UiDispatcherLineSink(uiRefreshInterval);
+        _sink = new UiDispatcherLineSink<PreparedLine>(uiRefreshInterval);
         _sink.LinesFlushed += OnLinesFlushed;
         _sink.ResetFlushed += OnResetFlushed;
 
-        _source.LinesRead += (_, e) => _sink.EnqueueLines(e.Lines);
+        _source.LinesRead += (_, e) => _sink.EnqueueLines(PrepareLines(e.Lines));
         _source.SourceReset += (_, e) => _sink.EnqueueReset(e.Reason, e.SwitchedFilePath);
         _source.Error += (_, e) => System.Windows.Application.Current?.Dispatcher.BeginInvoke(() => StatusMessage = e.Exception.Message);
 
@@ -580,6 +626,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
 
             _structuredFormatId = parser.FormatId;
             _lineParser = parser;
+            InvalidatePreparedLines();
             IsStructuredFormatManuallyChosen = true;
             OnPropertyChanged();
             OnPropertyChanged(nameof(StructuredFormatName));
@@ -616,6 +663,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
                 && LogLineParsers.Create(_structuredFormatId) is { } parser)
             {
                 _lineParser = parser;
+                InvalidatePreparedLines();
                 OnPropertyChanged(nameof(StructuredFormatName));
                 if (IsStructuredView)
                 {
@@ -826,10 +874,9 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// when the line parsed, else a level word and the raw text — no extra parse on the hot path. A newly seen
     /// shape is marked on the line, counted, and (after the initial file load, when the global opt-in is on)
     /// notified at most once per <see cref="NewPatternNotifyThrottle"/>.</summary>
-    private void ObserveNewPattern(LogLineViewModel line)
+    private void ObserveNewPattern(LogLineViewModel line, int? severity)
     {
         var raw = TextForParsing(line.Text);
-        var severity = LogLevelSeverity.Rank(line.Structured?.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(raw);
         if (!_newPatternDetector.Observe(line.Structured?.RenderedMessage ?? raw, severity))
         {
             return;
@@ -922,6 +969,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         var flattened = HighlightPreset.FlattenForMatching(presets).ToList();
         _highlightEngine.SetRules(flattened);
         _rulesById = flattened.ToDictionary(r => r.Id);
+        InvalidatePreparedLines();
     }
 
     /// <summary>Switches which color pair highlight matches resolve to (see <see cref="HighlightRule.ResolveColors"/>),
@@ -929,6 +977,7 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     public void ApplyThemeMode(ThemeBaseMode mode)
     {
         _highlightEngine.SetThemeMode(mode);
+        InvalidatePreparedLines();
         ReapplyHighlighting();
     }
 
@@ -955,7 +1004,11 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     private string TextForParsing(string displayText) =>
         _isMergedSource ? MergedTailSource.StripLabel(displayText) : displayText;
 
-    partial void OnIsStructuredViewChanged(bool value) => _ = ReprocessAllLinesSafeAsync();
+    partial void OnIsStructuredViewChanged(bool value)
+    {
+        InvalidatePreparedLines();
+        _ = ReprocessAllLinesSafeAsync();
+    }
 
     /// <summary>Fire-and-forget wrapper around <see cref="ReprocessAllLinesAsync"/> — the property changed
     /// handler can't be async itself, so without this an exception (e.g. a future parser change that throws
@@ -1430,13 +1483,63 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     [RelayCommand]
     private void GoToEnd() => ResumeFollow();
 
-    private void OnLinesFlushed(IReadOnlyList<TailLine> lines)
+    // --- Reader-thread line preparation -------------------------------------------------------------
+
+    /// <summary>A tailed line plus the per-line work done for it on the source's reader thread: structured parse,
+    /// highlight match and severity. Only valid while <see cref="Version"/> equals <see cref="_preparationVersion"/>.</summary>
+    private readonly record struct PreparedLine(TailLine Line, StructuredLogEvent? Structured, HighlightMatch? Match, int? Severity, int Version);
+
+    /// <summary>Bumped on the UI thread <em>after</em> anything <see cref="PrepareLine"/> depends on changes (highlight
+    /// rules, theme, structured view, parser). A batch prepared against older settings is recomputed at flush time.</summary>
+    private int _preparationVersion;
+
+    private void InvalidatePreparedLines() => Interlocked.Increment(ref _preparationVersion);
+
+    /// <summary>Runs on the source's reader thread, so parsing, highlight matching and the level-word regex stay off
+    /// the UI thread's flush tick. The version is read first: a concurrent settings change can then only make a
+    /// batch look stale (and get recomputed), never make a stale batch look current.</summary>
+    private PreparedLine[] PrepareLines(IReadOnlyList<TailLine> lines)
     {
-        var displayItems = new List<LogLineViewModel>(lines.Count);
-        foreach (var line in lines)
+        var version = Volatile.Read(ref _preparationVersion);
+        var prepared = new PreparedLine[lines.Count];
+        try
         {
-            var structured = IsStructuredView && _lineParser.TryParse(TextForParsing(line.Text), out var parsed) ? parsed : null;
-            var match = _highlightEngine.Evaluate(line.Text, structured);
+            for (var i = 0; i < lines.Count; i++)
+            {
+                prepared[i] = PrepareLine(lines[i], version);
+            }
+        }
+        catch (Exception)
+        {
+            // Leave it to the UI thread (version -1 never matches), which surfaces failures the way it always has.
+            for (var i = 0; i < lines.Count; i++)
+            {
+                prepared[i] = new PreparedLine(lines[i], null, null, null, Version: -1);
+            }
+        }
+
+        return prepared;
+    }
+
+    private PreparedLine PrepareLine(TailLine line, int version)
+    {
+        var raw = TextForParsing(line.Text);
+        var structured = IsStructuredView && _lineParser.TryParse(raw, out var parsed) ? parsed : null;
+        var match = _highlightEngine.Evaluate(line.Text, structured);
+        var severity = LogLevelSeverity.Rank(structured?.Level) ?? LogLevelNormalizer.GuessSeverityFromLine(raw);
+        return new PreparedLine(line, structured, match, severity, version);
+    }
+
+    private void OnLinesFlushed(IReadOnlyList<PreparedLine> preparedLines)
+    {
+        var version = _preparationVersion;
+        var lines = new TailLine[preparedLines.Count];
+        var displayItems = new List<LogLineViewModel>(preparedLines.Count);
+        for (var i = 0; i < preparedLines.Count; i++)
+        {
+            var prepared = preparedLines[i].Version == version ? preparedLines[i] : PrepareLine(preparedLines[i].Line, version);
+            var (line, structured, match, severity, _) = prepared;
+            lines[i] = line;
             if (match is not null)
             {
                 _highlightedLineNumbers.Add(line.LineNumber);
@@ -1447,7 +1550,12 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
             TryPlaySoundAlert(line, structured);
 
             var item = CreateLine(line.LineNumber, line.Text, structured, match, _bookmarks.IsBookmarked(line.LineNumber));
-            ObserveNewPattern(item);
+            if (!_isMergedSource)
+            {
+                item.SeedSeverityRank(severity); // same formula when the parsed text is the displayed text
+            }
+
+            ObserveNewPattern(item, severity);
             displayItems.Add(item);
         }
 

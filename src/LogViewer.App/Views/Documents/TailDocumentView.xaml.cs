@@ -28,6 +28,13 @@ public partial class TailDocumentView : UserControl
     private TailDocumentViewModel? _viewModel;
     private ScrollViewer? _lineListScrollViewer;
 
+    // Incremental marker state for the unfiltered view (where view order == Lines order): the marked lines found so
+    // far, in line order, and the last line classified. A refresh then only classifies lines appended since, drops
+    // marks whose line was evicted from the front, and recomputes positions — instead of rescanning every line.
+    private readonly List<(LogLineViewModel Line, Brush Brush, int Priority)> _lineMarks = [];
+    private LogLineViewModel? _lastMarkedLine;
+    private bool _isViewFiltered;
+
     public TailDocumentView()
     {
         InitializeComponent();
@@ -60,10 +67,71 @@ public partial class TailDocumentView : UserControl
         }
     }
 
+    /// <summary>Something a line's mark depends on changed in place (bookmark, note, search hits, highlight rules)
+    /// or the view was re-filtered/re-bound: throw away the incremental state so the next refresh rescans.</summary>
+    private void InvalidateMarkers()
+    {
+        _lineMarks.Clear();
+        _lastMarkedLine = null;
+        ScheduleMarkerRefresh();
+    }
+
     /// <summary>Rebuilds the overview strip from the currently visible (post-filter) lines: bookmarks and notes first, then
-    /// search results, new error patterns, errors, warnings and highlight matches — the strip keeps the highest-priority mark per pixel row.</summary>
+    /// search results, new error patterns, errors, warnings and highlight matches — the strip keeps the highest-priority mark per pixel row.
+    /// Unfiltered, this is incremental (see <see cref="_lineMarks"/>); with a filter active it rescans the filtered view.</summary>
     private void RefreshScrollMarkers()
     {
+        if (_viewModel is null || _isViewFiltered)
+        {
+            RefreshScrollMarkersFromView();
+            return;
+        }
+
+        var lines = _viewModel.Lines;
+
+        // FIFO eviction removes a prefix; a wholesale rebuild (reprocess/reset) replaces every instance, so both show
+        // up as marked lines no longer found at the front.
+        var evicted = 0;
+        while (evicted < _lineMarks.Count && lines.IndexOf(_lineMarks[evicted].Line) < 0)
+        {
+            evicted++;
+        }
+
+        _lineMarks.RemoveRange(0, evicted);
+
+        // Resume after the last classified line; if that line is gone, so is everything before it — start over.
+        var start = _lastMarkedLine is null ? 0 : lines.IndexOf(_lastMarkedLine) + 1;
+        if (start == 0)
+        {
+            _lineMarks.Clear();
+        }
+
+        for (var i = start; i < lines.Count; i++)
+        {
+            if (TryClassify(lines[i]) is { } mark)
+            {
+                _lineMarks.Add((lines[i], mark.Brush, mark.Priority));
+            }
+        }
+
+        _lastMarkedLine = lines.Count > 0 ? lines[^1] : null;
+
+        var count = lines.Count;
+        var scale = count > 1 ? 1.0 / (count - 1) : 0;
+        var markers = new List<ScrollMarker>(_lineMarks.Count);
+        foreach (var (line, brush, priority) in _lineMarks)
+        {
+            markers.Add(new ScrollMarker(lines.IndexOf(line) * scale, brush, priority));
+        }
+
+        MarkerStrip.SetMarkers(markers);
+    }
+
+    private void RefreshScrollMarkersFromView()
+    {
+        _lineMarks.Clear();
+        _lastMarkedLine = null;
+
         var items = LineListView.Items;
         var count = items.Count;
         var markers = new List<ScrollMarker>();
@@ -73,37 +141,9 @@ public partial class TailDocumentView : UserControl
             var index = 0;
             foreach (var item in items)
             {
-                if (item is LogLineViewModel line)
+                if (item is LogLineViewModel line && TryClassify(line) is { } mark)
                 {
-                    var position = index * scale;
-                    if (line.IsBookmarked)
-                    {
-                        markers.Add(new ScrollMarker(position, BookmarkMarkerBrush, 0));
-                    }
-                    else if (line.HasNote)
-                    {
-                        markers.Add(new ScrollMarker(position, NoteMarkerBrush, 0));
-                    }
-                    else if (_viewModel?.IsSearchHit(line.LineNumber) == true)
-                    {
-                        markers.Add(new ScrollMarker(position, SearchHitMarkerBrush, 1));
-                    }
-                    else if (line.IsNewPattern)
-                    {
-                        markers.Add(new ScrollMarker(position, NewPatternMarkerBrush, 1));
-                    }
-                    else if (line.SeverityRank is { } rank && rank >= ErrorRank)
-                    {
-                        markers.Add(new ScrollMarker(position, ErrorMarkerBrush, 2));
-                    }
-                    else if (line.SeverityRank is { } warnRank && warnRank >= WarningRank)
-                    {
-                        markers.Add(new ScrollMarker(position, WarningMarkerBrush, 3));
-                    }
-                    else if (line.HighlightMarkerBrush is { } highlight)
-                    {
-                        markers.Add(new ScrollMarker(position, highlight, 4));
-                    }
+                    markers.Add(new ScrollMarker(index * scale, mark.Brush, mark.Priority));
                 }
 
                 index++;
@@ -111,6 +151,41 @@ public partial class TailDocumentView : UserControl
         }
 
         MarkerStrip.SetMarkers(markers);
+    }
+
+    private (Brush Brush, int Priority)? TryClassify(LogLineViewModel line)
+    {
+        if (line.IsBookmarked)
+        {
+            return (BookmarkMarkerBrush, 0);
+        }
+
+        if (line.HasNote)
+        {
+            return (NoteMarkerBrush, 0);
+        }
+
+        if (_viewModel?.IsSearchHit(line.LineNumber) == true)
+        {
+            return (SearchHitMarkerBrush, 1);
+        }
+
+        if (line.IsNewPattern)
+        {
+            return (NewPatternMarkerBrush, 1);
+        }
+
+        if (line.SeverityRank is { } rank && rank >= ErrorRank)
+        {
+            return (ErrorMarkerBrush, 2);
+        }
+
+        if (line.SeverityRank is { } warnRank && warnRank >= WarningRank)
+        {
+            return (WarningMarkerBrush, 3);
+        }
+
+        return line.HighlightMarkerBrush is { } highlight ? (highlight, 4) : null;
     }
 
     /// <summary>Clicking the strip scrolls to the proportional line. A user gesture, so it isn't marked as a
@@ -145,7 +220,7 @@ public partial class TailDocumentView : UserControl
             _viewModel.ScrollToLineRequested -= OnScrollToLineRequested;
             _viewModel.FilterChanged -= OnFilterChanged;
             _viewModel.ExportRequested -= OnExportRequested;
-            _viewModel.ScrollMarkersInvalidated -= ScheduleMarkerRefresh;
+            _viewModel.ScrollMarkersInvalidated -= InvalidateMarkers;
         }
 
         _viewModel = e.NewValue as TailDocumentViewModel;
@@ -157,7 +232,7 @@ public partial class TailDocumentView : UserControl
             _viewModel.ScrollToLineRequested += OnScrollToLineRequested;
             _viewModel.FilterChanged += OnFilterChanged;
             _viewModel.ExportRequested += OnExportRequested;
-            _viewModel.ScrollMarkersInvalidated += ScheduleMarkerRefresh;
+            _viewModel.ScrollMarkersInvalidated += InvalidateMarkers;
         }
 
         OnFilterChanged();
@@ -169,9 +244,11 @@ public partial class TailDocumentView : UserControl
     /// raised by <see cref="LogViewer.App.Controls.DisplayLineCollection"/> without any extra refresh code.</summary>
     private void OnFilterChanged()
     {
+        InvalidateMarkers();
         var view = CollectionViewSource.GetDefaultView(LineListView.ItemsSource);
         if (view is null)
         {
+            _isViewFiltered = false;
             return;
         }
 
@@ -187,14 +264,16 @@ public partial class TailDocumentView : UserControl
         if (value is null && minLevelRank is null && !hasTextFilter && hideBeforeLineNumber is null && !hasTimeFilter && !hasCorrelationFilter
             && !hasCollapsedEntries)
         {
+            _isViewFiltered = false;
             view.Filter = null;
             return;
         }
 
+        _isViewFiltered = true;
         view.Filter = item => item is LogLineViewModel line
             && (value is null || string.Equals(StructuredFieldResolver.Resolve(line.Structured, field!), value, StringComparison.Ordinal))
             && (minLevelRank is null || (line.SeverityRank is { } rank && rank >= minLevelRank))
-            && (!hasTextFilter || _viewModel!.PassesTextFilter(line.Text))
+            && (!hasTextFilter || _viewModel!.PassesTextFilter(line))
             && (hideBeforeLineNumber is null || line.LineNumber >= hideBeforeLineNumber)
             && (!hasTimeFilter || _viewModel!.PassesTimeFilter(line))
             && (!hasCorrelationFilter || _viewModel!.PassesCorrelationFilter(line))

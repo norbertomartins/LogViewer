@@ -10,15 +10,18 @@ namespace LogViewer.App.Services;
 /// batches and reset notifications, then drains them on a single throttled dispatcher tick instead
 /// of reacting to every event individually. This is what keeps the UI thread responsive at &gt;100
 /// lines/sec — at most one consolidated update per tick, in arrival order.
+/// <para><typeparamref name="TLine"/> is whatever the producer attaches per line — e.g. a document pairs each
+/// <see cref="TailLine"/> with work it already did on the reader thread (see <see cref="UiDispatcherLineSink"/>
+/// for the plain variant).</para>
 /// </summary>
-public sealed class UiDispatcherLineSink : IDisposable
+public class UiDispatcherLineSink<TLine> : IDisposable
 {
-    private readonly record struct QueueItem(IReadOnlyList<TailLine>? Lines, TailResetReason? Reset, string? SwitchedFilePath);
+    private readonly record struct QueueItem(IReadOnlyList<TLine>? Lines, TailResetReason? Reset, string? SwitchedFilePath);
 
     private readonly ConcurrentQueue<QueueItem> _queue = new();
     private readonly DispatcherTimer _timer;
 
-    public event Action<IReadOnlyList<TailLine>>? LinesFlushed;
+    public event Action<IReadOnlyList<TLine>>? LinesFlushed;
     public event Action<TailResetReason, string?>? ResetFlushed;
 
     /// <summary>Wall-clock time the most recent non-empty <see cref="Flush"/> held the UI thread, in ms.</summary>
@@ -35,7 +38,7 @@ public sealed class UiDispatcherLineSink : IDisposable
         _timer.Start();
     }
 
-    public void EnqueueLines(IReadOnlyList<TailLine> lines) => _queue.Enqueue(new QueueItem(lines, null, null));
+    public void EnqueueLines(IReadOnlyList<TLine> lines) => _queue.Enqueue(new QueueItem(lines, null, null));
 
     public void EnqueueReset(TailResetReason reason, string? switchedFilePath) => _queue.Enqueue(new QueueItem(null, reason, switchedFilePath));
 
@@ -47,7 +50,7 @@ public sealed class UiDispatcherLineSink : IDisposable
         }
 
         var startedAt = Stopwatch.GetTimestamp();
-        List<TailLine>? pendingLines = null;
+        List<TLine>? pendingLines = null;
         while (_queue.TryDequeue(out var item))
         {
             if (item.Reset is { } reason)
@@ -57,7 +60,7 @@ public sealed class UiDispatcherLineSink : IDisposable
             }
             else if (item.Lines is not null)
             {
-                (pendingLines ??= new List<TailLine>()).AddRange(item.Lines);
+                (pendingLines ??= new List<TLine>()).AddRange(item.Lines);
             }
         }
 
@@ -69,7 +72,7 @@ public sealed class UiDispatcherLineSink : IDisposable
             : (0.3 * LastFlushMilliseconds) + (0.7 * AverageFlushMilliseconds);
     }
 
-    private void FlushPendingLines(ref List<TailLine>? pendingLines)
+    private void FlushPendingLines(ref List<TLine>? pendingLines)
     {
         if (pendingLines is { Count: > 0 })
         {
@@ -81,3 +84,6 @@ public sealed class UiDispatcherLineSink : IDisposable
 
     public void Dispose() => _timer.Stop();
 }
+
+/// <summary><see cref="UiDispatcherLineSink{TLine}"/> for plain <see cref="TailLine"/>s.</summary>
+public sealed class UiDispatcherLineSink(TimeSpan interval) : UiDispatcherLineSink<TailLine>(interval);

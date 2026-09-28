@@ -19,6 +19,47 @@ public sealed class HighlightEngineTests
     }
 
     [Fact]
+    public void SetRules_RegexRuleEditedInPlace_UsesTheNewPattern()
+    {
+        // An edited rule keeps its Id; the compiled-regex cache must not hand back the old pattern.
+        var engine = new HighlightEngine();
+        var rule = HighlightRule.CreateDefault("Codes", @"E\d{3}", isRegex: true);
+        engine.SetRules([rule]);
+        Assert.NotNull(engine.Evaluate("failed with E500"));
+
+        engine.SetRules([rule with { Pattern = @"W\d{3}" }]);
+
+        Assert.Null(engine.Evaluate("failed with E500"));
+        Assert.NotNull(engine.Evaluate("warned with W404"));
+    }
+
+    [Fact]
+    public void Evaluate_ConcurrentlyWithSetRules_DoesNotThrow()
+    {
+        // Documents evaluate on the tail reader thread while the UI thread swaps rules.
+        var engine = new HighlightEngine();
+        var a = HighlightRule.CreateDefault("A", @"ERR\w*", isRegex: true);
+        var b = HighlightRule.CreateDefault("B", "WARN");
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(300));
+        var readers = Enumerable.Range(0, 4).Select(_ => Task.Run(() =>
+        {
+            while (!cts.IsCancellationRequested)
+            {
+                engine.Evaluate("ERROR and WARN in one line");
+            }
+        })).ToArray();
+
+        var flip = false;
+        while (!cts.IsCancellationRequested)
+        {
+            engine.SetRules(flip ? [a] : [b, a with { Pattern = @"ERROR\b" }]);
+            flip = !flip;
+        }
+
+        Task.WaitAll(readers);
+    }
+
+    [Fact]
     public void Evaluate_KeywordNoMatch_ReturnsNull()
     {
         var engine = new HighlightEngine();
