@@ -362,3 +362,7 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+# Video generation: downloaded voice models, intermediates and rendered outputs
+video/voices/
+video/build/
+video/*.mp4
