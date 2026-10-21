@@ -43,13 +43,18 @@ public partial class CommandPaletteView : Window
 
     private void OnResultDoubleClick(object sender, MouseButtonEventArgs e) => CloseWithResult(accepted: true);
 
+    private bool _closing;
+
     private void CloseWithResult(bool accepted)
     {
-        if (!IsLoaded)
+        // Setting DialogResult closes the window, which raises Deactivated and re-enters here; a second
+        // DialogResult assignment on a closing dialog throws InvalidOperationException.
+        if (!IsLoaded || _closing)
         {
             return;
         }
 
+        _closing = true;
         ChosenCommand = accepted ? ViewModel?.Selected : null;
         DialogResult = accepted && ChosenCommand is not null;
     }
