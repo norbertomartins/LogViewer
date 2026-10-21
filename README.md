@@ -8,6 +8,18 @@ architecture decisions.
 
 **[Feature tour with screenshots →](docs/index.md)** (also publishable as the project's GitHub Pages site from `/docs`)
 
+## Screenshots
+
+| | |
+|---|---|
+| ![Merged view](docs/images/merged-view.png)<br>**Merged logs by timestamp** | ![Structured logs](docs/images/structured-view.png)<br>**Structured logs** |
+| ![Column view](docs/images/column-view.png)<br>**Column view** | ![Trace tree](docs/images/trace-tree.png)<br>**Distributed tracing** |
+| ![Volume timeline](docs/images/timeline.png)<br>**Volume timeline** | ![Exceptions](docs/images/exceptions.png)<br>**Exception groups** |
+| ![Full-file search](docs/images/search.png)<br>**Full-file search** | ![Statistics](docs/images/statistics.png)<br>**Statistics** |
+| ![Command palette](docs/images/command-palette.png)<br>**Command palette** | ![Highlight presets](docs/images/highlight-presets.png)<br>**Highlighting and bookmarks** |
+
+More in the [feature tour](docs/index.md).
+
 ## Features
 
 **Live tailing**
