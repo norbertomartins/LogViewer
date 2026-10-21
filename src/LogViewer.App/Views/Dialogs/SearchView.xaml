@@ -38,14 +38,20 @@
             <TextBox x:Name="PatternBox" Grid.Column="0" Text="{Binding Pattern, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center" />
             <CheckBox Grid.Column="1" Content="{loc:Loc Common_Regex}" IsChecked="{Binding IsRegex}" VerticalAlignment="Center" Margin="8,0,0,0" />
             <CheckBox Grid.Column="2" Content="{loc:Loc Common_CaseSensitive}" IsChecked="{Binding IsCaseSensitive}" VerticalAlignment="Center" Margin="8,0,0,0" />
-            <Button Grid.Column="3" Content="{loc:Loc Common_Search}" Width="80" Margin="8,0,0,0" Command="{Binding SearchCommand}" />
-            <Button Grid.Column="4" Content="{loc:Loc Common_Cancel}" Width="80" Margin="6,0,0,0" Command="{Binding CancelSearchCommand}" IsEnabled="{Binding IsSearching}" />
+            <Button Grid.Column="3" Content="{loc:Loc Common_Search}" MinWidth="80" Margin="8,0,0,0" Command="{Binding SearchCommand}" />
+            <Button Grid.Column="4" Content="{loc:Loc Common_Cancel}" MinWidth="80" Margin="6,0,0,0" Command="{Binding CancelSearchCommand}" IsEnabled="{Binding IsSearching}" />
         </Grid>
 
         <ListView x:Name="ResultsList" Grid.Row="3" ItemsSource="{Binding Results}" SelectedItem="{Binding SelectedResult, Mode=TwoWay}"
                   Style="{StaticResource LogListViewStyle}"
-                  ItemContainerStyle="{StaticResource LogListViewItemStyle}"
                   FontFamily="Consolas" FontSize="12" MouseDoubleClick="OnResultsDoubleClick">
+            <!-- Based on the GridView container style: LogListViewItemStyle's plain ContentPresenter drops the columns. -->
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource {x:Static GridView.GridViewItemContainerStyleKey}}">
+                    <Setter Property="MinHeight" Value="0" />
+                    <Setter Property="Padding" Value="2,1" />
+                </Style>
+            </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="{loc:Loc Search_Col_Line}" Width="80" DisplayMemberBinding="{Binding LineNumber}" />
@@ -67,7 +73,7 @@
                     Padding="8,0" Command="{Binding BookmarkSelectedCommand}" />
             <Button Grid.Column="1" Content="{loc:Loc Search_BookmarkAll}" ToolTip="{loc:Loc Search_BookmarkAll_ToolTip}"
                     Padding="8,0" Margin="6,0,0,0" Command="{Binding BookmarkAllCommand}" />
-            <Button Grid.Column="3" Content="{loc:Loc Common_Close}" Width="80" Click="OnCloseClick" IsCancel="True" />
+            <Button Grid.Column="3" Content="{loc:Loc Common_Close}" MinWidth="80" Click="OnCloseClick" IsCancel="True" />
         </Grid>
     </Grid>
 </Window>

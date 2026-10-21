@@ -78,8 +78,8 @@
             <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
                 <Button Content="{loc:Loc Exceptions_BookmarkAll}" Command="{Binding BookmarkOccurrencesCommand}" Margin="0,0,6,0" Padding="8,2" />
                 <Button Content="{loc:Loc Exceptions_CopySample}" Command="{Binding CopySampleCommand}" Margin="0,0,6,0" Padding="8,2" />
-                <Button Content="{loc:Loc Common_Refresh}" Command="{Binding AnalyzeCommand}" Width="90" Margin="0,0,6,0" />
-                <Button Content="{loc:Loc Common_Close}" Width="80" Click="OnCloseClick" IsCancel="True" />
+                <Button Content="{loc:Loc Common_Refresh}" Command="{Binding AnalyzeCommand}" MinWidth="90" Margin="0,0,6,0" />
+                <Button Content="{loc:Loc Common_Close}" MinWidth="80" Click="OnCloseClick" IsCancel="True" />
             </StackPanel>
             <TextBlock Text="{Binding StatusMessage}" VerticalAlignment="Center" TextWrapping="Wrap" />
         </DockPanel>
