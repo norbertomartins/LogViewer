@@ -4,6 +4,10 @@ A WPF (.NET 10) tail utility for text logs and Windows Event Log, in the spirit 
 BareTail/SnakeTail, but broader in scope. See [`PLAN.md`](PLAN.md) for the phase-by-phase history and
 architecture decisions.
 
+![LogViewer main window](docs/images/main-window.png)
+
+**[Feature tour with screenshots →](docs/index.md)** (also publishable as the project's GitHub Pages site from `/docs`)
+
 ## Features
 
 **Live tailing**
