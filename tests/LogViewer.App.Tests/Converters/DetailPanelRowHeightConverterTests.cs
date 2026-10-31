@@ -44,6 +44,27 @@ public sealed class DetailPanelRowHeightConverterTests
     }
 
     [Fact]
+    public void Convert_WhenCollapsed_ReturnsAutoSoOnlyTheHeaderShows()
+    {
+        var result = (GridLength)_converter.Convert([180d, new object(), false], typeof(GridLength), null, null!);
+        Assert.True(result.IsAuto);
+    }
+
+    [Fact]
+    public void Convert_WhenExpanded_UsesThePersistedHeight()
+    {
+        var result = (GridLength)_converter.Convert([180d, new object(), true], typeof(GridLength), null, null!);
+        Assert.Equal(180d, result.Value);
+    }
+
+    [Fact]
+    public void Convert_WhenCollapsedButNoStructuredDetail_StillCollapsesToZero()
+    {
+        var result = (GridLength)_converter.Convert([180d, null!, false], typeof(GridLength), null, null!);
+        Assert.Equal(0d, result.Value);
+    }
+
+    [Fact]
     public void ConvertBack_ThrowsNotSupported()
     {
         Assert.Throws<NotSupportedException>(() => _converter.ConvertBack(new object(), [], null, null!));

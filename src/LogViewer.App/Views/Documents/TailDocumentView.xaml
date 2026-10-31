@@ -132,6 +132,29 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+
+        <!-- The splitter additionally disappears while the detail panel is collapsed to its header strip. -->
+        <Style x:Key="DetailSplitterStyle" TargetType="GridSplitter" BasedOn="{StaticResource CollapseWhenNoStructuredDetailStyle}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsDetailPanelExpanded}" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="DetailCollapseButtonStyle" TargetType="Button">
+            <Setter Property="Content" Value="▾" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="6,0" />
+            <Setter Property="MinHeight" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsDetailPanelCollapsed}" Value="True">
+                    <Setter Property="Content" Value="▴" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
@@ -144,20 +167,24 @@
                     <MultiBinding Converter="{StaticResource DetailPanelRowHeightConverter}">
                         <Binding Path="DetailPanelHeight" />
                         <Binding Path="SelectedLine.Structured" />
+                        <Binding Path="IsDetailPanelExpanded" />
                     </MultiBinding>
                 </RowDefinition.Height>
             </RowDefinition>
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
 
-        <ToolBar Grid.Row="0" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
+        <ToolBar Grid.Row="0" Padding="0" Margin="0" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
             <!-- Compact icon toolbar. Every control keeps a descriptive ToolTip and an
                  AutomationProperties.Name so screen readers and UI-automation tests still identify it. -->
             <ToolBar.Resources>
                 <Style x:Key="IconButton" TargetType="ButtonBase">
-                    <Setter Property="MinWidth" Value="30" />
+                    <Setter Property="MinWidth" Value="26" />
+                    <Setter Property="MinHeight" Value="0" />
                     <Setter Property="FontSize" Value="13" />
-                    <Setter Property="Padding" Value="4,2" />
+                    <Setter Property="Padding" Value="3,0" />
+                    <Setter Property="Margin" Value="0" />
+                    <Setter Property="VerticalAlignment" Value="Center" />
                 </Style>
             </ToolBar.Resources>
 
@@ -173,14 +200,14 @@
                           AutomationProperties.Name="{loc:Loc Doc_StructuredView_Name}"
                           ToolTip="{Binding StructuredFormatName, StringFormat={loc:Loc Doc_StructuredView_ToolTip}}" />
             <ComboBox ItemsSource="{Binding AvailableStructuredFormats}" DisplayMemberPath="Name" SelectedValuePath="Id"
-                      SelectedValue="{Binding StructuredFormatId}" Width="120"
+                      SelectedValue="{Binding StructuredFormatId}" Width="120" Padding="4,0" MinHeight="0" FontSize="13" VerticalAlignment="Center"
                       AutomationProperties.Name="{loc:Loc Doc_StructuredFormat_Name}"
                       ToolTip="{Binding StructuredFormatName, StringFormat={loc:Loc Doc_StructuredFormat_ToolTip}}"
                       Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
             <ToggleButton Content="🎨" Style="{StaticResource IconButton}" IsChecked="{Binding IsColorizeStructuredValues}"
                           AutomationProperties.Name="{loc:Loc Doc_ColorizeValues_Name}" ToolTip="{loc:Loc Doc_ColorizeValues_ToolTip}"
                           Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
-            <ComboBox ItemsSource="{Binding LevelOptions}" SelectedItem="{Binding MinLevel}" Width="96"
+            <ComboBox ItemsSource="{Binding LevelOptions}" SelectedItem="{Binding MinLevel}" Width="96" Padding="4,0" MinHeight="0" FontSize="13" VerticalAlignment="Center"
                       AutomationProperties.Name="{loc:Loc Doc_MinLevel_Name}" ToolTip="{loc:Loc Doc_MinLevel_ToolTip}"
                       Visibility="{Binding IsStructuredView, Converter={StaticResource BoolToVisibilityConverter}}" />
             <Separator />
@@ -199,8 +226,8 @@
                     AutomationProperties.Name="{loc:Loc Doc_ShowHiddenLines_Name}" ToolTip="{loc:Loc Doc_ShowHiddenLines_ToolTip}"
                     Visibility="{Binding IsHidingPastLines, Converter={StaticResource BoolToVisibilityConverter}}" />
             <Separator />
-            <TextBlock Text="🔍" VerticalAlignment="Center" Margin="2,0,3,0" />
-            <TextBox Width="140" VerticalAlignment="Center" Style="{StaticResource ToolbarTextBoxStyle}"
+            <TextBlock Text="🔍" FontSize="13" VerticalAlignment="Center" Margin="2,0,3,0" />
+            <TextBox Width="140" FontSize="13" VerticalAlignment="Center" MinHeight="0" Style="{StaticResource ToolbarTextBoxStyle}"
                      AutomationProperties.Name="{loc:Loc Doc_TextFilter_Name}"
                      Text="{Binding TextFilterPattern, UpdateSourceTrigger=PropertyChanged, Delay=200}"
                      ToolTip="{loc:Loc Doc_TextFilter_ToolTip}" />
@@ -257,8 +284,8 @@
                     </StackPanel>
                 </Border>
             </Popup>
-            <Menu Background="Transparent">
-                <MenuItem Header="🗂" FontSize="13" AutomationProperties.Name="{loc:Loc Doc_FilterViews_Name}" ToolTip="{loc:Loc Doc_FilterViews_ToolTip}">
+            <Menu Background="Transparent" Padding="0" Margin="0" VerticalAlignment="Center">
+                <MenuItem Header="🗂" FontSize="13" Padding="4,0" Style="{StaticResource CompactTopLevelMenuItemStyle}" AutomationProperties.Name="{loc:Loc Doc_FilterViews_Name}" ToolTip="{loc:Loc Doc_FilterViews_ToolTip}">
                     <MenuItem Header="{loc:Loc Doc_FilterViews_Save}" Command="{Binding SaveFilterViewCommand}"
                               AutomationProperties.Name="{loc:Loc Doc_FilterViews_Save}" />
                     <MenuItem Header="{loc:Loc Doc_FilterViews_Apply}" ItemsSource="{Binding FilterViews}" IsEnabled="{Binding HasFilterViews}"
@@ -289,8 +316,8 @@
             <Button Content="🖍▼" Style="{StaticResource IconButton}" Command="{Binding NextHighlightCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_NextHighlight_Name}" ToolTip="{loc:Loc Doc_NextHighlight_ToolTip}" />
             <Separator />
-            <Menu Background="Transparent">
-                <MenuItem Header="⚙" FontSize="13" AutomationProperties.Name="{loc:Loc Doc_RunTool_Name}" ToolTip="{loc:Loc Doc_RunTool_ToolTip}"
+            <Menu Background="Transparent" Padding="0" Margin="0" VerticalAlignment="Center">
+                <MenuItem Header="⚙" FontSize="13" Padding="4,0" Style="{StaticResource CompactTopLevelMenuItemStyle}" AutomationProperties.Name="{loc:Loc Doc_RunTool_Name}" ToolTip="{loc:Loc Doc_RunTool_ToolTip}"
                           ItemsSource="{Binding ExternalTools}">
                     <MenuItem.ItemContainerStyle>
                         <Style TargetType="MenuItem">
@@ -303,8 +330,8 @@
             </Menu>
             <Button Content="🔎" Style="{StaticResource IconButton}" Command="{Binding SearchCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Search_Name}" ToolTip="{loc:Loc Doc_Search_ToolTip}" />
-            <Menu Background="Transparent">
-                <MenuItem Header="💾" FontSize="13" AutomationProperties.Name="{loc:Loc Doc_Export_Name}" ToolTip="{loc:Loc Doc_Export_ToolTip}">
+            <Menu Background="Transparent" Padding="0" Margin="0" VerticalAlignment="Center">
+                <MenuItem Header="💾" FontSize="13" Padding="4,0" Style="{StaticResource CompactTopLevelMenuItemStyle}" AutomationProperties.Name="{loc:Loc Doc_Export_Name}" ToolTip="{loc:Loc Doc_Export_ToolTip}">
                     <MenuItem Header="{loc:Loc Doc_ExportFile_Header}" Command="{Binding ExportVisibleCommand}"
                               AutomationProperties.Name="{loc:Loc Doc_ExportFile_Header}" />
                     <MenuItem Header="{loc:Loc Doc_CopyVisible_Header}" Command="{Binding CopyVisibleCommand}"
@@ -396,7 +423,7 @@
             <Button Content="🖌" Style="{StaticResource IconButton}" Command="{Binding CustomizeCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_Customize_Name}" ToolTip="{loc:Loc Doc_Customize_ToolTip}" />
             <Separator />
-            <Button Content="{Binding ResumeFollowBanner}" Command="{Binding ResumeFollowCommand}"
+            <Button Content="{Binding ResumeFollowBanner}" Style="{StaticResource IconButton}" Command="{Binding ResumeFollowCommand}"
                     AutomationProperties.Name="{loc:Loc Doc_ResumeFollow_Name}"
                     Visibility="{Binding HasUnseenChanges, Converter={StaticResource BoolToVisibilityConverter}}" />
         </ToolBar>
@@ -529,22 +556,39 @@
         <!-- Drag to resize the detail panel below; hidden together with it (via the shared style) when the
              selected line has no structured detail. DragCompleted (code-behind) persists the resulting
              height onto the view-model, which the DetailPanelRow height MultiBinding feeds right back. -->
-        <GridSplitter Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="5"
+        <GridSplitter x:Name="DetailPanelSplitter" Grid.Row="3" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="5"
                       Background="{DynamicResource Theme.BorderColor}" ResizeDirection="Rows" ResizeBehavior="PreviousAndNext"
-                      Cursor="SizeNS" Style="{StaticResource CollapseWhenNoStructuredDetailStyle}"
-                      DragCompleted="OnDetailPanelSplitterDragCompleted" />
+                      Cursor="SizeNS" Style="{StaticResource DetailSplitterStyle}"
+                      DragStarted="OnDetailPanelSplitterDragStarted" DragCompleted="OnDetailPanelSplitterDragCompleted"
+                      MouseEnter="OnDetailPanelMouseEnter" MouseLeave="OnDetailPanelMouseLeave" />
 
         <!-- Structured-log detail: timestamp/template/properties/exception for the selected line, when it
              parsed as Serilog JSON. Collapses entirely for plain-text lines/documents. -->
-        <Border Grid.Row="4" Background="{DynamicResource Theme.LogBackground}" TextElement.Foreground="{DynamicResource Theme.LogForeground}"
-                BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,1,0,0" Padding="8"
-                Style="{StaticResource CollapseWhenNoStructuredDetailStyle}">
-            <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Border x:Name="DetailPanelBorder" Grid.Row="4" Background="{DynamicResource Theme.LogBackground}" TextElement.Foreground="{DynamicResource Theme.LogForeground}"
+                BorderBrush="{DynamicResource Theme.BorderColor}" BorderThickness="0,1,0,0"
+                Style="{StaticResource CollapseWhenNoStructuredDetailStyle}"
+                MouseEnter="OnDetailPanelMouseEnter" MouseLeave="OnDetailPanelMouseLeave">
+            <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <!-- Header strip: stays visible when the panel is collapsed. -->
+            <DockPanel Grid.Row="0" LastChildFill="False">
+                <Button DockPanel.Dock="Left" Style="{StaticResource DetailCollapseButtonStyle}" Command="{Binding ToggleDetailPanelCollapsedCommand}"
+                        AutomationProperties.AutomationId="DetailPanelCollapseButton"
+                        AutomationProperties.Name="{loc:Loc Doc_Detail_Collapse_ToolTip}" ToolTip="{loc:Loc Doc_Detail_Collapse_ToolTip}" />
+                <TextBlock DockPanel.Dock="Left" Text="{loc:Loc Doc_Detail_Properties}" FontWeight="Bold" VerticalAlignment="Center" />
+                <CheckBox DockPanel.Dock="Right" Content="{loc:Loc Doc_Detail_HoverOpen}" IsChecked="{Binding DetailPanelHoverOpen}"
+                          VerticalAlignment="Center" Margin="0,0,8,0" FontSize="11" MinHeight="0"
+                          ToolTip="{loc:Loc Doc_Detail_HoverOpen_ToolTip}" />
+            </DockPanel>
+            <ScrollViewer Grid.Row="1" Margin="8,0,8,8" VerticalScrollBarVisibility="Auto"
+                          Visibility="{Binding IsDetailPanelExpanded, Converter={StaticResource BoolToVisibilityConverter}}">
                 <StackPanel DataContext="{Binding SelectedLine.Structured}">
                     <TextBlock Text="{Binding Timestamp, StringFormat={loc:Loc Doc_Detail_TimestampFormat}}" Margin="0,0,0,2" />
                     <TextBlock Text="{Binding MessageTemplate, StringFormat={loc:Loc Doc_Detail_TemplateFormat}}" TextWrapping="Wrap" Margin="0,0,0,6"
                                Visibility="{Binding MessageTemplate, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
-                    <TextBlock Text="{loc:Loc Doc_Detail_Properties}" FontWeight="Bold" Margin="0,0,0,2" />
                     <ItemsControl ItemsSource="{Binding Properties}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -582,9 +626,24 @@
                              Visibility="{Binding DataContext.SelectedEntryContinuation, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource NullOrEmptyToVisibilityConverter}}" />
                 </StackPanel>
             </ScrollViewer>
+            </Grid>
         </Border>
 
+        <!-- Hidden (row collapses to zero) while there is no status message and no active filter to report. -->
         <StatusBar Grid.Row="5" Background="{DynamicResource Theme.LogBackground}" Foreground="{DynamicResource Theme.LogForeground}">
+            <StatusBar.Style>
+                <Style TargetType="StatusBar" BasedOn="{StaticResource {x:Type StatusBar}}">
+                    <Style.Triggers>
+                        <MultiDataTrigger>
+                            <MultiDataTrigger.Conditions>
+                                <Condition Binding="{Binding StatusMessage}" Value="{x:Null}" />
+                                <Condition Binding="{Binding IsFilterActive}" Value="False" />
+                            </MultiDataTrigger.Conditions>
+                            <Setter Property="Visibility" Value="Collapsed" />
+                        </MultiDataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </StatusBar.Style>
             <StatusBar.Template>
                 <ControlTemplate TargetType="StatusBar">
                     <Border Background="{TemplateBinding Background}">

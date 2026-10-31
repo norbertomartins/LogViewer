@@ -104,7 +104,7 @@ public sealed class JsonSettingsStoreTests
         store.Save(original);
         var loaded = store.Load();
 
-        Assert.Equal(16, loaded.SchemaVersion);
+        Assert.Equal(18, loaded.SchemaVersion);
         Assert.False(loaded.AutoTuneForRemoteDesktop);
         Assert.Equal("eventlog:Application", loaded.Layout.ActiveSourceDedupKey);
 
@@ -146,7 +146,7 @@ public sealed class JsonSettingsStoreTests
         Assert.Equal("My Highlights", preset.Name);
         Assert.True(preset.IsEnabled);
         Assert.Equal(["High", "Low"], preset.Rules.Select(r => r.Name));
-        Assert.Equal(16, settings.SchemaVersion);
+        Assert.Equal(18, settings.SchemaVersion);
 
         Directory.Delete(Path.GetDirectoryName(path)!, recursive: true);
     }
@@ -162,7 +162,45 @@ public sealed class JsonSettingsStoreTests
         var settings = store.Load();
 
         Assert.Empty(settings.HighlightPresets);
-        Assert.Equal(16, settings.SchemaVersion);
+        Assert.Equal(18, settings.SchemaVersion);
+
+        Directory.Delete(Path.GetDirectoryName(path)!, recursive: true);
+    }
+
+    [Fact]
+    public void Load_V16File_MigratesToV17WithDetailPanelExpandedAndHoverOff()
+    {
+        var path = TempSettingsPath();
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        File.WriteAllText(path, """{ "SchemaVersion": 16, "Layout": { "DetailPanelHeight": 300 } }""");
+        var store = new JsonSettingsStore(path);
+
+        var settings = store.Load();
+
+        Assert.Equal(18, settings.SchemaVersion);
+        Assert.Equal(300, settings.Layout.DetailPanelHeight);
+        Assert.False(settings.Layout.IsDetailPanelCollapsed);
+        Assert.False(settings.Layout.DetailPanelHoverOpen);
+
+        Directory.Delete(Path.GetDirectoryName(path)!, recursive: true);
+    }
+
+    [Fact]
+    public void SaveThenLoad_RoundTripsDetailPanelCollapsedAndHoverState()
+    {
+        var path = TempSettingsPath();
+        var store = new JsonSettingsStore(path);
+        var original = new AppSettings();
+        original.Layout.IsDetailPanelCollapsed = true;
+        original.Layout.DetailPanelHoverOpen = true;
+        original.Layout.DetailPanelHeight = 275;
+
+        store.Save(original);
+        var loaded = store.Load();
+
+        Assert.True(loaded.Layout.IsDetailPanelCollapsed);
+        Assert.True(loaded.Layout.DetailPanelHoverOpen);
+        Assert.Equal(275, loaded.Layout.DetailPanelHeight);
 
         Directory.Delete(Path.GetDirectoryName(path)!, recursive: true);
     }

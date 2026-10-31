@@ -32,6 +32,9 @@ public sealed class FileTailSource : ITailSource
 
     public string DisplayName { get; }
 
+    /// <summary>The full path of the tailed file.</summary>
+    public string FilePath => _path;
+
     public event EventHandler<TailLinesReadEventArgs>? LinesRead;
     public event EventHandler<TailSourceResetEventArgs>? SourceReset;
     public event EventHandler<TailSourceErrorEventArgs>? Error;

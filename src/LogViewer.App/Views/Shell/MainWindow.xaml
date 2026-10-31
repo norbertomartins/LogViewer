@@ -40,8 +40,8 @@
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>
 
-        <Menu DockPanel.Dock="Top">
-            <MenuItem Header="{loc:Loc Menu_File}">
+        <Menu DockPanel.Dock="Top" Padding="0" Margin="0" MinHeight="0">
+            <MenuItem Header="{loc:Loc Menu_File}" Style="{StaticResource CompactTopLevelMenuItemStyle}">
                 <MenuItem Header="{loc:Loc Menu_File_OpenFile}" Command="{Binding OpenFileCommand}" InputGestureText="Ctrl+O" />
                 <MenuItem Header="{loc:Loc Menu_File_OpenDirectory}" Command="{Binding OpenDirectoryWatchCommand}" />
                 <MenuItem Header="{loc:Loc Menu_File_OpenMerged}" Command="{Binding OpenMergedFilesCommand}"
@@ -72,12 +72,21 @@
                 <Separator />
                 <MenuItem Header="{loc:Loc Menu_File_Exit}" Command="{Binding ExitCommand}" />
             </MenuItem>
-            <MenuItem Header="{loc:Loc Menu_WindowMode}">
+            <MenuItem Header="{loc:Loc Menu_WindowMode}" Style="{StaticResource CompactTopLevelMenuItemStyle}">
                 <MenuItem Header="{loc:Loc Menu_WindowMode_Tabbed}" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Tabbed" />
                 <MenuItem Header="{loc:Loc Menu_WindowMode_Floating}" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Floating" />
                 <MenuItem Header="{loc:Loc Menu_WindowMode_Mdi}" Command="{Binding SwitchWindowModeCommand}" CommandParameter="Mdi" />
             </MenuItem>
-            <MenuItem Header="{loc:Loc Menu_Session}">
+            <MenuItem Header="{loc:Loc Menu_View}" Style="{StaticResource CompactTopLevelMenuItemStyle}">
+                <MenuItem Header="{loc:Loc Menu_View_DetailPanelHoverOpen}" IsCheckable="True"
+                          IsChecked="{Binding DetailPanelHoverOpen, Mode=TwoWay}"
+                          AutomationProperties.AutomationId="DetailPanelHoverOpenMenuItem" />
+                <Separator />
+                <MenuItem Header="{loc:Loc Menu_View_StatusBar}" IsCheckable="True"
+                          IsChecked="{Binding IsStatusBarVisible, Mode=TwoWay}"
+                          AutomationProperties.AutomationId="StatusBarVisibleMenuItem" />
+            </MenuItem>
+            <MenuItem Header="{loc:Loc Menu_Session}" Style="{StaticResource CompactTopLevelMenuItemStyle}">
                 <MenuItem Header="{loc:Loc Menu_Session_SaveAs}" Command="{Binding SaveSessionProfileAsCommand}" />
                 <MenuItem Header="{loc:Loc Menu_Session_Load}" ItemsSource="{Binding SessionProfileNames}">
                     <MenuItem.ItemContainerStyle>
@@ -98,7 +107,7 @@
                     </MenuItem.ItemContainerStyle>
                 </MenuItem>
             </MenuItem>
-            <MenuItem Header="{loc:Loc Menu_Tools}">
+            <MenuItem Header="{loc:Loc Menu_Tools}" Style="{StaticResource CompactTopLevelMenuItemStyle}">
                 <MenuItem Header="{loc:Loc Menu_Tools_HighlightPresets}" Command="{Binding EditHighlightPresetsCommand}" />
                 <MenuItem Header="{loc:Loc Menu_Tools_ToggleHighlightPresets}" ItemsSource="{Binding HighlightPresetToggles}">
                     <MenuItem.ItemContainerStyle>
@@ -119,16 +128,24 @@
             </MenuItem>
         </Menu>
 
-        <StatusBar DockPanel.Dock="Bottom">
+        <StatusBar DockPanel.Dock="Bottom" Padding="0" MinHeight="0"
+                   Visibility="{Binding IsStatusBarVisible, Converter={StaticResource BoolToVisibilityConverter}}">
+            <StatusBar.Template>
+                <ControlTemplate TargetType="StatusBar">
+                    <Border Background="{TemplateBinding Background}">
+                        <ItemsPresenter />
+                    </Border>
+                </ControlTemplate>
+            </StatusBar.Template>
             <StatusBar.ItemsPanel>
                 <ItemsPanelTemplate>
                     <DockPanel HorizontalAlignment="Stretch" />
                 </ItemsPanelTemplate>
             </StatusBar.ItemsPanel>
-            <StatusBarItem>
+            <StatusBarItem Padding="6,0" MinHeight="0">
                 <TextBlock Text="{Binding StatusMessage}" TextTrimming="CharacterEllipsis" />
             </StatusBarItem>
-            <StatusBarItem DockPanel.Dock="Right">
+            <StatusBarItem DockPanel.Dock="Right" Padding="6,0" MinHeight="0">
                 <TextBlock Text="{Binding PerformanceStatus}" Opacity="0.75" FontFamily="Consolas"
                            AutomationProperties.AutomationId="PerformanceStatus"
                            ToolTip="{loc:Loc Status_Performance_ToolTip}" />
@@ -272,6 +289,7 @@
                              one header surface AvalonDock does render, so it carries the color in Tabbed mode. -->
                         <Setter Property="Title" Value="{Binding Model.DisplayTitle}" />
                         <Setter Property="ContentId" Value="{Binding Model.SourcePath}" />
+                        <Setter Property="ToolTip" Value="{Binding Model.TabToolTip}" />
                         <Setter Property="IconSource" Value="{Binding Model.CustomColorHex, Converter={StaticResource HexToTabIconConverter}}" />
                     </Style>
                 </xcad:DockingManager.LayoutItemContainerStyle>

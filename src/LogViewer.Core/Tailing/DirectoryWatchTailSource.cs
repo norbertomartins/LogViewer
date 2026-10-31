@@ -51,6 +51,9 @@ public sealed class DirectoryWatchTailSource : ITailSource
 
     public string DisplayName { get; }
 
+    /// <summary>The full path of the watched directory.</summary>
+    public string DirectoryPath => _directoryPath;
+
     /// <summary>The currently-tailed file's full path, or null before the first match is found.</summary>
     public string? ActiveFilePath => _activeFilePath;
 

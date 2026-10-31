@@ -121,6 +121,8 @@ internal static class OffscreenWpf
         encoder.Save(stream);
     }
 
+    public static string RepoRootPath() => RepoRoot();
+
     private static string RepoRoot()
     {
         var dir = AppContext.BaseDirectory;

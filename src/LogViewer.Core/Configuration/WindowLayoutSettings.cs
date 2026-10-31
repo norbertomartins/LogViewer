@@ -24,4 +24,15 @@ public sealed class WindowLayoutSettings
     /// <summary>Height (in pixels) of the structured-detail panel in <c>TailDocumentView</c>, shared across
     /// every open document and remembered across sessions.</summary>
     public double DetailPanelHeight { get; set; } = 220;
+
+    /// <summary>True when the structured-detail panel is collapsed to just its header strip. The expanded
+    /// height is kept separately in <see cref="DetailPanelHeight"/>. Shared across every open document.</summary>
+    public bool IsDetailPanelCollapsed { get; set; }
+
+    /// <summary>When true, hovering the collapsed detail panel's header temporarily expands it (without
+    /// changing <see cref="IsDetailPanelCollapsed"/>); it collapses again when the mouse leaves.</summary>
+    public bool DetailPanelHoverOpen { get; set; }
+
+    /// <summary>False hides the bottom status bar (status messages and the performance readout). Shared across the window.</summary>
+    public bool IsStatusBarVisible { get; set; } = true;
 }

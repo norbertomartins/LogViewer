@@ -184,6 +184,56 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
     /// re-raising <see cref="DetailPanelHeightChanged"/> for the same value.</summary>
     public void ApplyDetailPanelHeight(double height) => DetailPanelHeight = height;
 
+    /// <summary>True when the user has collapsed the detail panel to just its header strip. Persisted and
+    /// shared across every open document; the expanded height stays in <see cref="DetailPanelHeight"/>.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDetailPanelExpanded))]
+    private bool _isDetailPanelCollapsed;
+
+    /// <summary>When true, hovering the collapsed detail panel temporarily expands it (see
+    /// <see cref="IsDetailPanelHoverExpanded"/>). Persisted and shared across every open document.</summary>
+    [ObservableProperty]
+    private bool _detailPanelHoverOpen;
+
+    /// <summary>Transient (never persisted): the collapsed detail panel is currently expanded because the
+    /// mouse is over it in hover mode. Set by <c>TailDocumentView</c>.</summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsDetailPanelExpanded))]
+    private bool _isDetailPanelHoverExpanded;
+
+    /// <summary>Whether the detail panel body is currently shown: not collapsed, or hover-expanded.</summary>
+    public bool IsDetailPanelExpanded => !IsDetailPanelCollapsed || IsDetailPanelHoverExpanded;
+
+    /// <summary>Raised when the collapsed state changes, so <c>MainViewModel</c> can persist and propagate it.</summary>
+    public event Action<bool>? DetailPanelCollapsedChanged;
+
+    /// <summary>Raised when the hover-open mode changes, so <c>MainViewModel</c> can persist and propagate it.</summary>
+    public event Action<bool>? DetailPanelHoverOpenChanged;
+
+    partial void OnIsDetailPanelCollapsedChanged(bool value) => DetailPanelCollapsedChanged?.Invoke(value);
+
+    partial void OnDetailPanelHoverOpenChanged(bool value)
+    {
+        if (!value)
+        {
+            IsDetailPanelHoverExpanded = false;
+        }
+
+        DetailPanelHoverOpenChanged?.Invoke(value);
+    }
+
+    public void ApplyDetailPanelCollapsed(bool collapsed) => IsDetailPanelCollapsed = collapsed;
+
+    public void ApplyDetailPanelHoverOpen(bool hoverOpen) => DetailPanelHoverOpen = hoverOpen;
+
+    /// <summary>Collapses or expands the detail panel; expanding also ends any hover expansion.</summary>
+    [RelayCommand]
+    private void ToggleDetailPanelCollapsed()
+    {
+        IsDetailPanelHoverExpanded = false;
+        IsDetailPanelCollapsed = !IsDetailPanelCollapsed;
+    }
+
     [ObservableProperty]
     private string? _activeFilterField;
 
@@ -698,6 +748,27 @@ public sealed partial class TailDocumentViewModel : ObservableObject, IDisposabl
         DirectoryWatchTailSource dirWatch => dirWatch.ActiveFilePath,
         _ => null,
     };
+
+    /// <summary>Tab tooltip: the watched folder (and file) for file-backed sources, null for the rest. Depends only
+    /// on fixed source fields, so it is computed on read.</summary>
+    public string? TabToolTip => _source switch
+    {
+        DirectoryWatchTailSource dirWatch => string.Format(Loc.Get("Vm_Doc_Tab_WatchedFolder"), dirWatch.DirectoryPath),
+        FileTailSource file => string.Format(
+            Loc.Get("Vm_Doc_Tab_FileAndFolder"), Path.GetDirectoryName(file.FilePath), Path.GetFileName(file.FilePath)),
+        MergedTailSource merged => BuildMergedTabToolTip(merged.FilePaths),
+        _ => null,
+    };
+
+    /// <summary>Merged tabs (folders and/or files combined): the distinct folders the merged files come from, plus the file count.</summary>
+    private static string BuildMergedTabToolTip(IReadOnlyList<string> paths)
+    {
+        var folders = paths
+            .Select(p => Path.GetDirectoryName(p) ?? string.Empty)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(f => f, StringComparer.OrdinalIgnoreCase);
+        return string.Format(Loc.Get("Vm_Doc_Tab_Merged"), string.Join(Environment.NewLine, folders), paths.Count);
+    }
 
     /// <summary>What kind of source this document wraps, mirroring <see cref="SearchableFilePath"/>'s switch —
     /// used e.g. by <see cref="Services.WpfOpenDocumentCatalog"/> to describe open documents to MCP tools.</summary>

@@ -48,6 +48,13 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string _windowTitle = "LogViewer";
 
+    [ObservableProperty]
+    private bool _detailPanelHoverOpen;
+
+    /// <summary>View menu toggle for the bottom status bar; persisted to the layout settings.</summary>
+    [ObservableProperty]
+    private bool _isStatusBarVisible = true;
+
     /// <summary>Right-aligned performance readout in the status bar: throughput, ring-buffer fill and
     /// memory, and UI dispatch latency — so a live regression is visible without opening a profiler.</summary>
     [ObservableProperty]
@@ -80,6 +87,8 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         Host = host;
 
         _settings = settings;
+        _detailPanelHoverOpen = settings.Layout.DetailPanelHoverOpen;
+        _isStatusBarVisible = settings.Layout.IsStatusBarVisible;
         Host.Mode = _settings.Layout.LastWindowMode;
 
         _currentThemeMode = _themeService.ResolveActiveTheme(_settings).BaseMode;
@@ -657,6 +666,10 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
         document.ApplyLogFontSize(_settings.LogFontSize);
         document.ApplyDetailPanelHeight(_settings.Layout.DetailPanelHeight);
         document.DetailPanelHeightChanged += height => OnDetailPanelHeightChanged(document, height);
+        document.ApplyDetailPanelCollapsed(_settings.Layout.IsDetailPanelCollapsed);
+        document.ApplyDetailPanelHoverOpen(_settings.Layout.DetailPanelHoverOpen);
+        document.DetailPanelCollapsedChanged += collapsed => OnDetailPanelCollapsedChanged(document, collapsed);
+        document.DetailPanelHoverOpenChanged += OnDocumentDetailPanelHoverOpenChanged;
         document.LogFontSizeChanged += fontSize => OnLogFontSizeChanged(document, fontSize);
         document.SearchRequested += () => ShowSearchDialog(document);
         document.CustomizeRequested += () => ShowCustomizeDialog(document);
@@ -758,6 +771,42 @@ public sealed partial class MainViewModel : ObservableObject, IDisposable
             {
                 document.ApplyDetailPanelHeight(height);
             }
+        }
+    }
+
+    /// <summary>Persists the detail panel's collapsed state and applies it to every other open document.</summary>
+    private void OnDetailPanelCollapsedChanged(TailDocumentViewModel source, bool collapsed)
+    {
+        _settings.Layout.IsDetailPanelCollapsed = collapsed;
+        foreach (var document in Documents)
+        {
+            if (document != source)
+            {
+                document.ApplyDetailPanelCollapsed(collapsed);
+            }
+        }
+    }
+
+    /// <summary>Persists the status bar visibility choice made in the View menu.</summary>
+    partial void OnIsStatusBarVisibleChanged(bool value)
+    {
+        _settings.Layout.IsStatusBarVisible = value;
+    }
+
+    /// <summary>Persists the detail panel's hover-open mode and applies it to every other open document.</summary>
+    private void OnDocumentDetailPanelHoverOpenChanged(bool hoverOpen)
+    {
+        DetailPanelHoverOpen = hoverOpen;
+    }
+
+    /// <summary>View menu toggle: hovering the collapsed structured-detail panel temporarily expands it.
+    /// Persists to the layout settings and applies to every open document.</summary>
+    partial void OnDetailPanelHoverOpenChanged(bool value)
+    {
+        _settings.Layout.DetailPanelHoverOpen = value;
+        foreach (var document in Documents)
+        {
+            document.ApplyDetailPanelHoverOpen(value);
         }
     }
 

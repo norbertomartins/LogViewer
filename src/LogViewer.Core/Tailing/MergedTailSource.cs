@@ -76,9 +76,13 @@ public sealed class MergedTailSource : ITailSource
         }
 
         DisplayName = BuildDisplayName(paths);
+        FilePaths = paths.ToList();
     }
 
     public string DisplayName { get; }
+
+    /// <summary>The file paths merged into this source, in the order given.</summary>
+    public IReadOnlyList<string> FilePaths { get; }
 
     public event EventHandler<TailLinesReadEventArgs>? LinesRead;
     public event EventHandler<TailSourceResetEventArgs>? SourceReset;
