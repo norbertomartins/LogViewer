@@ -25,6 +25,10 @@ public partial class TailDocumentView : UserControl
     private static readonly int WarningRank = LogLevelSeverity.Rank("Warning")!.Value;
 
     private readonly DispatcherTimer _markerRefreshTimer;
+    private readonly DispatcherTimer _detailHoverTimer;
+    private readonly BindingBase? _detailRowHeightBinding;
+    private bool _detailHoverExpandTarget;
+    private bool _isDetailSplitterDragging;
     private TailDocumentViewModel? _viewModel;
     private ScrollViewer? _lineListScrollViewer;
 
@@ -39,6 +43,14 @@ public partial class TailDocumentView : UserControl
     {
         InitializeComponent();
         DataContextChanged += OnDataContextChanged;
+
+        // A GridSplitter drag overwrites the row's Height with a local value, which drops the MultiBinding; keep a
+        // copy so it can be re-established (otherwise collapse/expand would stop driving the row after a drag).
+        _detailRowHeightBinding = BindingOperations.GetMultiBinding(DetailPanelRow, RowDefinition.HeightProperty);
+
+        // ~300 ms debounce so moving across the panel/splitter boundary doesn't flicker the hover expansion.
+        _detailHoverTimer = new DispatcherTimer { Interval = TimeSpan.FromMilliseconds(300) };
+        _detailHoverTimer.Tick += OnDetailHoverTimerTick;
 
         // Tail flushes arrive every ~100ms; redrawing the strip at most every 400ms keeps it cheap under load.
         _markerRefreshTimer = new DispatcherTimer(DispatcherPriority.Background) { Interval = TimeSpan.FromMilliseconds(400) };
@@ -518,14 +530,98 @@ public partial class TailDocumentView : UserControl
         Dispatcher.BeginInvoke(() => GetLineListScrollViewer()?.ScrollToHorizontalOffset(0), DispatcherPriority.ContextIdle);
     }
 
+    private void OnDetailPanelSplitterDragStarted(object sender, System.Windows.Controls.Primitives.DragStartedEventArgs e)
+    {
+        _detailHoverTimer.Stop();
+        _isDetailSplitterDragging = true;
+    }
+
     /// <summary>Persists the detail panel's dragged-to height onto the view-model, which the DetailPanelRow
     /// height MultiBinding (see <c>DetailPanelRowHeightConverter</c>) then feeds right back — so this is the
     /// single point where a splitter drag becomes the new source of truth.</summary>
     private void OnDetailPanelSplitterDragCompleted(object sender, System.Windows.Controls.Primitives.DragCompletedEventArgs e)
     {
+        _isDetailSplitterDragging = false;
         if (_viewModel is not null && DetailPanelRow.ActualHeight > 0)
         {
             _viewModel.DetailPanelHeight = DetailPanelRow.ActualHeight;
+        }
+
+        if (_detailRowHeightBinding is not null)
+        {
+            BindingOperations.SetBinding(DetailPanelRow, RowDefinition.HeightProperty, _detailRowHeightBinding);
+        }
+
+        ScheduleDetailHoverChange(expand: false);
+    }
+
+    /// <summary>Hover mode: entering the collapsed panel (header strip) schedules a temporary expansion; entering
+    /// the expanded panel or its splitter cancels a pending collapse.</summary>
+    private void OnDetailPanelMouseEnter(object sender, MouseEventArgs e)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        if (_viewModel.IsDetailPanelHoverExpanded)
+        {
+            _detailHoverTimer.Stop();
+        }
+        else if (_viewModel.DetailPanelHoverOpen && _viewModel.IsDetailPanelCollapsed)
+        {
+            ScheduleDetailHoverChange(expand: true);
+        }
+    }
+
+    private void OnDetailPanelMouseLeave(object sender, MouseEventArgs e)
+    {
+        if (_viewModel is null)
+        {
+            return;
+        }
+
+        if (_viewModel.IsDetailPanelHoverExpanded)
+        {
+            ScheduleDetailHoverChange(expand: false);
+        }
+        else
+        {
+            _detailHoverTimer.Stop();
+        }
+    }
+
+    private void ScheduleDetailHoverChange(bool expand)
+    {
+        if (_viewModel is null || !_viewModel.IsDetailPanelCollapsed)
+        {
+            return;
+        }
+
+        _detailHoverExpandTarget = expand;
+        _detailHoverTimer.Stop();
+        _detailHoverTimer.Start();
+    }
+
+    private void OnDetailHoverTimerTick(object? sender, EventArgs e)
+    {
+        _detailHoverTimer.Stop();
+        if (_viewModel is null || !_viewModel.IsDetailPanelCollapsed)
+        {
+            return;
+        }
+
+        var isOverPanel = DetailPanelBorder.IsMouseOver || DetailPanelSplitter.IsMouseOver;
+        if (_detailHoverExpandTarget)
+        {
+            if (isOverPanel && _viewModel.DetailPanelHoverOpen)
+            {
+                _viewModel.IsDetailPanelHoverExpanded = true;
+            }
+        }
+        else if (!isOverPanel && !_isDetailSplitterDragging)
+        {
+            _viewModel.IsDetailPanelHoverExpanded = false;
         }
     }
 

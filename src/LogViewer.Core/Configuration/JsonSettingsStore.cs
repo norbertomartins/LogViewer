@@ -98,7 +98,11 @@ public sealed class JsonSettingsStore(string filePath) : ISettingsStore
         // tools), so no field-level migration is needed.
         // v15 -> v16: CustomColors is new (the color picker's remembered custom colors); the initializer gives pre-v16
         // files an empty list, so no field-level migration is needed.
-        settings.SchemaVersion = 16;
+        // v16 -> v17: Layout.IsDetailPanelCollapsed and Layout.DetailPanelHoverOpen are new; both initializers (false)
+        // give pre-v17 files an expanded, manual-toggle-only detail panel, so no field-level migration is needed.
+        // v17 -> v18: Layout.IsStatusBarVisible is new; its initializer (true) keeps the status bar shown for pre-v18 files,
+        // so no field-level migration is needed.
+        settings.SchemaVersion = 18;
         return settings;
     }
 

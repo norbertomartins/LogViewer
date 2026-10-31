@@ -209,6 +209,15 @@
   <data name="Doc_Detail_TimestampFormat" xml:space="preserve"><value>Timestamp: {0:yyyy-MM-dd HH:mm:ss.fff zzz}</value></data>
   <data name="Doc_Detail_TemplateFormat" xml:space="preserve"><value>Template: {0}</value></data>
   <data name="Doc_Detail_Properties" xml:space="preserve"><value>Properties</value></data>
+  <data name="Doc_Detail_Collapse_ToolTip" xml:space="preserve"><value>Collapse or expand the properties panel</value></data>
+  <data name="Doc_Detail_HoverOpen" xml:space="preserve"><value>Open on hover</value></data>
+  <data name="Doc_Detail_HoverOpen_ToolTip" xml:space="preserve"><value>When collapsed, hovering the panel header temporarily expands it</value></data>
+  <data name="Menu_View" xml:space="preserve"><value>_View</value></data>
+  <data name="Menu_View_DetailPanelHoverOpen" xml:space="preserve"><value>Open _properties panel on hover</value></data>
+  <data name="Menu_View_StatusBar" xml:space="preserve"><value>Show _status bar</value></data>
+  <data name="Vm_Doc_Tab_WatchedFolder" xml:space="preserve"><value>Watched folder: {0}</value></data>
+  <data name="Vm_Doc_Tab_FileAndFolder" xml:space="preserve"><value>Folder: {0}&#10;File: {1}</value></data>
+  <data name="Vm_Doc_Tab_Merged" xml:space="preserve"><value>Merged folders:&#10;{0}&#10;Files: {1}</value></data>
   <data name="Doc_Detail_Exception" xml:space="preserve"><value>Exception</value></data>
   <data name="Doc_ClearFilterButton" xml:space="preserve"><value>✕ Clear filter</value></data>
   <data name="Doc_Stats_Name" xml:space="preserve"><value>Statistics</value></data>

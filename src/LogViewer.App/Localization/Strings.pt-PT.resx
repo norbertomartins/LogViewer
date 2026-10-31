@@ -209,6 +209,15 @@
   <data name="Doc_Detail_TimestampFormat" xml:space="preserve"><value>Data/hora: {0:yyyy-MM-dd HH:mm:ss.fff zzz}</value></data>
   <data name="Doc_Detail_TemplateFormat" xml:space="preserve"><value>Modelo: {0}</value></data>
   <data name="Doc_Detail_Properties" xml:space="preserve"><value>Propriedades</value></data>
+  <data name="Doc_Detail_Collapse_ToolTip" xml:space="preserve"><value>Recolher ou expandir o painel de propriedades</value></data>
+  <data name="Doc_Detail_HoverOpen" xml:space="preserve"><value>Abrir ao passar o rato</value></data>
+  <data name="Doc_Detail_HoverOpen_ToolTip" xml:space="preserve"><value>Quando recolhido, passar o rato sobre o cabeçalho do painel expande-o temporariamente</value></data>
+  <data name="Menu_View" xml:space="preserve"><value>_Ver</value></data>
+  <data name="Menu_View_DetailPanelHoverOpen" xml:space="preserve"><value>Abrir painel de _propriedades ao passar o rato</value></data>
+  <data name="Menu_View_StatusBar" xml:space="preserve"><value>Mostrar barra de _estado</value></data>
+  <data name="Vm_Doc_Tab_WatchedFolder" xml:space="preserve"><value>Pasta observada: {0}</value></data>
+  <data name="Vm_Doc_Tab_FileAndFolder" xml:space="preserve"><value>Pasta: {0}&#10;Ficheiro: {1}</value></data>
+  <data name="Vm_Doc_Tab_Merged" xml:space="preserve"><value>Pastas combinadas:&#10;{0}&#10;Ficheiros: {1}</value></data>
   <data name="Doc_Detail_Exception" xml:space="preserve"><value>Exceção</value></data>
   <data name="Doc_ClearFilterButton" xml:space="preserve"><value>✕ Limpar filtro</value></data>
   <data name="Doc_Stats_Name" xml:space="preserve"><value>Estatísticas</value></data>

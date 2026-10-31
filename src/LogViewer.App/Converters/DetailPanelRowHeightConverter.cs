@@ -16,7 +16,13 @@ public sealed class DetailPanelRowHeightConverter : IMultiValueConverter
         // SelectedLine is null, so "SelectedLine.Structured" has nothing to read. That must collapse the row too,
         // or a document with no selection reserves an empty band the size of the detail panel.
         var hasStructuredDetail = values.Length > 1 && values[1] is not null && values[1] != DependencyProperty.UnsetValue;
-        return hasStructuredDetail ? new GridLength(height) : new GridLength(0);
+        if (!hasStructuredDetail)
+        {
+            return new GridLength(0);
+        }
+
+        var isExpanded = values.Length < 3 || values[2] is not false;
+        return isExpanded ? new GridLength(height) : GridLength.Auto;
     }
 
     public object[] ConvertBack(object value, Type[] targetTypes, object? parameter, CultureInfo culture) =>
