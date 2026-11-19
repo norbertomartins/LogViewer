@@ -453,6 +453,7 @@
                                         ToolTip="{loc:Loc Doc_ScrollMarkers_ToolTip}" />
         <ListView Grid.Column="0" x:Name="LineListView"
                   ItemsSource="{Binding Lines}"
+                  SelectionMode="Extended"
                   SelectedItem="{Binding SelectedLine, Mode=TwoWay}"
                   ScrollViewer.HorizontalScrollBarVisibility="Auto"
                   Padding="0,0,0,16"
